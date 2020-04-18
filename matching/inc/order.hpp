@@ -10,6 +10,11 @@ namespace matching
 	public:
 		const static long long MARKET_PRICE = std::numeric_limits<long long>::max();
 	public:
+		enum order_side : unsigned char
+		{
+			BUY = 0x00,
+			SELL = 0x01
+		};
 		enum order_action_type : unsigned char
 		{
 			NEW = 0x00,
@@ -78,6 +83,7 @@ namespace matching
 		unsigned long long related_order_id;
 		long long cut_lost_value; //can be price, delta, or percentage
 		long long take_profit_value; //can be price, delta, or percentage
+		order_side side;
 		order_action_type order_action;
 		order_time_condition time_condition;
 		order_stop_type stop_type;
@@ -100,6 +106,7 @@ namespace matching
 			related_order_id(0),
 			cut_lost_value(0),
 			take_profit_value(0),
+			side(order_side::BUY),
 			order_action(order_action_type::NEW),
 			time_condition(order_time_condition::GTC),
 			stop_type(order_stop_type::NONE),
