@@ -59,6 +59,36 @@ namespace matching
 					& 0x00FFFFFFFFFFFFFF; //ignore last byte, order_state
 		}
 
+		template <typename BookSelf, typename BookCross>
+		inline void handle_new(BookSelf&, BookCross&, order& o)
+		{
+			if (order::order_stop_type::CUT_LOST_TAKE_PROFIT_WITHOUT_POSITION == o.stop_type)
+			{
+				if (order::order_stop_condition_type::ABSOLUTE == o.cut_lost_condition)
+				{
+				}
+				else
+				{
+				}
+
+				if (order::order_stop_condition_type::ABSOLUTE == o.take_profit_condition)
+				{
+				}
+				else
+				{
+				}
+
+				/*
+				if (cross_book.empty())
+				{
+					o.order_state = order::order_status_type::REJECT_STOP_VALUE_HAS_NO_BEST_PRICE;
+					_callback(o);
+					return;
+				}
+				*/
+			}
+		}
+
 		inline void handle_new(order& o)
 		{
 			if (o.display_quantity > o.quantity)
@@ -66,6 +96,14 @@ namespace matching
 				o.order_state = order::order_status_type::REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY;
 				_callback(o);
 				return;
+			}
+			if (order::order_side::BUY == o.side)
+			{
+				handle_new(_bid_book, _ask_book, o);
+			}
+			else
+			{
+				handle_new(_ask_book, _bid_book, o);
 			}
 		}
 
