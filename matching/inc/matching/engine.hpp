@@ -153,7 +153,8 @@ namespace matching
 			}
 			if (o.remain_quantity != 0)
 			{
-				_callback(o);
+				if (o.remain_quantity == o.quantity)
+					_callback(o);
 				self[o.price][o.engine_type][o.order_id] = o;
 			}
 			/*
