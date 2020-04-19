@@ -41,12 +41,6 @@ namespace matching
 			CUT_LOST_TAKE_PROFIT = 0x03,
 			CUT_LOST_TAKE_PROFIT_WITHOUT_POSITION = 0x04 //directory create two related order
 		};
-		enum order_stop_condition_type : unsigned char
-		{
-			ABSOLUTE = 0x00,
-			DELTA = 0x01,
-			PERCENTAGE = 0x02 //8 decimal point
-		};
 		enum order_status_type : unsigned char
 		{
 			OPEN = 0x00,
@@ -82,14 +76,13 @@ namespace matching
 		unsigned long long client_order_id;
 		unsigned long long last_matched_order_id;
 		unsigned long long related_order_id;
-		long long cut_lost_value; //can be price, delta, or percentage
-		long long take_profit_value; //can be price, delta, or percentage
+		unsigned long long matched_id;
+		long long cut_lost_price; //can be price, delta, or percentage
+		long long take_profit_price; //can be price, delta, or percentage
 		order_side side;
 		order_action_type order_action;
 		order_time_condition time_condition;
 		order_stop_type stop_type;
-		order_stop_condition_type cut_lost_condition;
-		order_stop_condition_type take_profit_condition;
 		oder_engine_type engine_type;
 		order_status_type order_state;
 		order_matched_type matched_type;
@@ -105,14 +98,13 @@ namespace matching
 			client_order_id(0),
 			last_matched_order_id(0),
 			related_order_id(0),
-			cut_lost_value(0),
-			take_profit_value(0),
+			matched_id(0),
+			cut_lost_price(0),
+			take_profit_price(0),
 			side(order_side::BUY),
 			order_action(order_action_type::NEW),
 			time_condition(order_time_condition::GTC),
 			stop_type(order_stop_type::NONE),
-			cut_lost_condition(order_stop_condition_type::ABSOLUTE),
-			take_profit_condition(order_stop_condition_type::ABSOLUTE),
 			engine_type(oder_engine_type::NORMAL),
 			order_state(order_status_type::OPEN),
 			matched_type(order_matched_type::MAKER)

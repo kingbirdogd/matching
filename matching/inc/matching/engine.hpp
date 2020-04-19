@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <atomic>
 #include <functional>
+#include <algorithm>
 #include <matching/order.hpp>
 
 namespace matching
@@ -56,12 +57,106 @@ namespace matching
 		inline static unsigned long long get_flag_value(const order& odr)
 		{
 			return (*static_cast<const unsigned long long*>(static_cast<const void*>(&odr.side)))
-					& 0x00FFFFFFFFFFFFFF; //ignore last byte, order_state
+					& 0x000000FFFFFFFFFF; //ignore last 3 byte, order_state
 		}
 
 		template <typename BookSelf, typename BookCross>
-		inline void handle_new(BookSelf&, BookCross&, order& o)
+		inline void handle_new(BookSelf& self, BookCross& cross, order& o)
 		{
+			o.remain_quantity = o.quantity;
+			typename BookCross::key_compare cmp;
+			bool stop = false;
+			for (auto it = cross.begin(); it != cross.end();)
+			{
+				auto matched_price = it->first;
+				if (!cmp(o.price, matched_price))
+				{
+					auto m2 = it->second;
+					for (auto it2 = m2.begin(); it2 != m2.end();)
+					{
+						auto m3 = it2->second;
+						for (auto it3 = m3.begin(); it3 != m3.end();)
+						{
+							auto& o2 = it3->second;
+							auto matched_quantity = std::min(o.remain_quantity, o2.remain_quantity);
+							auto matched_id = get_id();
+							o.matched_id = matched_id;
+							o2.matched_id = matched_id;
+							o.remain_quantity -= matched_quantity;
+							o2.remain_quantity -= matched_quantity;
+							o.last_match_price = matched_price;
+							o.last_match_quantity = matched_quantity;
+							o2.last_match_price = matched_price;
+							o2.last_match_quantity = matched_quantity;
+							o.last_matched_order_id = o2.order_id;
+							o2.last_matched_order_id = o.order_id;
+							if (0 == o.remain_quantity)
+							{
+								o.order_state = order::order_status_type::FILLED;
+							}
+							else
+							{
+								o.order_state = order::order_status_type::PARTIAL_FILL;
+							}
+							if (0 == o2.remain_quantity)
+							{
+								o2.order_state = order::order_status_type::FILLED;
+							}
+							else
+							{
+								o2.order_state = order::order_status_type::PARTIAL_FILL;
+							}
+							o.matched_type = order::order_matched_type::TAKER;
+							o2.matched_type = order::order_matched_type::MAKER;
+							_callback(o);
+							_callback(o2);
+							if (0 != o2.remain_quantity)
+							{
+								++it3;
+							}
+							else
+							{
+								it3 = m3.erase(it3);
+							}
+							if (0 == o.remain_quantity)
+							{
+								stop = true;
+								break;
+							}
+						}
+						if (!m3.empty())
+						{
+							++it2;
+						}
+						else
+						{
+							it2 = m2.erase(it2);
+						}
+						if (stop)
+							break;
+					}
+					if (!m2.empty())
+					{
+						++it;
+					}
+					else
+					{
+						it = cross.erase(it);
+					}
+					if (stop)
+						break;
+				}
+				else
+				{
+					++it;
+				}
+			}
+			if (o.remain_quantity != 0)
+			{
+				_callback(o);
+				self[o.price][o.engine_type][o.order_id] = o;
+			}
+			/*
 			if (order::order_stop_type::CUT_LOST_TAKE_PROFIT_WITHOUT_POSITION == o.stop_type)
 			{
 				if (order::order_stop_condition_type::ABSOLUTE == o.cut_lost_condition)
@@ -78,15 +173,14 @@ namespace matching
 				{
 				}
 
-				/*
 				if (cross_book.empty())
 				{
 					o.order_state = order::order_status_type::REJECT_STOP_VALUE_HAS_NO_BEST_PRICE;
 					_callback(o);
 					return;
 				}
-				*/
 			}
+			*/
 		}
 
 		inline void handle_new(order& o)

@@ -19,6 +19,7 @@ engine::~engine()
 
 void engine::handle(order& o)
 {
+	o.order_id = get_id();
 	if (order::order_action_type::NEW == o.order_action)
 	{
 		handle_new(o);
