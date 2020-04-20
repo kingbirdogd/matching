@@ -9,4 +9,5 @@ include_directories(matching/inc)
 project(engine)
 add_subdirectory(matching)
 add_subdirectory(matching_test)
+add_subdirectory(contrib)
 
