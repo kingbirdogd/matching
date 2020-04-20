@@ -1,0 +1,14 @@
+[
+  {"base":63488,"counter":65283,"name":"XBT/USDT","spot_name":"XBT/USDT","tick":10000, "min_order_qty": 4},
+  {"base":63496,"counter":65283,"name":"BCH/USDT","spot_name":"BCH/USDT","tick":2500, "min_order_qty": 4},
+  {"base":63520,"counter":65283,"name":"ETH/USDT","spot_name":"ETH/USDT","tick":1000, "min_order_qty": 4},
+  {"base":65285,"counter":65283,"name":"FLEX/USDT","spot_name":"FLEX/USDT","tick":50, "min_order_qty": 4},
+  {"base":65282,"counter":65283,"name":"USDC/USDT","spot_name":"USDC/USDT","tick":1, "min_order_qty": 4},
+  {"base":51202,"counter":51882,"name":"XBTMAR/USDTMAR","spot_name":"XBT/USDT","start":1577880000000,"expires":1585310400000,"tenor":"H20","tick":5000, "min_order_qty": 4},
+  {"base":51222,"counter":51882,"name":"BCHMAR/USDTMAR","spot_name":"BCH/USDT","start":1577880000000,"expires":1585310400000,"tenor":"H20","tick":2500, "min_order_qty": 4},
+  {"base":51242,"counter":51882,"name":"ETHMAR/USDTMAR","spot_name":"ETH/USDT","start":1577880000000,"expires":1585310400000,"tenor":"H20","tick":1000, "min_order_qty": 4},
+  {"base":51862,"counter":51882,"name":"USDCMAR/USDTMAR","spot_name":"USDC/USDT","start":1577880000000,"expires":1585310400000,"tenor":"H20","tick":1, "min_order_qty": 4},
+  {"base":65287,"counter":65288,"name":"DOTF/USDTDOT","spot_name":"DOT/USDT","start":1563364800000,"expires":1593518400000,"tenor":"M20","tick":10000, "min_order_qty": 4},
+  {"base":65290,"counter":65291,"name":"DFNF/USDTDFN","spot_name":"DFN/USDT","start":1566477000000,"expires":1601463600000,"tenor":"U20","tick":500, "min_order_qty": 4},
+  {"base":65534,"counter":65535,"name":"65534/65535","spot_name":"65534/65535","tick":100, "min_order_qty": 4}
+]
