@@ -5,7 +5,6 @@
 
 namespace matching
 {
-  #pragma pack(1)
 	struct order
 	{
 	public:
