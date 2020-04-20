@@ -1,0 +1,2 @@
+add_executable(matching_test matching_test.cpp)
+target_link_libraries(matching_test engine)
