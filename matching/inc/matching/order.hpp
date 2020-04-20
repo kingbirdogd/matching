@@ -13,7 +13,9 @@ namespace matching
 		enum order_side : unsigned char
 		{
 			BUY = 0x00,
-			SELL = 0x01
+			SELL = 0x01,
+			BUY_STOP = 0x02,
+			SELL_STOP = 0x03
 		};
 		enum order_action_type : unsigned char
 		{
@@ -75,14 +77,14 @@ namespace matching
 		unsigned long long order_id;
 		unsigned long long client_order_id;
 		unsigned long long last_matched_order_id;
-		unsigned long long related_order_id;
 		unsigned long long matched_id;
-		long long cut_lost_price; //can be price, delta, or percentage
-		long long take_profit_price; //can be price, delta, or percentage
+		long long buy_stop_triger_price;
+		long long buy_stop_limited_price;
+		long long sell_stop_triger_price;
+		long long sell_stop_limited_price;
 		order_side side;
 		order_action_type order_action;
 		order_time_condition time_condition;
-		order_stop_type stop_type;
 		oder_engine_type engine_type;
 		order_status_type order_state;
 		order_matched_type matched_type;
@@ -97,14 +99,14 @@ namespace matching
 			order_id(0),
 			client_order_id(0),
 			last_matched_order_id(0),
-			related_order_id(0),
 			matched_id(0),
-			cut_lost_price(0),
-			take_profit_price(0),
+			buy_stop_triger_price(0),
+			buy_stop_limited_price(0),
+			sell_stop_triger_price(0),
+			sell_stop_limited_price(0),
 			side(order_side::BUY),
 			order_action(order_action_type::NEW),
 			time_condition(order_time_condition::GTC),
-			stop_type(order_stop_type::NONE),
 			engine_type(oder_engine_type::NORMAL),
 			order_state(order_status_type::OPEN),
 			matched_type(order_matched_type::MAKER)

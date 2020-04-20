@@ -26,10 +26,17 @@ namespace matching
 		using bid_book_type = std::map<long long, type_order_map, std::greater<long long>>;
 		using ask_book_type = std::map<long long, type_order_map, std::less<long long>>;
 		using callback_type = std::function<void(const order&)>;
+		using stop_book_type = std::unordered_map<unsigned long long, order>;
+		using id_stop_ordermap = std::map<unsigned long long, order*>;
+		using bid_stop_book_type = std::map<long long, id_stop_ordermap, std::greater<long long>>;
+		using ask_stop_book_type = std::map<long long, id_stop_ordermap, std::less<long long>>;
 	private:
 		search_order_map _odr_map;
 		bid_book_type _bid_book;
 		ask_book_type _ask_book;
+		stop_book_type _stop_book;
+		bid_stop_book_type _bid_stop_book;
+		ask_stop_book_type _ask_stop_book;
 		callback_type _callback;
 	public:
 		engine(callback_type&& callback);
@@ -56,20 +63,19 @@ namespace matching
 		//get the order keep flag
 		inline static unsigned long long get_flag_value(const order& odr)
 		{
-			return (*static_cast<const unsigned long long*>(static_cast<const void*>(&odr.side)))
-					& 0x000000FFFFFFFFFF; //ignore last 3 byte, order_state
+			return (*static_cast<const unsigned int*>(static_cast<const void*>(&odr.side)));
 		}
 
 		template <typename BookSelf, typename BookCross>
-		inline void handle_new(BookSelf& self, BookCross& cross, order& o)
+		inline void handle_normal(BookSelf& self, BookCross& cross, order& o)
 		{
 			o.remain_quantity = o.quantity;
-			typename BookCross::key_compare cmp;
+			typename BookCross::key_compare cross_cmp;
 			bool stop = false;
 			for (auto it = cross.begin(); it != cross.end();)
 			{
 				auto matched_price = it->first;
-				if (!cmp(o.price, matched_price))
+				if (!cross_cmp(o.price, matched_price) || order::MARKET_PRICE == o.price)
 				{
 					auto m2 = it->second;
 					for (auto it2 = m2.begin(); it2 != m2.end();)
@@ -157,31 +163,6 @@ namespace matching
 					_callback(o);
 				self[o.price][o.engine_type][o.order_id] = o;
 			}
-			/*
-			if (order::order_stop_type::CUT_LOST_TAKE_PROFIT_WITHOUT_POSITION == o.stop_type)
-			{
-				if (order::order_stop_condition_type::ABSOLUTE == o.cut_lost_condition)
-				{
-				}
-				else
-				{
-				}
-
-				if (order::order_stop_condition_type::ABSOLUTE == o.take_profit_condition)
-				{
-				}
-				else
-				{
-				}
-
-				if (cross_book.empty())
-				{
-					o.order_state = order::order_status_type::REJECT_STOP_VALUE_HAS_NO_BEST_PRICE;
-					_callback(o);
-					return;
-				}
-			}
-			*/
 		}
 
 		inline void handle_new(order& o)
@@ -194,12 +175,13 @@ namespace matching
 			}
 			if (order::order_side::BUY == o.side)
 			{
-				handle_new(_bid_book, _ask_book, o);
+				handle_normal(_bid_book, _ask_book, o);
 			}
-			else
+			else if (order::order_side::SELL == o.side)
 			{
-				handle_new(_ask_book, _bid_book, o);
+				handle_normal(_ask_book, _bid_book, o);
 			}
+
 		}
 
 		inline void handle_cancel(order& o)
