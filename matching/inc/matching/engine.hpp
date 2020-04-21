@@ -42,8 +42,14 @@ namespace matching
 		engine(callback_type&& callback);
 		~engine();
 		void handle(order& o);
+		inline void recovery(callback_type&& callback) const
+		{
+			for (const auto& item : _odr_map)
+			{
+				callback(*item.second);
+			}
+		}
 	private:
-
 		template <typename BookType>
 		static void erase_from_book(BookType& book, order& odr)
 		{
@@ -135,6 +141,7 @@ namespace matching
 							else
 							{
 								it3 = m3.erase(it3);
+								_odr_map.erase(o2.order_id);
 							}
 							if (0 == o.remain_quantity)
 							{
@@ -171,8 +178,6 @@ namespace matching
 			}
 			if (o.remain_quantity != 0)
 			{
-				if (o.remain_quantity == o.quantity)
-					_callback(o);
 				if (order::order_time_condition::IOC == o.time_condition)
 				{
 					if (0 != o.remain_quantity)
@@ -183,13 +188,18 @@ namespace matching
 							o.order_state = order::order_status_type::CANCELED_PARTIAL_BY_IOC;
 						_callback(o);
 					}
+					return;
 				}
+				if (o.remain_quantity == o.quantity)
+					_callback(o);
 				self[o.price][o.engine_type][o.order_id] = o;
+				_odr_map[o.order_id] = &self[o.price][o.engine_type][o.order_id];
 			}
 		}
 
 		inline void handle_new(order& o)
 		{
+			o.order_id = get_id();
 			if (o.display_quantity > o.quantity)
 			{
 				o.order_state = order::order_status_type::REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY;
@@ -265,6 +275,9 @@ namespace matching
 			{
 				//just change quantity;
 				ori_odr.client_order_id = o.client_order_id;
+				ori_odr.quantity = o.quantity;
+				ori_odr.display_quantity = o.display_quantity;
+				ori_odr.remain_quantity = ori_odr.quantity;
 				_callback(ori_odr);
 			}
 			else
