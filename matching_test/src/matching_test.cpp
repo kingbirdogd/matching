@@ -3,7 +3,18 @@
 
 void handle_order(const matching::order& o)
 {
-	std::cout << "order_id:" << o.order_id
+	std::string side = "";
+	if (matching::order::order_side::BUY == o.side)
+	{
+		side = "BUY";
+	}
+	else
+	{
+		side = "SELL";
+	}
+	std::cout
+			<< "side:" << side
+			<< ",order_id:" << o.order_id
 			<< ",quantity:" << o.quantity
 			<< ",price:" << o.price
 			<< ",remain_quantity:" << o.remain_quantity
@@ -22,11 +33,50 @@ int main()
 	o.quantity = 1000;
 	o.display_quantity = 1000;
 	e.handle(o);
-	o.side = matching::order::order_side::SELL;
+
+	o.side = matching::order::order_side::BUY;
 	o.price = 99;
-	o.quantity = 600;
-	o.display_quantity = 600;
+	o.quantity = 1200;
+	o.display_quantity = 1200;
 	e.handle(o);
+
+	o.side = matching::order::order_side::BUY;
+	o.price = 98;
+	o.quantity = 800;
+	o.display_quantity = 800;
+	e.handle(o);
+
+	o.side = matching::order::order_side::BUY;
+	o.price = 97;
+	o.quantity = 3200;
+	o.display_quantity = 3200;
+	e.handle(o);
+
+	o.side = matching::order::order_side::BUY;
+	o.price = 96;
+	o.quantity = 500;
+	o.display_quantity = 500;
+	e.handle(o);
+
+	o.side = matching::order::order_side::BUY;
+	o.price = 96;
+	o.quantity = 800;
+	o.display_quantity = 800;
+	e.handle(o);
+
+	o.side = matching::order::order_side::BUY;
+	o.price = 95;
+	o.quantity = 8000;
+	o.display_quantity = 8000;
+	e.handle(o);
+
+	o.side = matching::order::order_side::SELL;
+	o.price = 96;
+	o.quantity = 10000;
+	o.display_quantity = 10000;
+	e.handle(o);
+
+
 	return 0;
 }
 
