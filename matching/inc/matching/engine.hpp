@@ -71,12 +71,24 @@ namespace matching
 		{
 			o.remain_quantity = o.quantity;
 			typename BookCross::key_compare cross_cmp;
+			if (order::MARKET_PRICE == o.price && cross.empty())
+			{
+				o.order_state = order::order_status_type::CANCELED_BY_MARKET_ORDER_NOTHING_MATCH;
+				_callback(o);
+				return;
+			}
 			bool stop = false;
 			for (auto it = cross.begin(); it != cross.end();)
 			{
 				auto matched_price = it->first;
 				if (!cross_cmp(o.price, matched_price) || order::MARKET_PRICE == o.price)
 				{
+					if (order::order_time_condition::MAKER_ONLY == o.time_condition)
+					{
+						o.order_state = order::order_status_type::CANCELED_BY_MAKER_ONLY;
+						_callback(o);
+						return;
+					}
 					auto m2 = it->second;
 					for (auto it2 = m2.begin(); it2 != m2.end();)
 					{
@@ -161,6 +173,17 @@ namespace matching
 			{
 				if (o.remain_quantity == o.quantity)
 					_callback(o);
+				if (order::order_time_condition::IOC == o.time_condition)
+				{
+					if (0 != o.remain_quantity)
+					{
+						if (o.remain_quantity == o.quantity)
+							o.order_state = order::order_status_type::CANCELED_ALL_BY_IOC;
+						else
+							o.order_state = order::order_status_type::CANCELED_PARTIAL_BY_IOC;
+						_callback(o);
+					}
+				}
 				self[o.price][o.engine_type][o.order_id] = o;
 			}
 		}
