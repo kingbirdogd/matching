@@ -2,6 +2,7 @@
 #define MATCHING_INC_ENGINE_HPP_
 
 #include <map>
+#include <vector>
 #include <unordered_map>
 #include <atomic>
 #include <functional>
@@ -66,34 +67,134 @@ namespace matching
 			}
 		}
 
-		//get the order keep flag
-		inline static unsigned long long get_flag_value(const order& odr)
+		template <typename BookType>
+		void full_erase_from_book(BookType& book, order& odr)
 		{
-			return (*static_cast<const unsigned int*>(static_cast<const void*>(&odr.side)));
+			_odr_map.erase(odr.order_id);
+			erase_from_book(book, odr);
 		}
 
-		template <typename BookSelf, typename BookCross>
-		inline void handle_normal(BookSelf& self, BookCross& cross, order& o)
+		inline void handle_matched_implied(order&)
+		{
+		}
+
+		inline void handle_matched_order(order& o, order& o2)
+		{
+			auto matched_price = o2.price;
+			auto matched_quantity = std::min(o.remain_quantity, o2.remain_quantity);
+			auto matched_id = get_id();
+			o.matched_id = matched_id;
+			o2.matched_id = matched_id;
+			o.remain_quantity -= matched_quantity;
+			o2.remain_quantity -= matched_quantity;
+			o.last_match_price = matched_price;
+			o.last_match_quantity = matched_quantity;
+			o2.last_match_price = matched_price;
+			o2.last_match_quantity = matched_quantity;
+			o.last_matched_order_id = o2.order_id;
+			o2.last_matched_order_id = o.order_id;
+			if (0 == o.remain_quantity)
+			{
+				o.order_state = order::order_status_type::FILLED;
+			}
+			else
+			{
+				o.order_state = order::order_status_type::PARTIAL_FILL;
+			}
+			if (0 == o2.remain_quantity)
+			{
+				o2.order_state = order::order_status_type::FILLED;
+			}
+			else
+			{
+				o2.order_state = order::order_status_type::PARTIAL_FILL;
+			}
+			o.matched_type = order::order_matched_type::TAKER;
+			o2.matched_type = order::order_matched_type::MAKER;
+			_callback(o);
+			_callback(o2);
+			handle_matched_implied(o2);
+		}
+
+		template <typename Book>
+		inline void handle_fok_cross(Book& book, order& o, long long limited_price)
+		{
+			std::vector<order*> cross_odrs;
+			unsigned long long total_matched_quantity = 0;
+			typename Book::key_compare cross_cmp;
+			bool stop = false;
+			for (auto it = book.begin(); it != book.end(); ++it)
+			{
+				if (!cross_cmp(o.price, it->first) || order::MARKET_PRICE == limited_price)
+				{
+					auto m2 = it->second;
+					for (auto it2 = m2.begin(); it2 != m2.end(); ++it2)
+					{
+						auto m3 = it2->second;
+						for (auto it3 = m3.begin(); it3 != m3.end(); ++it3)
+						{
+							auto& o2 = it3->second;
+							auto matched_quantity = std::min(o.remain_quantity, o2.remain_quantity);
+							total_matched_quantity += matched_quantity;
+							cross_odrs.push_back(&o2);
+							if (total_matched_quantity == o.remain_quantity)
+							{
+								stop = true;
+								break;
+							}
+						}
+						if (stop)
+							break;
+					}
+				}
+				if (stop)
+					break;
+			}
+			if (total_matched_quantity != o.remain_quantity)
+			{
+				o.order_state = order::order_status_type::CANCELED_BY_FOK;
+				_callback(o);
+			}
+			else
+			{
+				for (std::size_t i = 0; i < cross_odrs.size(); ++i)
+				{
+					auto& o2 = *cross_odrs[i];
+					handle_matched_order(o, o2);
+					if (0 == o2.remain_quantity)
+					{
+						full_erase_from_book(book, o2);
+					}
+				}
+			}
+		}
+
+		template <typename Book>
+		inline bool handle_cross(Book& book, order& o, long long limited_price)
 		{
 			o.remain_quantity = o.quantity;
-			typename BookCross::key_compare cross_cmp;
-			if (order::MARKET_PRICE == o.price && cross.empty())
+			if (order::order_time_condition::FOK == o.time_condition)
+			{
+				handle_fok_cross(book, o, limited_price);
+				return false;
+			}
+			typename Book::key_compare cross_cmp;
+			if (order::MARKET_PRICE == o.price && book.empty())
 			{
 				o.order_state = order::order_status_type::CANCELED_BY_MARKET_ORDER_NOTHING_MATCH;
 				_callback(o);
-				return;
+				return false;
 			}
 			bool stop = false;
-			for (auto it = cross.begin(); it != cross.end();)
+			for (auto it = book.begin(); it != book.end();)
 			{
-				auto matched_price = it->first;
-				if (!cross_cmp(o.price, matched_price) || order::MARKET_PRICE == o.price)
+				if (!cross_cmp(o.price, it->first) || order::MARKET_PRICE == limited_price)
 				{
 					if (order::order_time_condition::MAKER_ONLY == o.time_condition)
 					{
 						o.order_state = order::order_status_type::CANCELED_BY_MAKER_ONLY;
 						_callback(o);
-						return;
+						return false;
 					}
 					auto m2 = it->second;
 					for (auto it2 = m2.begin(); it2 != m2.end();)
@@ -102,46 +203,15 @@ namespace matching
 						for (auto it3 = m3.begin(); it3 != m3.end();)
 						{
 							auto& o2 = it3->second;
-							auto matched_quantity = std::min(o.remain_quantity, o2.remain_quantity);
-							auto matched_id = get_id();
-							o.matched_id = matched_id;
-							o2.matched_id = matched_id;
-							o.remain_quantity -= matched_quantity;
-							o2.remain_quantity -= matched_quantity;
-							o.last_match_price = matched_price;
-							o.last_match_quantity = matched_quantity;
-							o2.last_match_price = matched_price;
-							o2.last_match_quantity = matched_quantity;
-							o.last_matched_order_id = o2.order_id;
-							o2.last_matched_order_id = o.order_id;
-							if (0 == o.remain_quantity)
-							{
-								o.order_state = order::order_status_type::FILLED;
-							}
-							else
-							{
-								o.order_state = order::order_status_type::PARTIAL_FILL;
-							}
-							if (0 == o2.remain_quantity)
-							{
-								o2.order_state = order::order_status_type::FILLED;
-							}
-							else
-							{
-								o2.order_state = order::order_status_type::PARTIAL_FILL;
-							}
-							o.matched_type = order::order_matched_type::TAKER;
-							o2.matched_type = order::order_matched_type::MAKER;
-							_callback(o);
-							_callback(o2);
+							handle_matched_order(o, o2);
 							if (0 != o2.remain_quantity)
 							{
 								++it3;
 							}
 							else
 							{
-								it3 = m3.erase(it3);
 								_odr_map.erase(o2.order_id);
+								it3 = m3.erase(it3);
 							}
 							if (0 == o.remain_quantity)
 							{
@@ -166,15 +236,15 @@ namespace matching
 					}
 					else
 					{
-						it = cross.erase(it);
+						it = book.erase(it);
 					}
-					if (stop)
-						break;
 				}
 				else
 				{
 					++it;
 				}
+				if (stop)
+					break;
 			}
 			if (o.remain_quantity != 0)
 			{
@@ -188,10 +258,20 @@ namespace matching
 							o.order_state = order::order_status_type::CANCELED_PARTIAL_BY_IOC;
 						_callback(o);
 					}
-					return;
+					return false;
 				}
 				if (o.remain_quantity == o.quantity)
 					_callback(o);
+				return true;
+			}
+			return false;
+		}
+
+		template <typename SelfBook,typename CrossBook>
+		inline void handle_normal_new(SelfBook& self, CrossBook& cross, order& o)
+		{
+			if (handle_cross(cross, o, o.price))
+			{
 				self[o.price][o.engine_type][o.order_id] = o;
 				_odr_map[o.order_id] = &self[o.price][o.engine_type][o.order_id];
 			}
@@ -208,11 +288,11 @@ namespace matching
 			}
 			if (order::order_side::BUY == o.side)
 			{
-				handle_normal(_bid_book, _ask_book, o);
+				handle_normal_new(_bid_book, _ask_book, o);
 			}
 			else if (order::order_side::SELL == o.side)
 			{
-				handle_normal(_ask_book, _bid_book, o);
+				handle_normal_new(_ask_book, _bid_book, o);
 			}
 
 		}
@@ -271,7 +351,7 @@ namespace matching
 				return;
 			}
 			ori_odr.order_action = o.order_action;
-			if (get_flag_value(o) == get_flag_value(ori_odr) && o.quantity <= ori_odr.remain_quantity)
+			if (o.get_flag_value() == ori_odr.get_flag_value() && o.quantity <= ori_odr.remain_quantity)
 			{
 				//just change quantity;
 				ori_odr.client_order_id = o.client_order_id;

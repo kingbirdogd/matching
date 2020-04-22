@@ -113,6 +113,10 @@ namespace matching
 		{
 		}
 		~order() = default;
+		inline unsigned long long get_flag_value()
+		{
+			return (*static_cast<const unsigned int*>(static_cast<const void*>(&side)));
+		}
 	};
 }
 
