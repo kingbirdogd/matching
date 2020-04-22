@@ -21,21 +21,18 @@ namespace matching
 			return _id.fetch_add(1, std::memory_order_relaxed);
 		}
 	private:
-		using search_order_map = std::unordered_map<unsigned long long, order*>;
-		using id_order_map = std::map<unsigned long long, order>;
+		using search_order_map = std::unordered_map<unsigned long long, order>;
+		using id_order_map = std::map<unsigned long long, order*>;
 		using type_order_map = std::map<order::order_engine_type, id_order_map>;
 		using bid_book_type = std::map<long long, type_order_map, std::greater<long long>>;
 		using ask_book_type = std::map<long long, type_order_map, std::less<long long>>;
+		using bid_stop_book_type = std::map<long long, id_order_map, std::greater<long long>>;
+		using ask_stop_book_type = std::map<long long, id_order_map, std::less<long long>>;
 		using callback_type = std::function<void(const order&)>;
-		using stop_book_type = std::unordered_map<unsigned long long, order>;
-		using id_stop_ordermap = std::map<unsigned long long, order*>;
-		using bid_stop_book_type = std::map<long long, id_stop_ordermap, std::greater<long long>>;
-		using ask_stop_book_type = std::map<long long, id_stop_ordermap, std::less<long long>>;
 	private:
 		search_order_map _odr_map;
 		bid_book_type _bid_book;
 		ask_book_type _ask_book;
-		stop_book_type _stop_book;
 		bid_stop_book_type _bid_stop_book;
 		ask_stop_book_type _ask_stop_book;
 		callback_type _callback;
@@ -47,12 +44,12 @@ namespace matching
 		{
 			for (const auto& item : _odr_map)
 			{
-				callback(*item.second);
+				callback(item.second);
 			}
 		}
 	private:
 		template <typename BookType>
-		static void erase_from_book(BookType& book, order& odr)
+		static void erase_from_normal_book(BookType& book, order& odr)
 		{
 			auto ori_it_price = book.find(odr.price);
 			auto ori_it_type = ori_it_price->second.find(odr.engine_type);
@@ -68,10 +65,28 @@ namespace matching
 		}
 
 		template <typename BookType>
-		void full_erase_from_book(BookType& book, order& odr)
+		static void erase_from_stop_book(BookType& book, order& odr)
 		{
+			auto ori_it_price = book.find(odr.price);
+			ori_it_price->second.erase(odr.order_id);
+			if (ori_it_price->second.empty())
+			{
+				book.erase(ori_it_price);
+			}
+		}
+
+		template <typename BookType>
+		void full_erase_from_normal_book(BookType& book, order& odr)
+		{
+			erase_from_normal_book(book, odr);
 			_odr_map.erase(odr.order_id);
-			erase_from_book(book, odr);
+		}
+
+		template <typename BookType>
+		void full_erase_from_stop_book(BookType& book, order& odr)
+		{
+			erase_from_stop_book(book, odr);
+			_odr_map.erase(odr.order_id);
 		}
 
 		inline void handle_matched_implied(order&)
@@ -133,7 +148,7 @@ namespace matching
 						auto m3 = it2->second;
 						for (auto it3 = m3.begin(); it3 != m3.end(); ++it3)
 						{
-							auto& o2 = it3->second;
+							auto& o2 = *it3->second;
 							auto matched_quantity = std::min(o.remain_quantity, o2.remain_quantity);
 							total_matched_quantity += matched_quantity;
 							cross_odrs.push_back(&o2);
@@ -165,7 +180,7 @@ namespace matching
 					handle_matched_order(o, o2);
 					if (0 == o2.remain_quantity)
 					{
-						full_erase_from_book(book, o2);
+						full_erase_from_normal_book(book, o2);
 					}
 				}
 			}
@@ -204,7 +219,7 @@ namespace matching
 						auto m3 = it2->second;
 						for (auto it3 = m3.begin(); it3 != m3.end();)
 						{
-							auto& o2 = it3->second;
+							auto& o2 = *it3->second;
 							handle_matched_order(o, o2);
 							if (0 != o2.remain_quantity)
 							{
@@ -212,8 +227,8 @@ namespace matching
 							}
 							else
 							{
-								_odr_map.erase(o2.order_id);
 								it3 = m3.erase(it3);
+								_odr_map.erase(o2.order_id);
 							}
 							if (0 == o.remain_quantity)
 							{
@@ -278,8 +293,13 @@ namespace matching
 		{
 			if (handle_cross(cross, o, o.price))
 			{
-				self[o.price][o.engine_type][o.order_id] = o;
-				_odr_map[o.order_id] = &self[o.price][o.engine_type][o.order_id];
+				//self[o.price][o.engine_type][o.order_id] =
+						//&((_odr_map.emplace(o.order_id, o).first)->second);
+				//DDTEST
+				_odr_map[o.order_id] = o;
+				self[o.price][o.engine_type][o.order_id] = &_odr_map[o.order_id];
+				//self[o.price][o.engine_type][o.order_id] = o;
+				//_odr_map[o.order_id] = &self[o.price][o.engine_type][o.order_id];
 			}
 		}
 
@@ -300,6 +320,15 @@ namespace matching
 			{
 				handle_normal_new(_ask_book, _bid_book, o);
 			}
+			else if (order::order_side::BUY_STOP == o.side)
+			{
+			}
+			else if (order::order_side::SELL_STOP == o.side)
+			{
+			}
+			else
+			{
+			}
 
 		}
 
@@ -312,7 +341,7 @@ namespace matching
 				_callback(o);
 				return;
 			}
-			auto& ori_odr = *(it->second);
+			auto& ori_odr = it->second;
 			if (order::order_engine_type::IMPLIED == ori_odr.engine_type)
 			{
 				o.order_state = order::order_status_type::REJECT_CANCEL_ORDER_ID_NOT_FOUND;
@@ -324,11 +353,24 @@ namespace matching
 			_callback(ori_odr);
 			if (order::order_side::BUY == ori_odr.side)
 			{
-				erase_from_book(_bid_book, ori_odr);
+				erase_from_normal_book(_bid_book, ori_odr);
+			}
+			else if (order::order_side::SELL == ori_odr.side)
+			{
+				erase_from_normal_book(_ask_book, ori_odr);
+			}
+			else if (order::order_side::BUY_STOP == ori_odr.side)
+			{
+				erase_from_stop_book(_bid_stop_book, ori_odr);
+			}
+			else if (order::order_side::SELL_STOP == ori_odr.side)
+			{
+				erase_from_stop_book(_ask_stop_book, ori_odr);
 			}
 			else
 			{
-				erase_from_book(_ask_book, ori_odr);
+				erase_from_stop_book(_bid_stop_book, ori_odr);
+				erase_from_stop_book(_ask_stop_book, ori_odr);
 			}
 			_odr_map.erase(it);
 		}
@@ -349,7 +391,7 @@ namespace matching
 				_callback(o);
 				return;
 			}
-			auto& ori_odr = *(it->second);
+			auto& ori_odr = it->second;
 			if (order::order_engine_type::IMPLIED == ori_odr.engine_type)
 			{
 				o.order_state = order::order_status_type::REJECT_AMEND_ORDER_ID_NOT_FOUND;
@@ -359,7 +401,6 @@ namespace matching
 			ori_odr.order_action = o.order_action;
 			if (o.get_flag_value() == ori_odr.get_flag_value() && o.quantity <= ori_odr.remain_quantity)
 			{
-				//just change quantity;
 				ori_odr.client_order_id = o.client_order_id;
 				ori_odr.quantity = o.quantity;
 				ori_odr.display_quantity = o.display_quantity;

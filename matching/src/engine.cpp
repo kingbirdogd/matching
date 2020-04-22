@@ -9,7 +9,6 @@ engine::engine(callback_type&& callback):
 		_odr_map(),
 		_bid_book(),
 		_ask_book(),
-		_stop_book(),
 		_bid_stop_book(),
 		_ask_stop_book(),
 		_callback(std::move(callback))
