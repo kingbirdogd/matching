@@ -365,6 +365,7 @@ namespace matching
 						order::order_status_type::REJECT_BUY_STOP_TRIGGER_LESS_THAN_BEST_ASK>(_ask_book,o))
 				{
 					_bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+					_callback(o);
 				}
 			}
 			else if (order::order_side::SELL_STOP == o.side)
@@ -377,6 +378,7 @@ namespace matching
 						order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_BEST_BID>(_bid_book,o))
 				{
 					_ask_stop_book[o.sell_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+					_callback(o);
 				}
 			}
 			else
@@ -402,6 +404,7 @@ namespace matching
 					auto podr = &((_odr_map.emplace(o.order_id, o).first)->second);
 					_bid_stop_book[o.buy_stop_trigger_price].insert(podr);
 					_ask_stop_book[o.sell_stop_trigger_price].insert(podr);
+					_callback(o);
 				}
 			}
 
