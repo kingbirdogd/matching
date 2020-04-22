@@ -296,13 +296,7 @@ namespace matching
 		{
 			if (handle_cross<CrossBook, offsetof(order, price)>(cross, o))
 			{
-				//self[o.price][o.engine_type][o.order_id] =
-						//&((_odr_map.emplace(o.order_id, o).first)->second);
-				//DDTEST
-				_odr_map[o.order_id] = o;
-				self[o.price][o.engine_type][o.order_id] = &_odr_map[o.order_id];
-				//self[o.price][o.engine_type][o.order_id] = o;
-				//_odr_map[o.order_id] = &self[o.price][o.engine_type][o.order_id];
+				self[o.price][o.engine_type][o.order_id] = &((_odr_map.emplace(o.order_id, o).first)->second);
 			}
 		}
 
