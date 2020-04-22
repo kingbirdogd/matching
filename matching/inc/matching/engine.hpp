@@ -23,7 +23,7 @@ namespace matching
 	private:
 		using search_order_map = std::unordered_map<unsigned long long, order*>;
 		using id_order_map = std::map<unsigned long long, order>;
-		using type_order_map = std::map<order::oder_engine_type, id_order_map>;
+		using type_order_map = std::map<order::order_engine_type, id_order_map>;
 		using bid_book_type = std::map<long long, type_order_map, std::greater<long long>>;
 		using ask_book_type = std::map<long long, type_order_map, std::less<long long>>;
 		using callback_type = std::function<void(const order&)>;
@@ -42,7 +42,7 @@ namespace matching
 	public:
 		engine(callback_type&& callback);
 		~engine();
-		void handle(order& o);
+		void handle(order& o, order::order_engine_type engine_type = order::order_engine_type::NORMAL);
 		inline void recovery(callback_type&& callback) const
 		{
 			for (const auto& item : _odr_map)
@@ -125,7 +125,7 @@ namespace matching
 			bool stop = false;
 			for (auto it = book.begin(); it != book.end(); ++it)
 			{
-				if (!cross_cmp(o.price, it->first) || order::MARKET_PRICE == limited_price)
+				if (!cross_cmp(limited_price, it->first) || order::MARKET_PRICE == limited_price)
 				{
 					auto m2 = it->second;
 					for (auto it2 = m2.begin(); it2 != m2.end(); ++it2)
@@ -147,6 +147,8 @@ namespace matching
 							break;
 					}
 				}
+				else
+					break;
 				if (stop)
 					break;
 			}
@@ -179,7 +181,7 @@ namespace matching
 				return false;
 			}
 			typename Book::key_compare cross_cmp;
-			if (order::MARKET_PRICE == o.price && book.empty())
+			if (order::MARKET_PRICE == limited_price && book.empty())
 			{
 				o.order_state = order::order_status_type::CANCELED_BY_MARKET_ORDER_NOTHING_MATCH;
 				_callback(o);
@@ -188,7 +190,7 @@ namespace matching
 			bool stop = false;
 			for (auto it = book.begin(); it != book.end();)
 			{
-				if (!cross_cmp(o.price, it->first) || order::MARKET_PRICE == limited_price)
+				if (!cross_cmp(limited_price, it->first) || order::MARKET_PRICE == limited_price)
 				{
 					if (order::order_time_condition::MAKER_ONLY == o.time_condition)
 					{
@@ -240,9 +242,7 @@ namespace matching
 					}
 				}
 				else
-				{
-					++it;
-				}
+					break;
 				if (stop)
 					break;
 			}
@@ -260,7 +260,13 @@ namespace matching
 					}
 					return false;
 				}
-				if (o.remain_quantity == o.quantity)
+				if (order::MARKET_PRICE == limited_price && 0 != o.remain_quantity)
+				{
+					o.order_state = order::order_status_type::CANCELED_BY_MARKET_ORDER_NOT_FULL_MATCHED;
+					_callback(o);
+					return false;
+				}
+				else if (o.remain_quantity == o.quantity)
 					_callback(o);
 				return true;
 			}
@@ -307,7 +313,7 @@ namespace matching
 				return;
 			}
 			auto& ori_odr = *(it->second);
-			if (order::oder_engine_type::IMPLIED == ori_odr.engine_type)
+			if (order::order_engine_type::IMPLIED == ori_odr.engine_type)
 			{
 				o.order_state = order::order_status_type::REJECT_CANCEL_ORDER_ID_NOT_FOUND;
 				_callback(o);
@@ -344,7 +350,7 @@ namespace matching
 				return;
 			}
 			auto& ori_odr = *(it->second);
-			if (order::oder_engine_type::IMPLIED == ori_odr.engine_type)
+			if (order::order_engine_type::IMPLIED == ori_odr.engine_type)
 			{
 				o.order_state = order::order_status_type::REJECT_AMEND_ORDER_ID_NOT_FOUND;
 				_callback(o);

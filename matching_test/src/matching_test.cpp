@@ -7,17 +7,95 @@ std::unordered_map<unsigned long long, unsigned long long> client_to_engine_id_m
 void handle_order(const matching::order& o)
 {
 	std::string side = "";
+	std::string status = "";
+	std::string time_condition = "";
+	std::string action = "";
+	std::string engine_type = "";
 	if (matching::order::order_side::BUY == o.side)
 	{
 		side = "BUY";
 	}
-	else
+	else if (matching::order::order_side::SELL == o.side)
 	{
 		side = "SELL";
 	}
+	else if (matching::order::order_side::BUY_STOP == o.side)
+	{
+		side = "BUY_STOP";
+	}
+	else if (matching::order::order_side::SELL_STOP == o.side)
+	{
+		side = "SELL_STOP";
+	}
+	else if (matching::order::order_side::BUY_SELL_STOP == o.side)
+	{
+		side = "BUY_SELL_STOP";
+	}
+	else
+	{
+		side = "SELL_BUY_STOP";
+	}
+	if (o.order_state == matching::order::order_status_type::OPEN)
+	{
+		status = "OPEN";
+	}
+	else if (o.order_state == matching::order::order_status_type::PARTIAL_FILL)
+	{
+		status = "PARTIAL_FILL";
+	}
+	else if (o.order_state == matching::order::order_status_type::FILLED)
+	{
+		status = "FILLED";
+	}
+	else if (o.order_state < matching::order::order_status_type::REJECT_CANCEL_ORDER_ID_NOT_FOUND)
+	{
+		status = "CANCELED";
+	}
+	else
+	{
+		status = "REJECT";
+	}
+	if (matching::order::order_time_condition::GTC == o.time_condition)
+	{
+		time_condition = "GTC";
+	}
+	else if (matching::order::order_time_condition::IOC == o.time_condition)
+	{
+		time_condition = "IOC";
+	}
+	else if (matching::order::order_time_condition::FOK == o.time_condition)
+	{
+		time_condition = "FOK";
+	}
+	else
+	{
+		time_condition = "MAKER_ONLY";
+	}
+	if (matching::order::order_action_type::NEW == o.order_action)
+	{
+		action = "NEW";
+	}
+	else if (matching::order::order_action_type::CANCEL == o.order_action)
+	{
+		action = "CANCEL";
+	}
+	else
+	{
+		action = "AMEND";
+	}
+	if (matching::order::order_engine_type::NORMAL == o.engine_type)
+	{
+		engine_type = "NORMAL";
+	}
+	else
+	{
+		engine_type = "IMPLIED";
+	}
 	client_to_engine_id_map[o.client_order_id] = o.order_id;
 	std::cout
-			<< "side:" << side
+			<< "action:" << action
+			<< ",side:" << side
+			<< ",time_condition:" << time_condition
 			<< ",order_id:" << o.order_id
 			<< ",client_order_id:" << o.client_order_id
 			<< ",quantity:" << o.quantity
@@ -26,7 +104,10 @@ void handle_order(const matching::order& o)
 			<< ",last_match_price:" << o.last_match_price
 			<< ",last_match_quantity:" << o.last_match_quantity
 			<< ",last_matched_order_id:" << o.last_matched_order_id
-			<< ",matched_id:" << o.matched_id << std::endl;
+			<< ",matched_id:" << o.matched_id
+			<< ",engine_type:" << engine_type
+			<< ",status:" << status
+			<< std::endl;
 }
 
 int main()
@@ -39,6 +120,7 @@ int main()
 	o.quantity = 1000;
 	o.display_quantity = 1000;
 	e.handle(o);
+
 
 	o.side = matching::order::order_side::BUY;
 	o.client_order_id = 2;
@@ -85,6 +167,65 @@ int main()
 	std::cout << "First recovery start" << std::endl;
 	e.recovery(handle_order);
 	std::cout << "First recovery end" << std::endl;
+
+	o.side = matching::order::order_side::SELL;
+	o.time_condition = matching::order::order_time_condition::FOK;
+	o.client_order_id = 200;
+	o.price = 99;
+	o.quantity = 8000;
+	o.display_quantity = 8000;
+	e.handle(o);
+	//recovery GTC
+	o.time_condition = matching::order::order_time_condition::GTC;
+
+	std::cout << "FOK recovery start" << std::endl;
+	e.recovery(handle_order);
+	std::cout << "FOK recovery end" << std::endl;
+
+
+	o.side = matching::order::order_side::SELL;
+	o.time_condition = matching::order::order_time_condition::IOC;
+	o.client_order_id = 300;
+	o.price = 99;
+	o.quantity = 8000;
+	o.display_quantity = 8000;
+	e.handle(o);
+	//recovery GTC
+	o.time_condition = matching::order::order_time_condition::GTC;
+
+	std::cout << "IOC recovery start" << std::endl;
+	e.recovery(handle_order);
+	std::cout << "IOC recovery end" << std::endl;
+
+
+	o.side = matching::order::order_side::SELL;
+	o.time_condition = matching::order::order_time_condition::MAKER_ONLY;
+	o.client_order_id = 400;
+	o.price = 92;
+	o.quantity = 8000;
+	o.display_quantity = 8000;
+	e.handle(o);
+	//recovery GTC
+	o.time_condition = matching::order::order_time_condition::GTC;
+
+	std::cout << "MAKER_ONLY cancel recovery start" << std::endl;
+	e.recovery(handle_order);
+	std::cout << "MAKER_ONLY cancel recovery end" << std::endl;
+
+
+	o.side = matching::order::order_side::SELL;
+	o.time_condition = matching::order::order_time_condition::MAKER_ONLY;
+	o.client_order_id = 500;
+	o.price = 101;
+	o.quantity = 8000;
+	o.display_quantity = 8000;
+	e.handle(o);
+	//recovery GTC
+	o.time_condition = matching::order::order_time_condition::GTC;
+
+	std::cout << "MAKER_ONLY place recovery start" << std::endl;
+	e.recovery(handle_order);
+	std::cout << "MAKER_ONLY place recovery end" << std::endl;
 
 	o.side = matching::order::order_side::SELL;
 	o.client_order_id = 8;

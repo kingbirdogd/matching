@@ -15,7 +15,9 @@ namespace matching
 			BUY = 0x00,
 			SELL = 0x01,
 			BUY_STOP = 0x02,
-			SELL_STOP = 0x03
+			SELL_STOP = 0x03,
+			BUY_SELL_STOP = 0x04,
+			SELL_BUY_STOP = 0x05
 		};
 		enum order_action_type : unsigned char
 		{
@@ -30,18 +32,10 @@ namespace matching
 			FOK = 0x02,
 			MAKER_ONLY = 0x03
 		};
-		enum oder_engine_type : unsigned char
+		enum order_engine_type : unsigned char
 		{
 			NORMAL = 0x00,
 			IMPLIED = 0x01
-		};
-		enum order_stop_type : unsigned char
-		{
-			NONE = 0x00,
-			CUT_LOST = 0x01,
-			TAKE_PROFIT = 0x02,
-			CUT_LOST_TAKE_PROFIT = 0x03,
-			CUT_LOST_TAKE_PROFIT_WITHOUT_POSITION = 0x04 //directory create two related order
 		};
 		enum order_status_type : unsigned char
 		{
@@ -49,18 +43,19 @@ namespace matching
 			PARTIAL_FILL = 0x01,
 			FILLED = 0x02,
 			CANCELED_BY_USER = 0x03,
-			CANCELED_BY_MARKET_ORDER_NOTHING_MATCH = 0x04,
-			CANCELED_ALL_BY_IOC = 0x05,
-			CANCELED_PARTIAL_BY_IOC = 0x06,
-			CANCELED_BY_FOK = 0x07,
-			CANCELED_BY_MAKER_ONLY = 0x08,
-			REJECT_CANCEL_ORDER_ID_NOT_FOUND = 0x09,
-			REJECT_AMEND_ORDER_ID_NOT_FOUND = 0x0A,
-			REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY = 0x0B,
-			REJECT_STOP_VALUE_HAS_NO_BEST_PRICE = 0x0C,
-			REJECT_CUT_LOST_VALUE_CROSS_BEST_PRICE = 0x0D,
-			REJECT_TAKE_PROFIT_VALUE_CROSS_BEST_PRICE = 0x0E,
-			REJECT_CUT_LOST_TAKE_PROFIT_VALUE_CROSS = 0x0F
+			CANCELED_BY_MARKET_ORDER_NOT_FULL_MATCHED = 0x04,
+			CANCELED_BY_MARKET_ORDER_NOTHING_MATCH = 0x05,
+			CANCELED_ALL_BY_IOC = 0x06,
+			CANCELED_PARTIAL_BY_IOC = 0x07,
+			CANCELED_BY_FOK = 0x08,
+			CANCELED_BY_MAKER_ONLY = 0x09,
+			REJECT_CANCEL_ORDER_ID_NOT_FOUND = 0xA,
+			REJECT_AMEND_ORDER_ID_NOT_FOUND = 0x0B,
+			REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY = 0x0C,
+			REJECT_STOP_VALUE_HAS_NO_BEST_PRICE = 0x0D,
+			REJECT_CUT_LOST_VALUE_CROSS_BEST_PRICE = 0x0E,
+			REJECT_TAKE_PROFIT_VALUE_CROSS_BEST_PRICE = 0x0F,
+			REJECT_CUT_LOST_TAKE_PROFIT_VALUE_CROSS = 0x10
 		};
 		enum order_matched_type : unsigned char
 		{
@@ -85,7 +80,7 @@ namespace matching
 		order_side side;
 		order_action_type order_action;
 		order_time_condition time_condition;
-		oder_engine_type engine_type;
+		order_engine_type engine_type;
 		order_status_type order_state;
 		order_matched_type matched_type;
 	public:
@@ -107,7 +102,7 @@ namespace matching
 			side(order_side::BUY),
 			order_action(order_action_type::NEW),
 			time_condition(order_time_condition::GTC),
-			engine_type(oder_engine_type::NORMAL),
+			engine_type(order_engine_type::NORMAL),
 			order_state(order_status_type::OPEN),
 			matched_type(order_matched_type::MAKER)
 		{
