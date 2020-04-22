@@ -1,6 +1,7 @@
 #ifndef MATCHING_INC_ENGINE_HPP_
 #define MATCHING_INC_ENGINE_HPP_
 
+#include <stddef.h>
 #include <map>
 #include <vector>
 #include <unordered_map>
@@ -131,9 +132,10 @@ namespace matching
 			handle_matched_implied(o2);
 		}
 
-		template <typename Book>
-		inline void handle_fok_cross(Book& book, order& o, long long limited_price)
+		template <typename Book, std::size_t offSet>
+		inline void handle_fok_cross(Book& book, order& o)
 		{
+			const long long& limited_price = *static_cast<long long*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(&o)) + offSet));
 			std::vector<order*> cross_odrs;
 			unsigned long long total_matched_quantity = 0;
 			typename Book::key_compare cross_cmp;
@@ -186,13 +188,14 @@ namespace matching
 			}
 		}
 
-		template <typename Book>
-		inline bool handle_cross(Book& book, order& o, long long limited_price)
+		template <typename Book, std::size_t offSet>
+		inline bool handle_cross(Book& book, order& o)
 		{
+			const long long& limited_price = *static_cast<long long*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(&o)) + offSet));
 			o.remain_quantity = o.quantity;
 			if (order::order_time_condition::FOK == o.time_condition)
 			{
-				handle_fok_cross(book, o, limited_price);
+				handle_fok_cross<Book, offSet>(book, o);
 				return false;
 			}
 			typename Book::key_compare cross_cmp;
@@ -291,7 +294,7 @@ namespace matching
 		template <typename SelfBook,typename CrossBook>
 		inline void handle_normal_new(SelfBook& self, CrossBook& cross, order& o)
 		{
-			if (handle_cross(cross, o, o.price))
+			if (handle_cross<CrossBook, offsetof(order, price)>(cross, o))
 			{
 				//self[o.price][o.engine_type][o.order_id] =
 						//&((_odr_map.emplace(o.order_id, o).first)->second);
@@ -301,6 +304,25 @@ namespace matching
 				//self[o.price][o.engine_type][o.order_id] = o;
 				//_odr_map[o.order_id] = &self[o.price][o.engine_type][o.order_id];
 			}
+		}
+
+		bool check_buy_stop(order& o)
+		{
+			if (o.buy_stop_limited_price != order::MARKET_PRICE)
+			{
+				if (o.buy_stop_limited_price < o.buy_stop_trigger_price)
+				{
+					o.order_state = order::order_status_type::REJECT_BUY_STOP_TRRIGER_LESS_THAN_STOP_LIMITED;
+					_callback(o);
+					return false;
+				}
+			}
+			auto it = _ask_book.begin();
+			if (_ask_book.end() == it)
+			{
+
+			}
+			return true;
 		}
 
 		inline void handle_new(order& o)
@@ -322,6 +344,15 @@ namespace matching
 			}
 			else if (order::order_side::BUY_STOP == o.side)
 			{
+				if (o.buy_stop_limited_price != order::MARKET_PRICE)
+				{
+					if (o.buy_stop_limited_price < o.buy_stop_trigger_price)
+					{
+						o.order_state = order::order_status_type::REJECT_BUY_STOP_TRRIGER_LESS_THAN_STOP_LIMITED;
+						_callback(o);
+						return;
+					}
+				}
 			}
 			else if (order::order_side::SELL_STOP == o.side)
 			{

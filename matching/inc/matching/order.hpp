@@ -52,7 +52,7 @@ namespace matching
 			REJECT_CANCEL_ORDER_ID_NOT_FOUND = 0xA,
 			REJECT_AMEND_ORDER_ID_NOT_FOUND = 0x0B,
 			REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY = 0x0C,
-			REJECT_STOP_VALUE_HAS_NO_BEST_PRICE = 0x0D,
+			REJECT_BUY_STOP_TRRIGER_LESS_THAN_STOP_LIMITED = 0x0D,
 			REJECT_CUT_LOST_VALUE_CROSS_BEST_PRICE = 0x0E,
 			REJECT_TAKE_PROFIT_VALUE_CROSS_BEST_PRICE = 0x0F,
 			REJECT_CUT_LOST_TAKE_PROFIT_VALUE_CROSS = 0x10
@@ -73,9 +73,9 @@ namespace matching
 		unsigned long long client_order_id;
 		unsigned long long last_matched_order_id;
 		unsigned long long matched_id;
-		long long buy_stop_triger_price;
+		long long buy_stop_trigger_price;
 		long long buy_stop_limited_price;
-		long long sell_stop_triger_price;
+		long long sell_stop_trigger_price;
 		long long sell_stop_limited_price;
 		order_side side;
 		order_action_type order_action;
@@ -95,9 +95,9 @@ namespace matching
 			client_order_id(0),
 			last_matched_order_id(0),
 			matched_id(0),
-			buy_stop_triger_price(0),
+			buy_stop_trigger_price(0),
 			buy_stop_limited_price(0),
-			sell_stop_triger_price(0),
+			sell_stop_trigger_price(0),
 			sell_stop_limited_price(0),
 			side(order_side::BUY),
 			order_action(order_action_type::NEW),
