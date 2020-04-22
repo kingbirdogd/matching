@@ -300,21 +300,38 @@ namespace matching
 			}
 		}
 
-		bool check_buy_stop(order& o)
+		template<typename Book,
+			std::size_t TriggeroffSet,
+			std::size_t LimitoffSet,
+			order::order_status_type RejectStatus1,
+			order::order_status_type RejectStatus2,
+			order::order_status_type RejectStatus3>
+		bool stop_check(Book& book, order& o)
 		{
-			if (o.buy_stop_limited_price != order::MARKET_PRICE)
+			const long long& trigger_price = *static_cast<long long*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(&o)) + TriggeroffSet));
+			const long long& limited_price = *static_cast<long long*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(&o)) + LimitoffSet));
+			typename Book::key_compare cross_cmp;
+			if (limited_price != order::MARKET_PRICE)
 			{
-				if (o.buy_stop_limited_price < o.buy_stop_trigger_price)
+				if (cross_cmp(limited_price, trigger_price))
 				{
-					o.order_state = order::order_status_type::REJECT_BUY_STOP_TRRIGER_LESS_THAN_STOP_LIMITED;
+					o.order_state = RejectStatus1;
 					_callback(o);
 					return false;
 				}
 			}
-			auto it = _ask_book.begin();
-			if (_ask_book.end() == it)
+			auto it = book.begin();
+			if (book.end() == it)
 			{
-
+				o.order_state = RejectStatus2;
+				_callback(o);
+				return false;
+			}
+			if (!cross_cmp(it->first, trigger_price))
+			{
+				o.order_state = RejectStatus3;
+				_callback(o);
+				return false;
 			}
 			return true;
 		}
@@ -338,21 +355,52 @@ namespace matching
 			}
 			else if (order::order_side::BUY_STOP == o.side)
 			{
-				if (o.buy_stop_limited_price != order::MARKET_PRICE)
+				if (stop_check<decltype(_ask_book),
+						offsetof(order, buy_stop_trigger_price),
+						offsetof(order, buy_stop_limited_price),
+						order::order_status_type::REJECT_BUY_STOP_TRIGGER_LESS_THAN_STOP_LIMITED,
+						order::order_status_type::REJECT_BUY_STOP_NO_BEST_ASK,
+						order::order_status_type::REJECT_BUY_STOP_TRIGGER_LESS_THAN_BEST_ASK>(_ask_book,o))
 				{
-					if (o.buy_stop_limited_price < o.buy_stop_trigger_price)
-					{
-						o.order_state = order::order_status_type::REJECT_BUY_STOP_TRRIGER_LESS_THAN_STOP_LIMITED;
-						_callback(o);
-						return;
-					}
+					_bid_stop_book[o.buy_stop_trigger_price][o.order_id] = &((_odr_map.emplace(o.order_id, o).first)->second);
 				}
 			}
 			else if (order::order_side::SELL_STOP == o.side)
 			{
+				if (stop_check<decltype(_bid_book),
+						offsetof(order, sell_stop_trigger_price),
+						offsetof(order, sell_stop_limited_price),
+						order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED,
+						order::order_status_type::REJECT_SELL_STOP_NO_BEST_BID,
+						order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_BEST_BID>(_bid_book,o))
+				{
+					_ask_stop_book[o.sell_stop_trigger_price][o.order_id] = &((_odr_map.emplace(o.order_id, o).first)->second);
+				}
 			}
 			else
 			{
+				if (o.buy_stop_trigger_price <= o.sell_stop_trigger_price)
+				{
+					o.order_state = order::order_status_type::REJECT_BUY_SELL_STOP_TRIGGER_CROSS;
+					_callback(o);
+				}
+				else if(stop_check<decltype(_ask_book),
+						offsetof(order, buy_stop_trigger_price),
+						offsetof(order, buy_stop_limited_price),
+						order::order_status_type::REJECT_BUY_STOP_TRIGGER_LESS_THAN_STOP_LIMITED,
+						order::order_status_type::REJECT_BUY_STOP_NO_BEST_ASK,
+						order::order_status_type::REJECT_BUY_STOP_TRIGGER_LESS_THAN_BEST_ASK>(_ask_book,o) &&
+						stop_check<decltype(_bid_book),
+						offsetof(order, sell_stop_trigger_price),
+						offsetof(order, sell_stop_limited_price),
+						order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED,
+						order::order_status_type::REJECT_SELL_STOP_NO_BEST_BID,
+						order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_BEST_BID>(_bid_book,o))
+				{
+					auto podr = &((_odr_map.emplace(o.order_id, o).first)->second);
+					_bid_stop_book[o.buy_stop_trigger_price][o.order_id] = podr;
+					_ask_stop_book[o.sell_stop_trigger_price][o.order_id] = podr;
+				}
 			}
 
 		}
