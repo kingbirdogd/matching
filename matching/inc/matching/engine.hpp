@@ -340,7 +340,7 @@ namespace matching
 
 		inline void handle_new(order& o)
 		{
-			o.order_id = get_id();
+			o.order_id = 0;
 			if (o.display_quantity > o.quantity)
 			{
 				o.order_state = order::order_status_type::REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY;
@@ -349,10 +349,12 @@ namespace matching
 			}
 			if (order::order_side::BUY == o.side)
 			{
+				o.order_id = get_id();
 				handle_normal_new(_bid_book, _ask_book, o);
 			}
 			else if (order::order_side::SELL == o.side)
 			{
+				o.order_id = get_id();
 				handle_normal_new(_ask_book, _bid_book, o);
 			}
 			else if (order::order_side::BUY_STOP == o.side)
@@ -364,6 +366,7 @@ namespace matching
 						order::order_status_type::REJECT_BUY_STOP_NO_BEST_ASK,
 						order::order_status_type::REJECT_BUY_STOP_TRIGGER_LESS_THAN_BEST_ASK>(_ask_book,o))
 				{
+					o.order_id = get_id();
 					_bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
 					_callback(o);
 				}
@@ -377,6 +380,7 @@ namespace matching
 						order::order_status_type::REJECT_SELL_STOP_NO_BEST_BID,
 						order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_BEST_BID>(_bid_book,o))
 				{
+					o.order_id = get_id();
 					_ask_stop_book[o.sell_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
 					_callback(o);
 				}
@@ -401,13 +405,13 @@ namespace matching
 						order::order_status_type::REJECT_SELL_STOP_NO_BEST_BID,
 						order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_BEST_BID>(_bid_book,o))
 				{
+					o.order_id = get_id();
 					auto podr = &((_odr_map.emplace(o.order_id, o).first)->second);
 					_bid_stop_book[o.buy_stop_trigger_price].insert(podr);
 					_ask_stop_book[o.sell_stop_trigger_price].insert(podr);
 					_callback(o);
 				}
 			}
-
 		}
 
 		inline void handle_cancel(order& o)
