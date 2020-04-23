@@ -67,10 +67,37 @@ namespace matching
 			}
 		}
 
+		template <typename Dummy, typename BookType>
+		struct get_price_helper
+		{
+			static long long get_price(order& odr)
+			{
+				return odr.buy_stop_trigger_price;
+			}
+		};
+
+		template <typename Dummy>
+		struct get_price_helper<Dummy, ask_stop_book_type>
+		{
+			static long long get_price(order& odr)
+			{
+				return odr.sell_stop_trigger_price;
+			}
+		};
+
+		template <typename BookType>
+		struct get_stop_price_helper
+		{
+			static long long get_price(order& odr)
+			{
+				return get_price_helper<int, BookType>::get_price(odr);
+			}
+		};
+
 		template <typename BookType>
 		static void erase_from_stop_book(BookType& book, order& odr)
 		{
-			auto ori_it_price = book.find(odr.price);
+			auto ori_it_price = book.find(get_stop_price_helper<BookType>::get_price(odr));
 			ori_it_price->second.erase(&odr);
 			if (ori_it_price->second.empty())
 			{
@@ -194,7 +221,6 @@ namespace matching
 		inline bool handle_cross(Book& book, order& o)
 		{
 			const long long& limited_price = *static_cast<long long*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(&o)) + offSet));
-			o.remain_quantity = o.quantity;
 			if (order::order_time_condition::FOK == o.time_condition)
 			{
 				handle_fok_cross<Book, offSet>(book, o);
@@ -338,6 +364,12 @@ namespace matching
 			return true;
 		}
 
+		inline void init_new_order(order& o)
+		{
+			o.order_id = get_id();
+			o.remain_quantity = o.quantity;
+		}
+
 		inline bool handle_new(order& o)
 		{
 			o.order_id = 0;
@@ -355,13 +387,13 @@ namespace matching
 			}
 			if (order::order_side::BUY == o.side)
 			{
-				o.order_id = get_id();
+				init_new_order(o);
 				handle_normal_new(_bid_book, _ask_book, o);
 				return true;
 			}
 			else if (order::order_side::SELL == o.side)
 			{
-				o.order_id = get_id();
+				init_new_order(o);
 				handle_normal_new(_ask_book, _bid_book, o);
 				return true;
 			}
@@ -374,7 +406,7 @@ namespace matching
 						order::order_status_type::REJECT_BUY_STOP_NO_BEST_ASK,
 						order::order_status_type::REJECT_BUY_STOP_TRIGGER_LESS_THAN_BEST_ASK>(_ask_book,o))
 				{
-					o.order_id = get_id();
+					init_new_order(o);
 					_bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
 					_callback(o);
 				}
@@ -389,7 +421,7 @@ namespace matching
 						order::order_status_type::REJECT_SELL_STOP_NO_BEST_BID,
 						order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_BEST_BID>(_bid_book,o))
 				{
-					o.order_id = get_id();
+					init_new_order(o);
 					_ask_stop_book[o.sell_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
 					_callback(o);
 				}
@@ -415,7 +447,7 @@ namespace matching
 						order::order_status_type::REJECT_SELL_STOP_NO_BEST_BID,
 						order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_BEST_BID>(_bid_book,o))
 				{
-					o.order_id = get_id();
+					init_new_order(o);
 					auto podr = &((_odr_map.emplace(o.order_id, o).first)->second);
 					_bid_stop_book[o.buy_stop_trigger_price].insert(podr);
 					_ask_stop_book[o.sell_stop_trigger_price].insert(podr);
@@ -545,7 +577,7 @@ namespace matching
 		{
 			if (order::MARKET_PRICE == before && order::MARKET_PRICE != after)
 			{
-				return false;
+				return true;
 			}
 			else if (order::MARKET_PRICE != before && order::MARKET_PRICE == after)
 			{
@@ -576,6 +608,7 @@ namespace matching
 			std::map<unsigned long long, order*> stop_list;
 			do
 			{
+				stop_list.clear();
 				for (auto it = book.begin(); it != book.end(); ++it)
 				{
 					if (!cmp(limited_price, it->first))
@@ -617,18 +650,18 @@ namespace matching
 			if (check_stop_trigger<typename decltype(_bid_book)::key_compare>(before_best_bid, after_best_bid))
 			{
 				handle_stop<
-						decltype(_bid_stop_book),
-						decltype(_ask_book),
-						offsetof(order, buy_stop_limited_price)>
-				(_bid_stop_book, _ask_book, after_best_bid);
+						decltype(_ask_stop_book),
+						decltype(_bid_book),
+						offsetof(order, sell_stop_limited_price)>
+				(_ask_stop_book, _bid_book, after_best_bid);
 			}
 			else if (check_stop_trigger<typename decltype(_ask_book)::key_compare>(before_best_ask, after_best_ask))
 			{
 				handle_stop<
-						decltype(_ask_stop_book),
-						decltype(_bid_book),
-						offsetof(order, sell_stop_limited_price)>
-				(_ask_stop_book, _bid_book, after_best_ask);
+						decltype(_bid_stop_book),
+						decltype(_ask_book),
+						offsetof(order, buy_stop_limited_price)>
+				(_bid_stop_book, _ask_book, after_best_ask);
 			}
 		}
 	};

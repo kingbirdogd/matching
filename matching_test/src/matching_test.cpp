@@ -11,6 +11,7 @@ void handle_order(const matching::order& o)
 	std::string time_condition = "";
 	std::string action = "";
 	std::string engine_type = "";
+	std::string matched_type = "";
 	if (matching::order::order_side::BUY == o.side)
 	{
 		side = "BUY";
@@ -155,6 +156,14 @@ void handle_order(const matching::order& o)
 	{
 		engine_type = "IMPLIED";
 	}
+	if (matching::order::order_matched_type::TAKER == o.matched_type)
+	{
+		matched_type = "TAKER";
+	}
+	else
+	{
+		matched_type = "MAKER";
+	}
 	client_to_engine_id_map[o.client_order_id] = o.order_id;
 	std::cout
 			<< "action:" << action
@@ -163,19 +172,107 @@ void handle_order(const matching::order& o)
 			<< ",order_id:" << o.order_id
 			<< ",client_order_id:" << o.client_order_id
 			<< ",quantity:" << o.quantity
-			<< ",price:" << o.price
+			<< ",display_quantity:" << o.display_quantity
 			<< ",remain_quantity:" << o.remain_quantity
+			<< ",price:" << o.price
+			<< ",buy_stop_trigger_price:" << o.buy_stop_trigger_price
+			<< ",buy_stop_limited_price:" << o.buy_stop_limited_price
+			<< ",sell_stop_trigger_price:" << o.sell_stop_trigger_price
+			<< ",sell_stop_limited_price:" << o.sell_stop_limited_price
 			<< ",last_match_price:" << o.last_match_price
 			<< ",last_match_quantity:" << o.last_match_quantity
 			<< ",last_matched_order_id:" << o.last_matched_order_id
 			<< ",matched_id:" << o.matched_id
 			<< ",engine_type:" << engine_type
 			<< ",status:" << status
+			<< ",matched_type:" << matched_type
 			<< std::endl;
+}
+
+
+void stop_test()
+{
+	matching::engine e(handle_order);
+	matching::order o;
+
+	o.side = matching::order::order_side::SELL;
+	o.client_order_id = 1;
+	o.quantity = 1000;
+	o.display_quantity = 1000;
+	o.price = 100;
+	e.handle(o);
+
+	o.side = matching::order::order_side::SELL;
+	o.client_order_id = 2;
+	o.quantity = 1000;
+	o.display_quantity = 1000;
+	o.price = 103;
+	e.handle(o);
+
+	o.side = matching::order::order_side::BUY_STOP;
+	o.client_order_id = 3;
+	o.quantity = 1000;
+	o.display_quantity = 1000;
+	o.buy_stop_trigger_price = 102;
+	o.buy_stop_limited_price = 105;
+	e.handle(o);
+
+	std::cout << "Start try trigger" << std::endl;
+	o.side = matching::order::order_side::BUY;
+	o.client_order_id = 4;
+	o.quantity = 1500;
+	o.display_quantity = 1500;
+	o.price = 108;
+	e.handle(o);
+}
+
+void stop_test_by_cancel()
+{
+	matching::engine e(handle_order);
+	matching::order o;
+
+	o.side = matching::order::order_side::SELL;
+	o.client_order_id = 1;
+	o.quantity = 1000;
+	o.display_quantity = 1000;
+	o.price = 100;
+	e.handle(o);
+
+	o.side = matching::order::order_side::SELL;
+	o.client_order_id = 2;
+	o.quantity = 950;
+	o.display_quantity = 950;
+	o.price = 103;
+	e.handle(o);
+
+	o.side = matching::order::order_side::BUY_STOP;
+	o.client_order_id = 3;
+	o.quantity = 1000;
+	o.display_quantity = 1000;
+	o.buy_stop_trigger_price = 102;
+	o.buy_stop_limited_price = 105;
+	e.handle(o);
+
+	std::cout << "Start try trigger by cancel" << std::endl;
+	o.order_action = matching::order::order_action_type::CANCEL;
+	o.client_order_id = 1;
+	o.order_id = client_to_engine_id_map[1];
+	e.handle(o);
+
+	std::cout << "Start try trigger by oderbook come out again" << std::endl;
+	o.order_action = matching::order::order_action_type::NEW;
+	o.side = matching::order::order_side::SELL;
+	o.client_order_id = 20;
+	o.quantity = 800;
+	o.display_quantity = 800;
+	o.price = 104;
+	e.handle(o);
 }
 
 int main()
 {
+	stop_test();
+	stop_test_by_cancel();
 	matching::engine e(handle_order);
 	matching::order o;
 	o.side = matching::order::order_side::BUY;
