@@ -47,13 +47,77 @@ void handle_order(const matching::order& o)
 	{
 		status = "FILLED";
 	}
-	else if (o.order_state < matching::order::order_status_type::REJECT_CANCEL_ORDER_ID_NOT_FOUND)
+	else if (o.order_state == matching::order::order_status_type::CANCELED_BY_MARKET_ORDER_NOT_FULL_MATCHED)
 	{
-		status = "CANCELED";
+		status = "CANCELED_BY_MARKET_ORDER_NOT_FULL_MATCHED";
+	}
+	else if (o.order_state == matching::order::order_status_type::CANCELED_BY_MARKET_ORDER_NOTHING_MATCH)
+	{
+		status = "CANCELED_BY_MARKET_ORDER_NOTHING_MATCH";
+	}
+	else if (o.order_state == matching::order::order_status_type::CANCELED_ALL_BY_IOC)
+	{
+		status = "CANCELED_ALL_BY_IOC";
+	}
+	else if (o.order_state == matching::order::order_status_type::CANCELED_PARTIAL_BY_IOC)
+	{
+		status = "CANCELED_PARTIAL_BY_IOC";
+	}
+	else if (o.order_state == matching::order::order_status_type::CANCELED_BY_FOK)
+	{
+		status = "CANCELED_BY_FOK";
+	}
+	else if (o.order_state == matching::order::order_status_type::CANCELED_BY_MAKER_ONLY)
+	{
+		status = "CANCELED_BY_MAKER_ONLY";
+	}
+	else if (o.order_state == matching::order::order_status_type::REJECT_CANCEL_ORDER_ID_NOT_FOUND)
+	{
+		status = "REJECT_CANCEL_ORDER_ID_NOT_FOUND";
+	}
+	else if (o.order_state == matching::order::order_status_type::REJECT_AMEND_ORDER_ID_NOT_FOUND)
+	{
+		status = "REJECT_AMEND_ORDER_ID_NOT_FOUND";
+	}
+	else if (o.order_state == matching::order::order_status_type::REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY)
+	{
+		status = "REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY";
+	}
+	else if (o.order_state == matching::order::order_status_type::REJECT_BUY_STOP_TRIGGER_LESS_THAN_STOP_LIMITED)
+	{
+		status = "REJECT_BUY_STOP_TRIGGER_LESS_THAN_STOP_LIMITED";
+	}
+	else if (o.order_state == matching::order::order_status_type::REJECT_BUY_STOP_NO_BEST_ASK)
+	{
+		status = "REJECT_BUY_STOP_NO_BEST_ASK";
+	}
+	else if (o.order_state == matching::order::order_status_type::REJECT_BUY_STOP_TRIGGER_LESS_THAN_BEST_ASK)
+	{
+		status = "REJECT_BUY_STOP_TRIGGER_LESS_THAN_BEST_ASK";
+	}
+	else if (o.order_state == matching::order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED)
+	{
+		status = "REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED";
+	}
+	else if (o.order_state == matching::order::order_status_type::REJECT_SELL_STOP_NO_BEST_BID)
+	{
+		status = "REJECT_SELL_STOP_NO_BEST_BID";
+	}
+	else if (o.order_state == matching::order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_BEST_BID)
+	{
+		status = "REJECT_SELL_STOP_TRIGGER_LESS_THAN_BEST_BID";
+	}
+	else if (o.order_state == matching::order::order_status_type::REJECT_BUY_SELL_STOP_TRIGGER_CROSS)
+	{
+		status = "REJECT_BUY_SELL_STOP_TRIGGER_CROSS";
+	}
+	else if (o.order_state == matching::order::order_status_type::REJECT_UNKNOW_ORDER_ACTION)
+	{
+		status = "REJECT_UNKNOW_ORDER_ACTION";
 	}
 	else
 	{
-		status = "REJECT";
+		status = "REJECT_QUANTITY_ZERO";
 	}
 	if (matching::order::order_time_condition::GTC == o.time_condition)
 	{
@@ -181,6 +245,20 @@ int main()
 	std::cout << "FOK recovery start" << std::endl;
 	e.recovery(handle_order);
 	std::cout << "FOK recovery end" << std::endl;
+
+	o.side = matching::order::order_side::SELL;
+	o.time_condition = matching::order::order_time_condition::FOK;
+	o.client_order_id = 201;
+	o.price = 99;
+	o.quantity = 10;
+	o.display_quantity = 5;
+	e.handle(o);
+	//recovery GTC
+	o.time_condition = matching::order::order_time_condition::GTC;
+
+	std::cout << "FOK success recovery start" << std::endl;
+	e.recovery(handle_order);
+	std::cout << "FOK success recovery end" << std::endl;
 
 
 	o.side = matching::order::order_side::SELL;
