@@ -569,12 +569,44 @@ namespace matching
 			}
 		}
 
-		inline void handle_bid_stop(long long)
+		template <typename Book, typename CrossBook, std::size_t offSet>
+		inline void handle_stop(Book& book, CrossBook& cross_book, long long limited_price)
 		{
-		}
-
-		inline void handle_ask_stop(long long)
-		{
+			typename Book::key_compare cmp;
+			std::map<unsigned long long, order*> stop_list;
+			do
+			{
+				for (auto it = book.begin(); it != book.end(); ++it)
+				{
+					if (!cmp(limited_price, it->first))
+					{
+						for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+						{
+							stop_list[(*it2)->order_id] = (*it2);
+						}
+					}
+					else
+						break;
+				}
+				for (auto it = stop_list.begin(); it != stop_list.end(); ++it)
+				{
+					auto& o = *(it->second);
+					if (!handle_cross<CrossBook, offSet>(cross_book, o))
+					{
+						full_erase_from_stop_book(book, o);
+					}
+				}
+				auto it = cross_book.begin();
+				if (cross_book.end() == it)
+				{
+					break;
+				}
+				else
+				{
+					limited_price = it->first;
+				}
+			}
+			while(!stop_list.empty());
 		}
 
 		inline void handle_stop(long long before_best_bid,
@@ -584,11 +616,19 @@ namespace matching
 		{
 			if (check_stop_trigger<typename decltype(_bid_book)::key_compare>(before_best_bid, after_best_bid))
 			{
-				handle_bid_stop(after_best_bid);
+				handle_stop<
+						decltype(_bid_stop_book),
+						decltype(_ask_book),
+						offsetof(order, buy_stop_limited_price)>
+				(_bid_stop_book, _ask_book, after_best_bid);
 			}
 			else if (check_stop_trigger<typename decltype(_ask_book)::key_compare>(before_best_ask, after_best_ask))
 			{
-				handle_ask_stop(after_best_ask);
+				handle_stop<
+						decltype(_ask_stop_book),
+						decltype(_bid_book),
+						offsetof(order, sell_stop_limited_price)>
+				(_ask_stop_book, _bid_book, after_best_ask);
 			}
 		}
 	};
