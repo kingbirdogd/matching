@@ -25,12 +25,11 @@ namespace matching
 	private:
 		using search_order_map = std::unordered_map<unsigned long long, order>;
 		using id_order_map = std::map<unsigned long long, order*>;
-		using order_set = std::unordered_set<order*>;
 		using type_order_map = std::map<order::order_engine_type, id_order_map>;
 		using bid_book_type = std::map<long long, type_order_map, std::greater<long long>>;
 		using ask_book_type = std::map<long long, type_order_map, std::less<long long>>;
-		using bid_stop_book_type = std::map<long long, order_set, std::greater<long long>>;
-		using ask_stop_book_type = std::map<long long, order_set, std::less<long long>>;
+		using bid_stop_book_type = std::map<long long, id_order_map, std::greater<long long>>;
+		using ask_stop_book_type = std::map<long long, id_order_map, std::less<long long>>;
 		using callback_type = std::function<void(const order&)>;
 	private:
 		search_order_map _odr_map;
@@ -71,7 +70,7 @@ namespace matching
 		static void erase_from_stop_book(BookType& book, order& odr)
 		{
 			auto ori_it_price = book.find(odr.price);
-			ori_it_price->second.erase(&odr);
+			ori_it_price->second.erase(odr.order_id);
 			if (ori_it_price->second.empty())
 			{
 				book.erase(ori_it_price);
@@ -338,24 +337,32 @@ namespace matching
 			return true;
 		}
 
-		inline void handle_new(order& o)
+		inline bool handle_new(order& o)
 		{
 			o.order_id = 0;
+			if (0 == o.quantity)
+			{
+				o.order_state = order::order_status_type::REJECT_QUANTITY_ZERO;
+				_callback(o);
+				return false;
+			}
 			if (o.display_quantity > o.quantity)
 			{
 				o.order_state = order::order_status_type::REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY;
 				_callback(o);
-				return;
+				return false;
 			}
 			if (order::order_side::BUY == o.side)
 			{
 				o.order_id = get_id();
 				handle_normal_new(_bid_book, _ask_book, o);
+				return true;
 			}
 			else if (order::order_side::SELL == o.side)
 			{
 				o.order_id = get_id();
 				handle_normal_new(_ask_book, _bid_book, o);
+				return true;
 			}
 			else if (order::order_side::BUY_STOP == o.side)
 			{
@@ -367,9 +374,11 @@ namespace matching
 						order::order_status_type::REJECT_BUY_STOP_TRIGGER_LESS_THAN_BEST_ASK>(_ask_book,o))
 				{
 					o.order_id = get_id();
-					_bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+					_bid_stop_book[o.buy_stop_trigger_price][o.order_id] =
+							(&((_odr_map.emplace(o.order_id, o).first)->second));
 					_callback(o);
 				}
+				return false;
 			}
 			else if (order::order_side::SELL_STOP == o.side)
 			{
@@ -381,11 +390,13 @@ namespace matching
 						order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_BEST_BID>(_bid_book,o))
 				{
 					o.order_id = get_id();
-					_ask_stop_book[o.sell_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+					_ask_stop_book[o.sell_stop_trigger_price][o.order_id] =
+							(&((_odr_map.emplace(o.order_id, o).first)->second));
 					_callback(o);
 				}
+				return false;
 			}
-			else
+			else if (order::order_side::BUY_SELL_STOP == o.side)
 			{
 				if (o.buy_stop_trigger_price <= o.sell_stop_trigger_price)
 				{
@@ -407,32 +418,40 @@ namespace matching
 				{
 					o.order_id = get_id();
 					auto podr = &((_odr_map.emplace(o.order_id, o).first)->second);
-					_bid_stop_book[o.buy_stop_trigger_price].insert(podr);
-					_ask_stop_book[o.sell_stop_trigger_price].insert(podr);
+					_bid_stop_book[o.buy_stop_trigger_price][o.order_id] = podr;
+					_ask_stop_book[o.sell_stop_trigger_price][o.order_id] = podr;
 					_callback(o);
 				}
+				return false;
+			}
+			else
+			{
+				o.order_state = order::order_status_type::REJECT_UNKNOW_ORDER_ACTION;
+				_callback(o);
+				return false;
 			}
 		}
 
-		inline void handle_cancel(order& o)
+		inline bool handle_cancel(order& o)
 		{
 			auto it = _odr_map.find(o.order_id);
 			if (_odr_map.end() == it)
 			{
 				o.order_state = order::order_status_type::REJECT_CANCEL_ORDER_ID_NOT_FOUND;
 				_callback(o);
-				return;
+				return false;
 			}
 			auto& ori_odr = it->second;
 			if (order::order_engine_type::IMPLIED == ori_odr.engine_type)
 			{
 				o.order_state = order::order_status_type::REJECT_CANCEL_ORDER_ID_NOT_FOUND;
 				_callback(o);
-				return;
+				return false;
 			}
 			ori_odr.client_order_id = o.client_order_id;
 			ori_odr.order_state = order::order_status_type::CANCELED_BY_USER;
 			_callback(ori_odr);
+			bool is_impact_order = true;
 			if (order::order_side::BUY == ori_odr.side)
 			{
 				erase_from_normal_book(_bid_book, ori_odr);
@@ -444,41 +463,51 @@ namespace matching
 			else if (order::order_side::BUY_STOP == ori_odr.side)
 			{
 				erase_from_stop_book(_bid_stop_book, ori_odr);
+				is_impact_order = false;
 			}
 			else if (order::order_side::SELL_STOP == ori_odr.side)
 			{
 				erase_from_stop_book(_ask_stop_book, ori_odr);
+				is_impact_order = false;
 			}
 			else
 			{
 				erase_from_stop_book(_bid_stop_book, ori_odr);
 				erase_from_stop_book(_ask_stop_book, ori_odr);
+				is_impact_order = false;
 			}
 			_odr_map.erase(it);
+			return is_impact_order;
 		}
 
 		//can keep the priority if just reduce quantity
-		inline void handle_amend(order& o)
+		inline bool handle_amend(order& o)
 		{
+			if (0 == o.quantity)
+			{
+				o.order_state = order::order_status_type::REJECT_QUANTITY_ZERO;
+				_callback(o);
+				return false;
+			}
 			if (o.display_quantity > o.quantity)
 			{
 				o.order_state = order::order_status_type::REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY;
 				_callback(o);
-				return;
+				return false;
 			}
 			auto it = _odr_map.find(o.order_id);
 			if (_odr_map.end() == it)
 			{
 				o.order_state = order::order_status_type::REJECT_AMEND_ORDER_ID_NOT_FOUND;
 				_callback(o);
-				return;
+				return false;
 			}
 			auto& ori_odr = it->second;
 			if (order::order_engine_type::IMPLIED == ori_odr.engine_type)
 			{
 				o.order_state = order::order_status_type::REJECT_AMEND_ORDER_ID_NOT_FOUND;
 				_callback(o);
-				return;
+				return false;
 			}
 			ori_odr.order_action = o.order_action;
 			if (o.get_flag_value() == ori_odr.get_flag_value() && o.quantity <= ori_odr.remain_quantity)
@@ -488,11 +517,79 @@ namespace matching
 				ori_odr.display_quantity = o.display_quantity;
 				ori_odr.remain_quantity = ori_odr.quantity;
 				_callback(ori_odr);
+				//No order impact
+				return false;
 			}
 			else
 			{
 				handle_cancel(o);
-				handle_new(o);
+				return handle_new(o);
+			}
+		}
+
+		template<typename Book>
+		inline long long get_best_price(Book& book)
+		{
+			auto it = book.begin();
+			if (book.end() == it)
+			{
+				return order::MARKET_PRICE;
+			}
+			else
+			{
+				return it->first;
+			}
+		}
+
+		template<typename Cmp>
+		inline bool check_stop_trigger(long long before, long long after)
+		{
+			if (order::MARKET_PRICE == before && order::MARKET_PRICE != after)
+			{
+				return false;
+			}
+			else if (order::MARKET_PRICE != before && order::MARKET_PRICE == after)
+			{
+				return true;
+			}
+			else if (before == after)
+			{
+				return false;
+			}
+			else
+			{
+				Cmp cmp;
+				if (cmp(after, before))
+				{
+					return false;
+				}
+				else
+				{
+					return true;
+				}
+			}
+		}
+
+		inline void handle_bid_stop(long long)
+		{
+		}
+
+		inline void handle_ask_stop(long long)
+		{
+		}
+
+		inline void handle_stop(long long before_best_bid,
+				long long before_best_ask,
+				long long after_best_bid,
+				long long after_best_ask)
+		{
+			if (check_stop_trigger<typename decltype(_bid_book)::key_compare>(before_best_bid, after_best_bid))
+			{
+				handle_bid_stop(after_best_bid);
+			}
+			else if (check_stop_trigger<typename decltype(_ask_book)::key_compare>(before_best_ask, after_best_ask))
+			{
+				handle_ask_stop(after_best_ask);
 			}
 		}
 	};

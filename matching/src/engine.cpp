@@ -25,15 +25,45 @@ void engine::handle(order& o, order::order_engine_type engine_type)
 	{
 		o.order_state = order::order_status_type::OPEN;
 		o.engine_type = engine_type;
-		handle_new(o);
+		auto before_best_bid = get_best_price(_bid_book);
+		auto before_best_ask = get_best_price(_ask_book);
+		if (handle_new(o))
+		{
+			auto after_best_bid = get_best_price(_bid_book);
+			auto after_best_ask = get_best_price(_ask_book);
+			handle_stop(before_best_bid,
+					before_best_ask,
+					after_best_bid,
+					after_best_ask);
+		}
 	}
 	else if (order::order_action_type::CANCEL == o.order_action)
 	{
-		handle_cancel(o);
+		auto before_best_bid = get_best_price(_bid_book);
+		auto before_best_ask = get_best_price(_ask_book);
+		if (handle_cancel(o))
+		{
+			auto after_best_bid = get_best_price(_bid_book);
+			auto after_best_ask = get_best_price(_ask_book);
+			handle_stop(before_best_bid,
+					before_best_ask,
+					after_best_bid,
+					after_best_ask);
+		}
 	}
 	else
 	{
-		handle_amend(o);
+		auto before_best_bid = get_best_price(_bid_book);
+		auto before_best_ask = get_best_price(_ask_book);
+		if (handle_amend(o))
+		{
+			auto after_best_bid = get_best_price(_bid_book);
+			auto after_best_ask = get_best_price(_ask_book);
+			handle_stop(before_best_bid,
+					before_best_ask,
+					after_best_bid,
+					after_best_ask);
+		}
 	}
 }
 

@@ -16,8 +16,7 @@ namespace matching
 			SELL = 0x01,
 			BUY_STOP = 0x02,
 			SELL_STOP = 0x03,
-			BUY_SELL_STOP = 0x04,
-			SELL_BUY_STOP = 0x05
+			BUY_SELL_STOP = 0x04
 		};
 		enum order_action_type : unsigned char
 		{
@@ -58,7 +57,9 @@ namespace matching
 			REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED = 0x10,
 			REJECT_SELL_STOP_NO_BEST_BID = 0x11,
 			REJECT_SELL_STOP_TRIGGER_LESS_THAN_BEST_BID = 0x12,
-			REJECT_BUY_SELL_STOP_TRIGGER_CROSS = 0x13
+			REJECT_BUY_SELL_STOP_TRIGGER_CROSS = 0x13,
+			REJECT_UNKNOW_ORDER_ACTION = 0x14,
+			REJECT_QUANTITY_ZERO = 0x15
 		};
 		enum order_matched_type : unsigned char
 		{
