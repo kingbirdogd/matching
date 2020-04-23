@@ -25,11 +25,12 @@ namespace matching
 	private:
 		using search_order_map = std::unordered_map<unsigned long long, order>;
 		using id_order_map = std::map<unsigned long long, order*>;
+		using order_set = std::unordered_set<order*>;
 		using type_order_map = std::map<order::order_engine_type, id_order_map>;
 		using bid_book_type = std::map<long long, type_order_map, std::greater<long long>>;
 		using ask_book_type = std::map<long long, type_order_map, std::less<long long>>;
-		using bid_stop_book_type = std::map<long long, id_order_map, std::greater<long long>>;
-		using ask_stop_book_type = std::map<long long, id_order_map, std::less<long long>>;
+		using bid_stop_book_type = std::map<long long, order_set, std::less<long long>>;
+		using ask_stop_book_type = std::map<long long, order_set, std::greater<long long>>;
 		using callback_type = std::function<void(const order&)>;
 	private:
 		search_order_map _odr_map;
@@ -70,7 +71,7 @@ namespace matching
 		static void erase_from_stop_book(BookType& book, order& odr)
 		{
 			auto ori_it_price = book.find(odr.price);
-			ori_it_price->second.erase(odr.order_id);
+			ori_it_price->second.erase(&odr);
 			if (ori_it_price->second.empty())
 			{
 				book.erase(ori_it_price);
@@ -374,8 +375,7 @@ namespace matching
 						order::order_status_type::REJECT_BUY_STOP_TRIGGER_LESS_THAN_BEST_ASK>(_ask_book,o))
 				{
 					o.order_id = get_id();
-					_bid_stop_book[o.buy_stop_trigger_price][o.order_id] =
-							(&((_odr_map.emplace(o.order_id, o).first)->second));
+					_bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
 					_callback(o);
 				}
 				return false;
@@ -390,8 +390,7 @@ namespace matching
 						order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_BEST_BID>(_bid_book,o))
 				{
 					o.order_id = get_id();
-					_ask_stop_book[o.sell_stop_trigger_price][o.order_id] =
-							(&((_odr_map.emplace(o.order_id, o).first)->second));
+					_ask_stop_book[o.sell_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
 					_callback(o);
 				}
 				return false;
@@ -418,8 +417,8 @@ namespace matching
 				{
 					o.order_id = get_id();
 					auto podr = &((_odr_map.emplace(o.order_id, o).first)->second);
-					_bid_stop_book[o.buy_stop_trigger_price][o.order_id] = podr;
-					_ask_stop_book[o.sell_stop_trigger_price][o.order_id] = podr;
+					_bid_stop_book[o.buy_stop_trigger_price].insert(podr);
+					_ask_stop_book[o.sell_stop_trigger_price].insert(podr);
 					_callback(o);
 				}
 				return false;
