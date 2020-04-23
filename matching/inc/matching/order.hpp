@@ -89,7 +89,7 @@ namespace matching
 		order_matched_type matched_type;
 	public:
 		order():
-			price(0),
+			price(MARKET_PRICE),
 			quantity(0),
 			display_quantity(0),
 			remain_quantity(0),
@@ -100,9 +100,9 @@ namespace matching
 			last_matched_order_id(0),
 			matched_id(0),
 			buy_stop_trigger_price(0),
-			buy_stop_limited_price(0),
+			buy_stop_limited_price(MARKET_PRICE),
 			sell_stop_trigger_price(0),
-			sell_stop_limited_price(0),
+			sell_stop_limited_price(MARKET_PRICE),
 			side(order_side::BUY),
 			order_action(order_action_type::NEW),
 			time_condition(order_time_condition::GTC),
