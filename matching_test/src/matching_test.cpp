@@ -1,4 +1,5 @@
 #include <matching/engine.hpp>
+#include <memory/object_pool.hpp>
 #include <iostream>
 #include <unordered_map>
 
@@ -269,6 +270,21 @@ void stop_test_by_cancel()
 	e.handle(o);
 }
 
+void test_object_pool()
+{
+	memory::object_pool<matching::order, 1024> pool;
+	auto ptr = pool.alloc();
+	if (ptr)
+	{
+		std::cout << "alloc success" << std::endl;
+		handle_order(*ptr);
+		if (pool.free(ptr))
+		{
+			std::cout << "free success" << std::endl;
+		}
+	}
+};
+
 int main()
 {
 	stop_test();
@@ -456,6 +472,8 @@ int main()
 	std::cout << "6th recovery start" << std::endl;
 	e.recovery(handle_order);
 	std::cout << "6th recovery end" << std::endl;
+
+	test_object_pool();
 
 	return 0;
 }
