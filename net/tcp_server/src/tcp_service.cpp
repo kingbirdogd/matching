@@ -1,3 +1,10 @@
+#include <unistd.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 #include <net/tcp_service.hpp>
 
 using namespace net;
@@ -93,6 +100,10 @@ void tcp_service::close()
 			delete ptr;
 		}
 		_sta = status::UNBIND;
+		if (_on_unbind)
+		{
+			_on_unbind();
+		}
 	}
 }
 
@@ -124,17 +135,107 @@ void tcp_service::set_on_disconnect(client_event_cb&& on_disconnected)
 void tcp_service::run()
 {
 	if (status::UNBIND == _sta)
-		bind();
+		_bind();
 	else
-		accept();
+	{
+		_accept();
+		_run_clients();
+	}
 }
 
-void tcp_service::bind()
+void tcp_service::_bind()
 {
+	struct sockaddr_in addr;
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(_bind_port);
+	if (_bind_addr == "")
+	{
+		addr.sin_addr.s_addr = INADDR_ANY;
+	}
+	else if (::inet_pton(AF_INET, _bind_addr.c_str(), &addr.sin_addr) <= 0)
+	{
+		return;
+	}
+	bzero(&(addr.sin_zero), 8);
+	auto fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (-1 == fd)
+		return;
+	if (-1 == ::bind(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr)))
+	{
+		::close(fd);
+		return;
+	}
+	auto flags = ::fcntl(fd, F_GETFL, 0);
+	if (flags < 2)
+	{
+		::close(fd);
+		return;
+	}
+	if (::fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0)
+	{
+		::close(fd);
+		return;
+	}
+	if (::listen(fd, SOMAXCONN) < 0)
+	{
+		::close(fd);
+		return;
+	}
+	_sta = status::BINDED;
+	_sock = fd;
+	if (_on_bind)
+	{
+		_on_bind();
+	}
 }
 
-void tcp_service::accept()
+void tcp_service::_accept()
 {
+	struct sockaddr addr;
+	socklen_t len = sizeof(addr);
+	int fd = ::accept(_sock, &addr, &len);
+	if (fd < 0)
+	{
+		if (errno != EWOULDBLOCK && errno != EAGAIN)
+		{
+			close();
+		}
+		return;
+	}
+	struct sockaddr_in* v4addr = (struct sockaddr_in*)&addr;
+	struct in_addr ipaddr = v4addr->sin_addr;
+	char remote_addr[INET_ADDRSTRLEN];
+	inet_ntop(AF_INET, &ipaddr, remote_addr, INET_ADDRSTRLEN);
+	unsigned short int remote_port = v4addr->sin_port;
+	remote_port = ntohs(remote_port);
+	auto cli = new tcp_client(fd, remote_addr, remote_port);
+	if (_on_connected)
+	{
+		_on_connected(cli);
+	}
+	_clients.insert(cli);
+	cli->set_disconnected([&, cli]()
+	{
+		_clients.erase(cli);
+		if (_on_disconnected)
+		{
+			_on_disconnected(cli);
+		}
+		delete cli;
+	});
+	cli->set_on_msg([&, cli](const char* ptr, std::size_t size)
+	{
+		if (_on_msg)
+		{
+			_on_msg(cli, ptr, size);
+		}
+	});
+}
+
+void tcp_service::_run_clients()
+{
+	for (auto& it : _clients)
+		it->run();
 }
 
 

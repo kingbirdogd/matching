@@ -49,8 +49,9 @@ namespace net
 		tcp_service(const tcp_client&) = delete;
 		tcp_service& operator=(const tcp_client&) = delete;
 	private:
-		void bind();
-		void accept();
+		void _bind();
+		void _accept();
+		void _run_clients();
 	};
 }
 

@@ -42,7 +42,7 @@ namespace net
 		void _do_recv();
 	public:
 		tcp_client(const std::string& host, unsigned short int port);
-		tcp_client(int sock);
+		tcp_client(int sock, const std::string& host, unsigned short int port);
 		tcp_client(tcp_client&&);
 		tcp_client& operator=(tcp_client&&);
 		~tcp_client();
@@ -57,6 +57,8 @@ namespace net
 		{
 			send(&obj, sizeof(T));
 		}
+		const std::string& get_host();
+		unsigned short int get_port();
 		tcp_client() = delete;
 		tcp_client(const tcp_client&) = delete;
 		tcp_client& operator=(const tcp_client&) = delete;

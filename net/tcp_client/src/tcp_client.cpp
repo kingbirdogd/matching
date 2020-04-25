@@ -170,15 +170,15 @@ tcp_client::tcp_client(const std::string& host, unsigned short int port):
 {
 }
 
-tcp_client::tcp_client(int sock):
+tcp_client::tcp_client(int sock,const std::string& host, unsigned short int port):
 		_buffer(),
 		_msg_cb(),
 		_on_connected(),
 		_on_disconnected(),
 		_sock(sock),
 		_sta(status::ACCEPTED),
-		_host(""),
-		_port(0)
+		_host(host),
+		_port(port)
 {
 }
 
@@ -334,6 +334,16 @@ void tcp_client::set_connected(event_cb&& on_connected)
 void tcp_client::set_disconnected(event_cb&& on_disconnected)
 {
 	_on_disconnected = std::move(on_disconnected);
+}
+
+const std::string& tcp_client::get_host()
+{
+	return _host;
+}
+
+unsigned short int tcp_client::get_port()
+{
+	return _port;
 }
 
 
