@@ -156,8 +156,8 @@ namespace matching
 			}
 			o.matched_type = order::order_matched_type::TAKER;
 			o2.matched_type = order::order_matched_type::MAKER;
-			_callback(o);
 			_callback(o2);
+			_callback(o);
 			o.matched_id = 0;
 			o2.matched_id = 0;
 			handle_matched_implied(o2);
