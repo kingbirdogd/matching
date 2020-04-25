@@ -35,8 +35,18 @@ namespace net
 		tcp_service(tcp_service&&);
 		tcp_service& operator=(tcp_service&&);
 		~tcp_service();
-		bool send(tcp_client* cli, const char* ptr, std::size_t size);
-		void send(const char* ptr, std::size_t size);
+		bool send(tcp_client* cli, const void* ptr, std::size_t size);
+		void send(const void* ptr, std::size_t size);
+		template <typename T>
+		void send(tcp_client* cli, const T& obj)
+		{
+			send(cli, &obj, sizeof(T));
+		}
+		template <typename T>
+		void send(const T& obj)
+		{
+			send(&obj, sizeof(T));
+		}
 		bool close(tcp_client* cli);
 		void close();
 		void set_on_msg(msg_cb&& _on_msg);

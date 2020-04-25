@@ -15,17 +15,23 @@ namespace matching
 		std::size_t rest_;
 		handler h_;
 	public:
-		order_handler(order_handler&& h):
+		order_handler(handler&& h):
 			buff_{},
 			rest_(0),
 			h_(std::move(h))
 		{
 		}
-		order_handler operator= (order_handler&& h)
+		order_handler(order_handler&& h):
+			buff_{},
+			rest_(0),
+			h_(std::move(h.h_))
+		{
+		}
+		order_handler& operator= (order_handler&& h)
 		{
 			std::memcpy(buff_, h.buff_, h.rest_);
 			rest_ = h.rest_;
-			h_ = std::move(h_);
+			h_ = std::move(h.h_);
 			return *this;
 		}
 		void handle(const char* ptr, std::size_t size)

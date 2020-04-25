@@ -1,3 +1,5 @@
+#include "../../tcp_service/inc/net/tcp_service.hpp"
+
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -5,7 +7,6 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include <net/tcp_service.hpp>
 
 using namespace net;
 
@@ -58,7 +59,7 @@ tcp_service::~tcp_service()
 	close();
 }
 
-bool tcp_service::send(tcp_client* cli, const char* ptr, std::size_t size)
+bool tcp_service::send(tcp_client* cli, const void* ptr, std::size_t size)
 {
 	if (_clients.end() == _clients.find(cli))
 	{
@@ -69,7 +70,7 @@ bool tcp_service::send(tcp_client* cli, const char* ptr, std::size_t size)
 }
 
 
-void tcp_service::send(const char* ptr, std::size_t size)
+void tcp_service::send(const void* ptr, std::size_t size)
 {
 	for (auto it = _clients.begin(); it !=  _clients.end(); ++it)
 	{

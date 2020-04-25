@@ -1,3 +1,3 @@
 TYPE:=EXE
-DEPS:=net/tcp_server
+DEPS:=net/tcp_service
 include $(PROJECT_HOME)/common.mk
