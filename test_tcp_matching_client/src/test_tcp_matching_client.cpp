@@ -209,11 +209,11 @@ int main(int iArgc, char** pszArgv)
 	matching_tcp_client c(host, sPort);
 	c.set_connected([&]()
 	{
-		std::cout << "matching_tcp_client connected";
+		std::cout << "matching_tcp_client connected" << std::endl;
 	});
 	c.set_disconnected([&]()
 	{
-		std::cout << "matching_tcp_client disconnected";
+		std::cout << "matching_tcp_client disconnected" << std::endl;
 	});
 	c.set_on_order([&](const matching::order& o)
 	{
