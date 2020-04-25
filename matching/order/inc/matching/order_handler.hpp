@@ -33,7 +33,7 @@ namespace matching
 			if (0 != rest_)
 			{
 				auto need = sizeof(order) - rest_;
-				auto cp_size = need < size ? size : size;
+				auto cp_size = need < size ? need : size;
 				std::memcpy(buff_ + rest_, ptr, cp_size);
 				rest_ += cp_size;
 				if (sizeof(order) != rest_)
