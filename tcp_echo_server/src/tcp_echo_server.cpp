@@ -29,16 +29,17 @@ int main(int iArgc, char** pszArgv)
 	s.set_on_connect([&](net::tcp_client* cli)
 	{
 		std::cout << "client connected, IP:" << cli->get_host() << ", PORT:" << cli->get_port() << std::endl;
-		cli->send("Hello Echo\n", 4);
+		cli->send("Hello Echo\n\r", 12);
 	});
 	s.set_on_disconnect([&](net::tcp_client* cli)
 	{
 		std::cout << "client disconnected, IP:" << cli->get_host() << ", PORT:" << cli->get_port() << std::endl;
 	});
-	s.set_on_msg([&](net::tcp_client* cli, const char* ptr, std::size_t size)
+	s.set_on_msg([&](net::tcp_client*, const char* ptr, std::size_t size)
 	{
 		std::cout << "get msg, size:" << size << std::endl;
-		cli->send(ptr, size);
+		//broadcast
+		s.send(ptr, size);
 	});
 	while (true)
 	{

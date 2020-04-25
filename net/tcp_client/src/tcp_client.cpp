@@ -214,7 +214,7 @@ tcp_client::~tcp_client()
 	close();
 }
 
-void tcp_client::run()
+bool tcp_client::run()
 {
 	switch(_sta)
 	{
@@ -240,6 +240,10 @@ void tcp_client::run()
 			break;
 		}
 	}
+	if (status::CLOSED == _sta || status::NONE == _sta)
+		return false;
+	else
+		return true;
 }
 
 void tcp_client::send(const void* ptr, std::size_t size)

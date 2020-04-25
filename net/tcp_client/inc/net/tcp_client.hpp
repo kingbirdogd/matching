@@ -46,7 +46,7 @@ namespace net
 		tcp_client(tcp_client&&);
 		tcp_client& operator=(tcp_client&&);
 		~tcp_client();
-		void run();
+		bool run();
 		void send(const void* ptr, std::size_t size);
 		void close();
 		void set_on_msg(msg_cb&& msg_cb);

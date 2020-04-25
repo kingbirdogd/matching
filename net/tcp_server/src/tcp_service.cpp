@@ -84,6 +84,10 @@ bool tcp_service::close(tcp_client* cli)
 	if (_clients.end() == it)
 		return false;
 	_clients.erase(it);
+	if (_on_disconnected)
+	{
+		_on_disconnected(cli);
+	}
 	delete cli;
 	return true;
 }
@@ -97,6 +101,10 @@ void tcp_service::close()
 		{
 			auto ptr = (*it);
 			it = _clients.erase(it);
+			if (_on_disconnected)
+			{
+				_on_disconnected(ptr);
+			}
 			delete ptr;
 		}
 		_sta = status::UNBIND;
@@ -225,14 +233,16 @@ void tcp_service::_accept()
 		_on_connected(cli);
 	}
 	_clients.insert(cli);
-	cli->set_disconnected([&, cli]()
+	cli->set_disconnected([&, this, cli]()
 	{
-		_clients.erase(cli);
-		if (_on_disconnected)
+		auto it = _clients.find(cli);
+		if (_clients.end() != it)
 		{
-			_on_disconnected(cli);
+			if (_on_disconnected)
+			{
+				_on_disconnected(cli);
+			}
 		}
-		delete cli;
 	});
 	cli->set_on_msg([&, cli](const char* ptr, std::size_t size)
 	{
@@ -245,8 +255,14 @@ void tcp_service::_accept()
 
 void tcp_service::_run_clients()
 {
-	for (auto& it : _clients)
-		it->run();
+	for (auto it = _clients.begin(); it != _clients.end();)
+	{
+		auto ptr = *it;
+		if (ptr->run())
+			++it;
+		else
+			it = _clients.erase(it);
+	}
 }
 
 
