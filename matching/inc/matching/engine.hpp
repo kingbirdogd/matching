@@ -175,10 +175,10 @@ namespace matching
 			{
 				if (!cross_cmp(limited_price, it->first) || order::MARKET_PRICE == limited_price)
 				{
-					auto m2 = it->second;
+					auto& m2 = it->second;
 					for (auto it2 = m2.begin(); it2 != m2.end(); ++it2)
 					{
-						auto m3 = it2->second;
+						auto& m3 = it2->second;
 						for (auto it3 = m3.begin(); it3 != m3.end(); ++it3)
 						{
 							auto& o2 = *it3->second;
@@ -246,10 +246,10 @@ namespace matching
 						_callback(o);
 						return false;
 					}
-					auto m2 = it->second;
+					auto& m2 = it->second;
 					for (auto it2 = m2.begin(); it2 != m2.end();)
 					{
-						auto m3 = it2->second;
+						auto& m3 = it2->second;
 						for (auto it3 = m3.begin(); it3 != m3.end();)
 						{
 							auto& o2 = *it3->second;
