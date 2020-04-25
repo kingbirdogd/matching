@@ -55,8 +55,8 @@ void matching_tcp_client::send(const matching::order& o)
 
 void matching_tcp_client::run()
 {
-	_send_odrs();
 	c_.run();
+	_send_odrs();
 }
 
 void matching_tcp_client::set_connected(control_event&& on_connected)
