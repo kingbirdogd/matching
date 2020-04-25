@@ -110,7 +110,7 @@ void tcp_client::_do_send()
 	while (0 != _buffer.size())
 	{
 		auto& first = _buffer.front();
-		while (first.snd > 0)
+		while (first.snd < first.data.size())
 		{
 			auto rt = ::send(_sock, &first.data[first.snd], first.data.size() - first.snd, MSG_NOSIGNAL);
 			if (rt > 0)
@@ -130,7 +130,7 @@ void tcp_client::_do_send()
 				return;
 			}
 		}
-		if (0 == first.snd)
+		if (first.data.size() == first.snd)
 			_buffer.pop_front();
 	}
 }
@@ -246,7 +246,7 @@ void tcp_client::send(const void* ptr, std::size_t size)
 {
 	if (nullptr == ptr || 0 == size)
 		return;
-	if (!_buffer.empty() || _sta != status::CONNECTED)
+	if (!_buffer.empty() || (_sta != status::CONNECTED && _sta != status::ACCEPTED))
 	{
 		snd_node node;
 		node.data.resize(size);

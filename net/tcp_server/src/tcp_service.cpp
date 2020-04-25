@@ -202,6 +202,17 @@ void tcp_service::_accept()
 		}
 		return;
 	}
+	auto flags = ::fcntl(fd, F_GETFL, 0);
+	if (flags < 2)
+	{
+		::close(fd);
+		return;
+	}
+	if (::fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0)
+	{
+		::close(fd);
+		return;
+	}
 	struct sockaddr_in* v4addr = (struct sockaddr_in*)&addr;
 	struct in_addr ipaddr = v4addr->sin_addr;
 	char remote_addr[INET_ADDRSTRLEN];
