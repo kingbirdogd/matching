@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "../../net/tcp_service/inc/net/tcp_service.hpp"
+#include <net/tcp_service.hpp>
 
 
 int main(int iArgc, char** pszArgv)

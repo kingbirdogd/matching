@@ -34,6 +34,11 @@ matching_tcp_service& matching_tcp_service::operator=(matching_tcp_service&& s)
 	return *this;
 }
 
+void matching_tcp_service::run()
+{
+	s_.run();
+}
+
 void matching_tcp_service::_handle_rcv_odr(const matching::order& o)
 {
 	e_.handle(const_cast<matching::order&>(o));

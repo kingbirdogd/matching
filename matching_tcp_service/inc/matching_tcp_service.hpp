@@ -20,6 +20,7 @@ public:
 	matching_tcp_service() = delete;
 	matching_tcp_service(const matching_tcp_service&) = delete;
 	matching_tcp_service& operator=(const matching_tcp_service&) = delete;
+	void run();
 private:
 	void _handle_rcv_odr(const matching::order& o);
 	void _handle_snd_odr(const matching::order& o);
