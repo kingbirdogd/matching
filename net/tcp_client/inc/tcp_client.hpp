@@ -57,6 +57,7 @@ namespace net
 		{
 			send(&obj, sizeof(T));
 		}
+		tcp_client() = delete;
 		tcp_client(const tcp_client&) = delete;
 		tcp_client& operator=(const tcp_client&) = delete;
 	};
