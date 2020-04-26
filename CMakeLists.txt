@@ -17,7 +17,7 @@ add_subdirectory(matching_tcp_service)
 
 add_subdirectory(net)
 
-add_subdirectory(proxy_ws)
+#add_subdirectory(proxy_ws)
 
 add_subdirectory(test_tcp_matching_client)
 add_subdirectory(test_tcp_matching_server)

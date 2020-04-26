@@ -75,7 +75,7 @@ namespace proxy {
 
 
   static SHA1::digest_type _pure compute_cookie(id_t user_id) {
-    SHA1 sha1;
+    class SHA1 sha1;
     sha1.write(cookie_secret, sizeof cookie_secret);
     be<uint64_t> user_id_be = user_id;
     sha1.write(&user_id_be, sizeof user_id_be);

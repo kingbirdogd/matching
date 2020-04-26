@@ -136,7 +136,7 @@ namespace proxy {
                                                 bytes_to_mpn224(public_key.y),
                                                 {{1, 0, 0, 0}}
                                             }};
-          SHA224 sha224;
+          class SHA224 sha224;
           uint64_t user_id_be = htobe64(request_user_id);
           sha224.write(&user_id_be, sizeof user_id_be);
           sha224.write(nonce, sizeof nonce);
