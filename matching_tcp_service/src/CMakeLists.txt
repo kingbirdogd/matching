@@ -1,0 +1,5 @@
+add_library(matching_tcp_service matching_tcp_service.cpp)
+target_include_directories(matching_tcp_service PUBLIC ../inc)
+target_include_directories(matching_tcp_service PUBLIC ${CMAKE_SOURCE_DIR}/matching/order/inc)
+target_include_directories(matching_tcp_service PUBLIC ${CMAKE_SOURCE_DIR}/matching/inc)
+target_include_directories(matching_tcp_service PUBLIC ${CMAKE_SOURCE_DIR}/net/tcp_client/inc)

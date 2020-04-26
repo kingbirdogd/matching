@@ -1,0 +1,6 @@
+add_executable(test_tcp_matching_server test_tcp_matching_server.cpp)
+target_include_directories(test_tcp_matching_server PUBLIC ${CMAKE_SOURCE_DIR}/matching_tcp_service/inc)
+target_include_directories(test_tcp_matching_server PUBLIC ${CMAKE_SOURCE_DIR}/matching/inc)
+target_include_directories(test_tcp_matching_server PUBLIC ${CMAKE_SOURCE_DIR}/matching/order/inc)
+target_include_directories(test_tcp_matching_server PUBLIC ${CMAKE_SOURCE_DIR}/net/tcp_client/inc)
+target_link_libraries(test_tcp_matching_server matching_tcp_service tcp_service tcp_client engine pthread)
