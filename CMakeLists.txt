@@ -12,6 +12,13 @@ add_subdirectory(common)
 
 add_subdirectory(matching)
 add_subdirectory(matching_test)
+add_subdirectory(matching_tcp_client)
+add_subdirectory(matching_tcp_service)
+
+add_subdirectory(net)
 
 add_subdirectory(proxy_ws)
+
+add_subdirectory(test_tcp_matching_client)
+add_subdirectory(test_tcp_matching_server)
 

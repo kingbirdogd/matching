@@ -9,24 +9,32 @@ extern "C" {
 #endif
 
 #include "string.h"
+#include "Client.hpp"
+#include <memory>
+
+using namespace proxy;
+
+std::unordered_map<std::string, int> _client_connections_map;
+std::mutex _client_connections_map_mutex;
 
 /* one of these created for each message */
-
 struct msg {
 	void *payload; /* is malloc'd */
 	size_t len;
 };
 
 /* one of these is created for each client connecting to us */
-
 struct per_session_data__minimal {
 	struct per_session_data__minimal *pss_list;
 	struct lws *wsi;
 	int last; /* the last message number we sent */
+  struct sockaddr_storage addr;
+  char x_forwarded_for[ INET6_ADDRSTRLEN + 1];
+  char cf_connecting_ip[INET6_ADDRSTRLEN + 1];
+  std::shared_ptr<Client> client_ptr;
 };
 
 /* one of these is created for each vhost our protocol is used with */
-
 struct per_vhost_data__minimal {
 	struct lws_context *context;
 	struct lws_vhost *vhost;
@@ -39,7 +47,6 @@ struct per_vhost_data__minimal {
 };
 
 /* destroys the message when everyone has had a copy of it */
-
 static void
 __minimal_destroy_message(void *_msg)
 {
@@ -63,22 +70,61 @@ callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
 	int m;
 
 	switch (reason) {
-	case LWS_CALLBACK_PROTOCOL_INIT:
-		vhd = (struct per_vhost_data__minimal *)lws_protocol_vh_priv_zalloc(lws_get_vhost(wsi),
-				lws_get_protocol(wsi),
-				sizeof(struct per_vhost_data__minimal));
-		vhd->context = lws_get_context(wsi);
-		vhd->protocol = lws_get_protocol(wsi);
-		vhd->vhost = lws_get_vhost(wsi);
-		break;
+    case LWS_CALLBACK_PROTOCOL_INIT:
+      vhd = (struct per_vhost_data__minimal *) lws_protocol_vh_priv_zalloc(lws_get_vhost(wsi),
+                                                                           lws_get_protocol(wsi),
+                                                                           sizeof(struct per_vhost_data__minimal));
+      vhd->context = lws_get_context(wsi);
+      vhd->protocol = lws_get_protocol(wsi);
+      vhd->vhost = lws_get_vhost(wsi);
+      break;
 
-	case LWS_CALLBACK_ESTABLISHED:
-		/* add ourselves to the list of live pss held in the vhd */
-		lws_ll_fwd_insert(pss, pss_list, vhd->pss_list);
-		pss->wsi = wsi;
-		pss->last = vhd->current;
-		break;
+    case LWS_CALLBACK_ESTABLISHED: {
+      /* add ourselves to the list of live pss held in the vhd */
+      lws_ll_fwd_insert(pss, pss_list, vhd->pss_list);
+      pss->wsi = wsi;
+      pss->last = vhd->current;
 
+      // Get sockaddr
+      struct sockaddr_storage addr;
+      socklen_t len;
+      get_sockaddr_storage(wsi, &addr, &len);
+
+      // Get IP and port of client's connection
+      char ipstr[INET6_ADDRSTRLEN + 1];
+      int port;
+      get_ip_and_port(&addr, ipstr, INET6_ADDRSTRLEN + 1, &port);
+
+      // Save the sockaddr
+      pss->addr = addr;
+      int res = 0;
+
+      // Try to get the X-Forwarded-For header
+      memset(&pss->x_forwarded_for, 0, sizeof(pss->x_forwarded_for));
+      char forwarded_ip[INET6_ADDRSTRLEN + 1];
+      res = lws_hdr_copy(wsi, forwarded_ip, sizeof(forwarded_ip), WSI_TOKEN_X_FORWARDED_FOR);
+      if (res > 0) {
+        //lwsl_notice("Connection accepted from (X-Forwarded-For): %s\n", forwarded_ip);
+        strncpy(pss->x_forwarded_for, forwarded_ip, sizeof(forwarded_ip));
+      }
+
+      // Try to get the CF-Connecting-IP header
+      memset(&pss->cf_connecting_ip, 0, sizeof(pss->x_forwarded_for));
+      char connecting_ip[INET6_ADDRSTRLEN + 1];
+      res = lws_hdr_copy(wsi, connecting_ip, sizeof(connecting_ip), WSI_TOKEN_CF_CONNECTING_IP);
+      if (res > 0) {
+        //lwsl_notice("Connection accepted from (CF-Connecting-IP): %s\n", connecting_ip);
+        strncpy(pss->cf_connecting_ip, connecting_ip, sizeof(connecting_ip));
+      }
+
+      lwsl_notice("Connection accepted from:[%s:%d], X-Forwarded-For:[%s], CF-Connecting-IP:[%s]\n",
+                  ipstr, port, pss->x_forwarded_for, pss->cf_connecting_ip);
+
+      Socket dummy_socket; sockaddr_in6 peer_addr; int v1 = 1; int num_queue = 1; // all dummy
+      std::string ip_address = strlen(pss->x_forwarded_for) == 0 ? pss->cf_connecting_ip : pss->x_forwarded_for;
+      pss->client_ptr = std::make_shared<Client>(std::move(dummy_socket), peer_addr, v1, num_queue, ip_address, _client_connections_map, _client_connections_map_mutex);
+    }
+		break;
 	case LWS_CALLBACK_CLOSED:
 		/* remove our closing pss from the list of live pss */
 		lws_ll_fwd_remove(struct per_session_data__minimal, pss_list,
