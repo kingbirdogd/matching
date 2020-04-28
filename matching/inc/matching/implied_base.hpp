@@ -10,7 +10,7 @@ namespace matching
 	private:
 		friend engine;
 	protected:
-		static void _handle(engine& e, implied_order& o);
+		void _handle(engine& e, implied_order& o);
 	public:
 		implied_base() = default;
 		virtual ~implied_base() = default;
