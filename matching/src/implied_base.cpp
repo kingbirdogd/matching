@@ -3,10 +3,10 @@
 
 using namespace matching;
 
-void implied_base::_handle(engine& e, implied_order& o)
+void implied_base::_place_order(engine* e, implied_order& o)
 {
 	o.implied_ptr = this;
-	e._handle(o);
+	e->_handle(o);
 }
 
 

@@ -10,12 +10,12 @@ namespace matching
 	private:
 		friend engine;
 	protected:
-		void _handle(engine& e, implied_order& o);
+		void _place_order(engine* e, implied_order& o);
 	public:
 		implied_base() = default;
 		virtual ~implied_base() = default;
-		virtual void handle_outright(implied_order& o) = 0;
-		virtual void handle_implied(implied_order& o) = 0;
+		virtual void handle_outright(engine* e, implied_order& o) = 0;
+		virtual void handle_implied(engine* e, implied_order& o) = 0;
 	};
 };
 
