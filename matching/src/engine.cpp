@@ -20,13 +20,11 @@ engine::~engine()
 {
 }
 
-void engine::handle(const order& odr, order::order_engine_type engine_type)
+void engine::_handle(implied_order& o)
 {
-	implied_order o(odr);
 	if (order::order_action_type::NEW == o.order_action)
 	{
 		o.order_state = order::order_status_type::OPEN;
-		o.engine_type = engine_type;
 		auto before_best_bid = get_best_price(_bid_book);
 		auto before_best_ask = get_best_price(_ask_book);
 		if (handle_new(o))

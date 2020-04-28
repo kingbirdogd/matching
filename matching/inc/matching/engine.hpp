@@ -13,8 +13,11 @@
 
 namespace matching
 {
+	class implied_base;
 	class engine
 	{
+	private:
+		friend implied_base;
 	private:
 		static std::atomic<unsigned long long> _id;
 	private:
@@ -40,10 +43,16 @@ namespace matching
 		ask_stop_book_type _ask_stop_book;
 		callback_type _callback;
 		long long _mini_tick;
+	private:
+		void _handle(implied_order& odr);
 	public:
 		engine(callback_type&& callback, long long mini_tick = 1);
 		~engine();
-		void handle(const order& odr, order::order_engine_type engine_type = order::order_engine_type::NORMAL);
+		void handle(const order& odr)
+		{
+			implied_order o(odr);
+			_handle(o);
+		}
 		inline void recovery(callback_type&& callback) const
 		{
 			for (const auto& item : _odr_map)
