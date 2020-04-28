@@ -1,11 +1,11 @@
 #ifndef MATCHING_INC_MATCHING_IMPLIED_ORDER_HPP_
 #define MATCHING_INC_MATCHING_IMPLIED_ORDER_HPP_
 
-#include <matching/implied_base.hpp>
 #include <matching/order.hpp>
 
 namespace matching
 {
+	class implied_base;
 	struct implied_order : public order
 	{
 		implied_base* implied_ptr;

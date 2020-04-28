@@ -3,10 +3,14 @@
 
 namespace matching
 {
+	struct implied_order;
 	class implied_base
 	{
+	public:
 		implied_base() = default;
 		virtual ~implied_base() = default;
+		virtual void handle_outright(implied_order& o) = 0;
+		virtual void handle_implied(implied_order& o) = 0;
 	};
 };
 
