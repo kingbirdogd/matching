@@ -5,13 +5,14 @@ using namespace matching;
 
 std::atomic<unsigned long long> engine::_id(static_cast<unsigned long long>(time(nullptr)) * 1000000000);
 
-engine::engine(callback_type&& callback):
+engine::engine(callback_type&& callback, long long _mini_tick):
 		_odr_map(),
 		_bid_book(),
 		_ask_book(),
 		_bid_stop_book(),
 		_ask_stop_book(),
-		_callback(std::move(callback))
+		_callback(std::move(callback)),
+		_mini_tick(_mini_tick)
 {
 }
 

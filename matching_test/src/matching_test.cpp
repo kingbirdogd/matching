@@ -133,9 +133,13 @@ void handle_order(const matching::order& o)
 	{
 		time_condition = "FOK";
 	}
-	else
+	else if (matching::order::order_time_condition::MAKER_ONLY == o.time_condition)
 	{
 		time_condition = "MAKER_ONLY";
+	}
+	else
+	{
+		time_condition = "MAKER_ONLY_REPRICE";
 	}
 	if (matching::order::order_action_type::NEW == o.order_action)
 	{

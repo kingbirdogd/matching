@@ -39,8 +39,9 @@ namespace matching
 		bid_stop_book_type _bid_stop_book;
 		ask_stop_book_type _ask_stop_book;
 		callback_type _callback;
+		long long _mini_tick;
 	public:
-		engine(callback_type&& callback);
+		engine(callback_type&& callback, long long mini_tick = 1);
 		~engine();
 		void handle(order& o, order::order_engine_type engine_type = order::order_engine_type::NORMAL);
 		inline void recovery(callback_type&& callback) const
@@ -82,6 +83,34 @@ namespace matching
 			static long long get_price(order& odr)
 			{
 				return odr.sell_stop_trigger_price;
+			}
+		};
+
+
+		template <typename Dummy, typename BookType>
+		struct cross_book_function_helper
+		{
+			static long long get_non_cross_price(long long price, long long mini_tick)
+			{
+				return price + mini_tick;
+			}
+		};
+
+		template <typename Dummy>
+		struct cross_book_function_helper<Dummy, ask_book_type>
+		{
+			static long long get_non_cross_price(long long price, long long mini_tick)
+			{
+				return price - mini_tick;
+			}
+		};
+
+		template <typename BookType>
+		struct cross_book_function
+		{
+			static long long get_non_cross_price(long long price, long long mini_tick)
+			{
+				return cross_book_function_helper<bool, BookType>::get_non_cross_price(price, mini_tick);
 			}
 		};
 
@@ -245,6 +274,11 @@ namespace matching
 						o.order_state = order::order_status_type::CANCELED_BY_MAKER_ONLY;
 						_callback(o);
 						return false;
+					}
+					else if (order::order_time_condition::MAKER_ONLY_REPRICE == o.time_condition)
+					{
+						o.price = cross_book_function<Book>::get_non_cross_price(it->first, _mini_tick);
+						return true;
 					}
 					auto& m2 = it->second;
 					for (auto it2 = m2.begin(); it2 != m2.end();)

@@ -29,7 +29,8 @@ namespace matching
 			GTC = 0x00,
 			IOC = 0x01,
 			FOK = 0x02,
-			MAKER_ONLY = 0x03
+			MAKER_ONLY = 0x03,
+			MAKER_ONLY_REPRICE = 0x04
 		};
 		enum order_engine_type : unsigned char
 		{
