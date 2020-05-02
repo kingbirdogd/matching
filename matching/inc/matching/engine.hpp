@@ -541,12 +541,6 @@ namespace matching
 				return false;
 			}
 			auto& ori_odr = it->second;
-			if (order::order_engine_type::IMPLIED == ori_odr.engine_type)
-			{
-				o.order_state = order::order_status_type::REJECT_CANCEL_ORDER_ID_NOT_FOUND;
-				_callback(o);
-				return false;
-			}
 			ori_odr.client_order_id = o.client_order_id;
 			ori_odr.order_state = order::order_status_type::CANCELED_BY_USER;
 			_callback(ori_odr);
@@ -602,12 +596,6 @@ namespace matching
 				return false;
 			}
 			auto& ori_odr = it->second;
-			if (order::order_engine_type::IMPLIED == ori_odr.engine_type)
-			{
-				o.order_state = order::order_status_type::REJECT_AMEND_ORDER_ID_NOT_FOUND;
-				_callback(o);
-				return false;
-			}
 			ori_odr.order_action = o.order_action;
 			if (o.get_flag_value() == ori_odr.get_flag_value() && o.quantity <= ori_odr.remain_quantity)
 			{
