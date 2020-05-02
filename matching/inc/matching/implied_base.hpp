@@ -14,8 +14,12 @@ namespace matching
 	public:
 		implied_base() = default;
 		virtual ~implied_base() = default;
-		virtual void handle_outright(engine* e, implied_order& o) = 0;
-		virtual void handle_implied(engine* e, implied_order& o) = 0;
+		virtual void handle_bid_add_quantity(engine* e, long long price, unsigned long long quantity) = 0;
+		virtual void handle_bid_sub_quantity(engine* e, long long price, unsigned long long quantity) = 0;
+		virtual void handle_ask_add_quantity(engine* e, long long price, unsigned long long quantity) = 0;
+		virtual void handle_ask_sub_quantity(engine* e, long long price, unsigned long long quantity) = 0;
+		virtual void handle_bid_implied_cross(engine* e, unsigned long long quantity) = 0;
+		virtual void handle_ask_implied_cross(engine* e, unsigned long long quantity) = 0;
 	};
 };
 
