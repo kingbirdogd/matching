@@ -6,16 +6,50 @@ SHORT A ->SHOR AB, SHORT B
 LONG B -> LONG A, SHORT AB
 SHORT B -> SHORT A, LONG AB,
 
-LONG AB (implied IN) -> (ASK_PRICE_A - BID_PRICE_B) @ MIN(ASK_QUANTITY_A, BID_QUANTITY_B)
+LONG AB (implied IN, ASK_AB) -> (ASK_PRICE_A - BID_PRICE_B) @ MIN(ASK_QUANTITY_A, BID_QUANTITY_B)
 
-SHORT AB (implied IN) ->  (BID_PRICE_A - ASK_PRICE_B) @ MIN(BID_QUANTITY_A, ASK_QUANTITY_B)
-
-
-LONG A(implied OUT) ->(ASK_PRICE_AB + ASK_PRICE_B) @ MIN(ASK_QUANTITY_AB, ASK_QUANTITY_B)
-
-SHORT A(implied OUT) ->(BID_PRICE_AB + BID_PRICE_B) @ MIN(BID_QUANTITY_AB, BID_QUANTITY_B)
+SHORT AB (implied IN, BID_AB) ->  (BID_PRICE_A - ASK_PRICE_B) @ MIN(BID_QUANTITY_A, ASK_QUANTITY_B)
 
 
-LONG B(implied OUT)->(ASK_PRICE_A - BID_PRICE_AB) @ MIN(ASK_QUANTITY_A, BID_QUANTITY_AB)
+LONG A(implied OUT, ASK_A) ->(ASK_PRICE_AB + ASK_PRICE_B) @ MIN(ASK_QUANTITY_AB, ASK_QUANTITY_B)
 
-SHORT B(implied OUT)->(BID_PRICE_A - ASK_PRICE_AB) @ MIN(BID_QUANTITY_A, ASK_QUANTITY_AB)
+SHORT A(implied OUT, BID_A) ->(BID_PRICE_AB + BID_PRICE_B) @ MIN(BID_QUANTITY_AB, BID_QUANTITY_B)
+
+
+LONG B(implied OUT, ASK_B)->(ASK_PRICE_A - BID_PRICE_AB) @ MIN(ASK_QUANTITY_A, BID_QUANTITY_AB)
+
+SHORT B(implied OUT, BID_B)->(BID_PRICE_A - ASK_PRICE_AB) @ MIN(BID_QUANTITY_A, ASK_QUANTITY_AB)
+
+Init:
+                           A              
+9499@3,implied rest 3                          9500@10,implied rest 10
+                           B
+9450@5,implied rest 5
+
+
+First Level Implied in AB_Ask:
+                           A              
+9499@3,implied rest 3                          9500@10,implied rest 5
+                           B
+9450@5,implied rest 0
+                           AB 
+                                               50@5i, implied rest 5i
+                      
+Second Level Implied in B_Bid:
+                           A              
+9499@3,implied rest 0                          9500@10,implied rest 5
+                           B
+9450@5,implied rest 0
+9449@3ii, implied rest 3ii
+                           AB
+                                               50@5i,implied rest2i
+                                               
+Third Level Implied in AB_Ask:
+                           A              
+9499@3,implied rest 0                          9500@10,implied rest 2
+                           B
+9450@5,implied rest 0
+9449@3ii, implied rest 0ii
+                           AB
+                                               50@5i,implied rest2i
+                                               51@3iii, implied rest 3iii
