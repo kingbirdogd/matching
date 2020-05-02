@@ -53,3 +53,21 @@ Third Level Implied in AB_Ask:
                            AB
                                                50@5i,implied rest2i
                                                51@3iii, implied rest 3iii
+                                               
+                                               
+
+A,B,C,AB,BC
+Init:
+                           A              
+                                              9500@5,implied rest 5
+                           B
+9450@5,implied rest 5
+                           C              
+                                              9400@5,implied rest 5
+                                              
+Implied AB, BC               
+                           AB 
+                                               50@5i, implied rest 5i                                               
+                           BC 
+50@5i, implied rest 5i                                               
+                                               
