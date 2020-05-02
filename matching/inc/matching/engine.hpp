@@ -51,6 +51,10 @@ namespace matching
 		void handle(const order& odr)
 		{
 			implied_order o(odr);
+			if (order::order_action_type::NEW == o.order_action)
+			{
+				o.order_id = 0;
+			}
 			_handle(o);
 		}
 		inline void recovery(callback_type&& callback) const
@@ -411,13 +415,13 @@ namespace matching
 
 		inline void init_new_order(implied_order& o)
 		{
-			o.order_id = get_id();
+			if (0 == o.order_id)
+				o.order_id = get_id();
 			o.remain_quantity = o.quantity;
 		}
 
 		inline bool handle_new(implied_order& o)
 		{
-			o.order_id = 0;
 			if (0 == o.quantity)
 			{
 				o.order_state = order::order_status_type::REJECT_QUANTITY_ZERO;
@@ -599,6 +603,7 @@ namespace matching
 			else
 			{
 				handle_cancel(o);
+				o.order_id = 0;
 				return handle_new(o);
 			}
 		}
