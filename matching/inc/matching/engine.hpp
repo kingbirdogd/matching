@@ -217,6 +217,11 @@ namespace matching
 			}
 			o.matched_type = order::order_matched_type::TAKER;
 			o2.matched_type = order::order_matched_type::MAKER;
+			//auto o2_original_display = o2.display_quantity;
+			//o.display_quantity = o.display_quantity < o.remain_quantity ? o.display_quantity : o.remain_quantity;
+			//o2.display_quantity = o2.display_quantity < o2.remain_quantity ? o2.display_quantity : o2.remain_quantity;
+			o.update_display();
+			o2.update_display();
 			_callback(o2);
 			_callback(o);
 			o.matched_id = 0;
@@ -597,7 +602,7 @@ namespace matching
 			}
 			auto& ori_odr = it->second;
 			ori_odr.order_action = o.order_action;
-			if (o.get_flag_value() == ori_odr.get_flag_value() && o.quantity <= ori_odr.remain_quantity)
+			if (order::can_amend(o, ori_odr))
 			{
 				ori_odr.client_order_id = o.client_order_id;
 				ori_odr.quantity = o.quantity;

@@ -88,6 +88,11 @@ namespace matching
 		order_engine_type engine_type;
 		order_status_type order_state;
 		order_matched_type matched_type;
+	private:
+		inline unsigned int _get_flag_value() const
+		{
+			return (*static_cast<const unsigned int*>(static_cast<const void*>(&side)));
+		}
 	public:
 		order():
 			price(MARKET_PRICE),
@@ -113,9 +118,49 @@ namespace matching
 		{
 		}
 		~order() = default;
-		inline unsigned long long get_flag_value()
+		void update_display()
 		{
-			return (*static_cast<const unsigned int*>(static_cast<const void*>(&side)));
+			display_quantity = display_quantity < remain_quantity ? display_quantity : remain_quantity;
+		}
+		inline static bool can_amend(const order& o1, const order& o2)
+		{
+			if (o1._get_flag_value() != o2._get_flag_value())
+			{
+				return false;
+			}
+			if (order_side::BUY == o1.side || order_side::SELL == o1.side)
+			{
+				if (o1.price != o2.price)
+					return false;
+			}
+			else if (order_side::BUY_STOP == o1.side)
+			{
+				if (o1.buy_stop_limited_price != o2.buy_stop_limited_price)
+					return false;
+				if (o1.buy_stop_trigger_price != o2.buy_stop_trigger_price)
+					return false;
+			}
+			else if (order_side::SELL_STOP == o1.side)
+			{
+				if (o1.sell_stop_limited_price != o2.sell_stop_limited_price)
+					return false;
+				if (o1.sell_stop_trigger_price != o2.sell_stop_trigger_price)
+					return false;
+			}
+			else
+			{
+				if (o1.buy_stop_limited_price != o2.buy_stop_limited_price)
+					return false;
+				if (o1.buy_stop_trigger_price != o2.buy_stop_trigger_price)
+					return false;
+				if (o1.sell_stop_limited_price != o2.sell_stop_limited_price)
+					return false;
+				if (o1.sell_stop_trigger_price != o2.sell_stop_trigger_price)
+					return false;
+			}
+			if (o1.quantity > o2.remain_quantity)
+				return false;
+			return true;
 		}
 	};
 }
