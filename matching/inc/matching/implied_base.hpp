@@ -1,6 +1,8 @@
 #ifndef MATCHING_ORDER_INC_MATCHING_IMPLIED_BASE_HPP_
 #define MATCHING_ORDER_INC_MATCHING_IMPLIED_BASE_HPP_
 
+#include <core/spin_mutex.hpp>
+
 namespace matching
 {
 	struct implied_order;
@@ -9,6 +11,8 @@ namespace matching
 	{
 	private:
 		friend engine;
+	private:
+		core::spin_mutex _m;
 	protected:
 		void _place_order(engine* e, implied_order& o);
 	private:
