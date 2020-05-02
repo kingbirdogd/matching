@@ -10,10 +10,10 @@
 #include <functional>
 #include <algorithm>
 #include <matching/implied_order.hpp>
+#include <matching/implied_base.hpp>
 
 namespace matching
 {
-	class implied_base;
 	class engine
 	{
 	private:
@@ -107,6 +107,13 @@ namespace matching
 			{
 				return price + mini_tick;
 			}
+			static void handle_implied_cross(engine* e, const implied_order& o)
+			{
+				if (o.implied_ptr)
+				{
+					o.implied_ptr->handle_bid_implied_cross(e, o.last_match_quantity);
+				}
+			}
 		};
 
 		template <typename Dummy>
@@ -116,6 +123,13 @@ namespace matching
 			{
 				return price - mini_tick;
 			}
+			static void handle_implied_cross(engine* e, const implied_order& o)
+			{
+				if (o.implied_ptr)
+				{
+					o.implied_ptr->handle_ask_implied_cross(e, o.last_match_quantity);
+				}
+			}
 		};
 
 		template <typename BookType>
@@ -124,6 +138,10 @@ namespace matching
 			static long long get_non_cross_price(long long price, long long mini_tick)
 			{
 				return cross_book_function_helper<bool, BookType>::get_non_cross_price(price, mini_tick);
+			}
+			static void handle_implied_cross(engine* e, const implied_order& o)
+			{
+				cross_book_function_helper<bool, BookType>::handle_implied_cross(e, o);
 			}
 		};
 
@@ -165,7 +183,8 @@ namespace matching
 		{
 		}
 
-		inline void handle_matched_order(implied_order& o, implied_order& o2)
+		template <typename Book>
+		void handle_matched_order(implied_order& o, implied_order& o2)
 		{
 			auto matched_price = o2.price;
 			auto matched_quantity = std::min(o.remain_quantity, o2.remain_quantity);
@@ -202,7 +221,7 @@ namespace matching
 			_callback(o);
 			o.matched_id = 0;
 			o2.matched_id = 0;
-			handle_matched_implied(o2);
+			cross_book_function<Book>::handle_implied_cross(this, o2);
 		}
 
 		template <typename Book, std::size_t offSet>
@@ -252,7 +271,7 @@ namespace matching
 				for (std::size_t i = 0; i < cross_odrs.size(); ++i)
 				{
 					auto& o2 = *cross_odrs[i];
-					handle_matched_order(o, o2);
+					handle_matched_order<Book>(o, o2);
 					if (0 == o2.remain_quantity)
 					{
 						full_erase_from_normal_book(book, o2);
@@ -300,7 +319,7 @@ namespace matching
 						for (auto it3 = m3.begin(); it3 != m3.end();)
 						{
 							auto& o2 = *it3->second;
-							handle_matched_order(o, o2);
+							handle_matched_order<Book>(o, o2);
 							if (0 != o2.remain_quantity)
 							{
 								++it3;

@@ -11,7 +11,7 @@ namespace matching
 		friend engine;
 	protected:
 		void _place_order(engine* e, implied_order& o);
-	public:
+	private:
 		implied_base() = default;
 		virtual ~implied_base() = default;
 		virtual void handle_bid_add_quantity(engine* e, long long price, unsigned long long quantity) = 0;
