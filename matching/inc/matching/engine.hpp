@@ -34,21 +34,6 @@ namespace matching
 			}
 		};
 	private:
-		struct matched_record
-		{
-			long long matched_price;
-			unsigned long long matched_quantity;
-			order* leg1;
-			order* leg2;
-			matched_record():
-				matched_price(0),
-				matched_quantity(0),
-				leg1(nullptr),
-				leg2(nullptr)
-			{
-			}
-		};
-	private:
 		struct cursor
 		{
 			virtual ~cursor() = default;
@@ -133,6 +118,131 @@ namespace matching
 			}
 		};
 	public:
+		class implier_base
+		{
+		private:
+			unsigned long long _priority;
+			engine* _leg1_e;
+			engine* _leg2_e;
+			order::order_side _leg1_side;
+			order::order_side _leg2_side;
+			cursor* _leg1_cursor;
+			cursor* _leg2_cursor;
+		private:
+			inline static cursor* get_cursor(engine* e, order::order_side side)
+			{
+				if (order::order_side::BUY == side)
+					return new cursor_template<ask_book_type>(e->get_ask_cursor());
+				else
+					return new cursor_template<bid_book_type>(e->get_bid_cursor());
+			}
+		public:
+			implier_base() = delete;
+			implier_base
+			(
+					unsigned long long priority,
+					engine* leg1_e,
+					engine* leg2_e,
+					order::order_side leg1_side,
+					order::order_side leg2_side
+			):
+				_priority(priority),
+				_leg1_e(leg1_e),
+				_leg2_e(leg2_e),
+				_leg1_side(leg1_side),
+				_leg2_side(leg2_side),
+				_leg1_cursor(get_cursor(_leg1_e, _leg1_side)),
+				_leg2_cursor(get_cursor(_leg2_e, _leg2_side))
+			{
+			}
+			implier_base(const implier_base& imp):
+				_priority(imp._priority),
+				_leg1_e(imp._leg1_e),
+				_leg2_e(imp._leg2_e),
+				_leg1_side(imp._leg1_side),
+				_leg2_side(imp._leg2_side),
+				_leg1_cursor(get_cursor(_leg1_e, _leg1_side)),
+				_leg2_cursor(get_cursor(_leg2_e, _leg2_side))
+			{
+			}
+			implier_base(implier_base&& imp):
+				_priority(imp._priority),
+				_leg1_e(imp._leg1_e),
+				_leg2_e(imp._leg2_e),
+				_leg1_side(imp._leg1_side),
+				_leg2_side(imp._leg2_side),
+				_leg1_cursor(imp._leg1_cursor),
+				_leg2_cursor(imp._leg2_cursor)
+			{
+				imp._leg1_cursor = nullptr;
+				imp._leg2_cursor = nullptr;
+			}
+			implier_base& operator= (const implier_base& imp)
+			{
+				_priority = imp._priority;
+				_leg1_e = imp._leg1_e;
+				_leg2_e = imp._leg2_e;
+				_leg1_side = imp._leg1_side;
+				_leg2_side = imp._leg2_side;
+				if (_leg1_cursor)
+					delete _leg1_cursor;
+				if (_leg2_cursor)
+					delete _leg2_cursor;
+				_leg1_cursor = get_cursor(_leg1_e, _leg1_side);
+				_leg2_cursor = get_cursor(_leg2_e, _leg2_side);
+				return *this;
+			}
+			implier_base& operator= (implier_base&& imp)
+			{
+				_priority = imp._priority;
+				_leg1_e = imp._leg1_e;
+				_leg2_e = imp._leg2_e;
+				_leg1_side = imp._leg1_side;
+				_leg2_side = imp._leg2_side;
+				if (_leg1_cursor)
+					delete _leg1_cursor;
+				if (_leg2_cursor)
+					delete _leg2_cursor;
+				_leg1_cursor = imp._leg1_cursor;
+				_leg2_cursor = imp._leg2_cursor;
+				imp._leg1_cursor = nullptr;
+				imp._leg2_cursor = nullptr;
+				return *this;
+			}
+			virtual ~implier_base()
+			{
+				if (_leg1_cursor)
+					delete _leg1_cursor;
+				if (_leg2_cursor)
+					delete _leg2_cursor;
+			}
+			virtual match_result matching(const order& o,
+					const order& leg1,
+					const order& leg2,
+					long long mini_ticker) = 0;
+		private:
+			void reset()
+			{
+				_leg1_cursor->reset();
+				_leg2_cursor->reset();
+			}
+		};
+	private:
+		struct matched_record
+		{
+			match_result result;
+			order* leg1;
+			order* leg2;
+			implier_base* imp;
+			matched_record():
+				result(),
+				leg1(nullptr),
+				leg2(nullptr),
+				imp(nullptr)
+			{
+			}
+		};
+	public:
 		//tiker, leg1, leg2
 		using implied_fun = std::function<bool(order::implied_matche_record&, order::implied_matche_record&, order::implied_matche_record&)>;
 	private:
@@ -184,8 +294,8 @@ namespace matching
 	private:
 		mutable core::spin_mutex _mutex;
 		mutable mutex_set _mutex_set;
-		mutable impliter _bid_implier;
-		mutable impliter _ask_implier;
+		impliter _bid_implier;
+		impliter _ask_implier;
 		search_order_map _odr_map;
 		bid_book_type _bid_book;
 		ask_book_type _ask_book;
@@ -194,11 +304,11 @@ namespace matching
 		callback_type _callback;
 		long long _mini_tick;
 	private:
-		auto get_bid_cursor()
+		cursor_template<bid_book_type> get_bid_cursor()
 		{
 			return cursor_template<bid_book_type>(&_bid_book);
 		}
-		auto get_ask_cursor()
+		cursor_template<ask_book_type> get_ask_cursor()
 		{
 			return cursor_template<ask_book_type>(&_ask_book);
 		}
@@ -207,120 +317,7 @@ namespace matching
 		{
 			return cursor_template<Book>(&book);
 		}
-	public:
-		class implier_base
-		{
-		private:
-			unsigned long long _priority;
-			engine* _leg1_e;
-			engine* _leg2_e;
-			order::order_side _leg1_side;
-			order::order_side _leg2_side;
-			cursor* _leg1_cursor;
-			cursor* _leg2_cursor;
-		private:
-			inline static cursor* get_cursor(engine* e, order::order_side side)
-			{
-				if (order::order_side::BUY == side)
-					return new cursor_template<ask_book_type>(e->get_ask_cursor());
-				else
-					return new cursor_template<bid_book_type>(e->get_bid_cursor());
-			}
-		public:
-			implier_base() = delete;
-			implier_base
-			(
-					unsigned long long priority,
-					engine* leg1_e,
-					engine* leg2_e,
-					order::order_side leg1_side,
-					order::order_side leg2_side
-			):
-				_priority(priority),
-				_leg1_e(leg1_e),
-				_leg2_e(leg2_e),
-				_leg1_side(leg1_side),
-				_leg2_side(leg2_side),
-				_leg1_cursor(get_cursor(_leg1_e, _leg1_side)),
-				_leg2_cursor(get_cursor(_leg2_e, _leg2_side))
-			{
-			}
 
-			implier_base(const implier_base& imp):
-				_priority(imp._priority),
-				_leg1_e(imp._leg1_e),
-				_leg2_e(imp._leg2_e),
-				_leg1_side(imp._leg1_side),
-				_leg2_side(imp._leg2_side),
-				_leg1_cursor(get_cursor(_leg1_e, _leg1_side)),
-				_leg2_cursor(get_cursor(_leg2_e, _leg2_side))
-			{
-			}
-
-			implier_base(implier_base&& imp):
-				_priority(imp._priority),
-				_leg1_e(imp._leg1_e),
-				_leg2_e(imp._leg2_e),
-				_leg1_side(imp._leg1_side),
-				_leg2_side(imp._leg2_side),
-				_leg1_cursor(imp._leg1_cursor),
-				_leg2_cursor(imp._leg2_cursor)
-			{
-				imp._leg1_cursor = nullptr;
-				imp._leg2_cursor = nullptr;
-			}
-
-			implier_base& operator= (const implier_base& imp)
-			{
-				_priority = imp._priority;
-				_leg1_e = imp._leg1_e;
-				_leg2_e = imp._leg2_e;
-				_leg1_side = imp._leg1_side;
-				_leg2_side = imp._leg2_side;
-				if (_leg1_cursor)
-					delete _leg1_cursor;
-				if (_leg2_cursor)
-					delete _leg2_cursor;
-				_leg1_cursor = get_cursor(_leg1_e, _leg1_side);
-				_leg2_cursor = get_cursor(_leg2_e, _leg2_side);
-				return *this;
-			}
-
-			implier_base& operator= (implier_base&& imp)
-			{
-				_priority = imp._priority;
-				_leg1_e = imp._leg1_e;
-				_leg2_e = imp._leg2_e;
-				_leg1_side = imp._leg1_side;
-				_leg2_side = imp._leg2_side;
-				if (_leg1_cursor)
-					delete _leg1_cursor;
-				if (_leg2_cursor)
-					delete _leg2_cursor;
-				_leg1_cursor = imp._leg1_cursor;
-				_leg2_cursor = imp._leg2_cursor;
-				imp._leg1_cursor = nullptr;
-				imp._leg2_cursor = nullptr;
-				return *this;
-			}
-			virtual ~implier_base()
-			{
-				if (_leg1_cursor)
-					delete _leg1_cursor;
-				if (_leg2_cursor)
-					delete _leg2_cursor;
-			}
-			virtual match_result matching(const order& o,
-					const order& leg1,
-					const order& leg2,
-					long long mini_ticker) = 0;
-		private:
-			void reset()
-			{
-				_leg1_cursor->reset();
-				_leg2_cursor->reset();
-			}
-		};
 	private:
 		inline order::implied_matche_order_top_result get_bid_top_quantity(unsigned long long quantity)
 		{
