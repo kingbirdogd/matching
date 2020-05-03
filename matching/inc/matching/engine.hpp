@@ -138,11 +138,11 @@ namespace matching
 				return e->get_ask_top_quantity(quantity);
 			}
 		}
-		void implied_match(impliter& imp, order& o)
+		void implied_match(impliter& imp, order::implied_matche_record& self, std::function<void()> matched_before)
 		{
 			if (!imp)
 				return;
-			order::implied_matche_record self(&o);
+			order& o = *self.odr;
 			auto leg1_orders = engine::get_top_quantity(imp.leg1_e, imp.leg1_side, self.remain_quantity);
 			auto leg2_orders = engine::get_top_quantity(imp.leg2_e, imp.leg2_side, self.remain_quantity);
 			if (order::order_time_condition::FOK == o.time_condition)
@@ -170,8 +170,10 @@ namespace matching
 				if (0 != self.remain_quantity)
 					return;
 			}
-			auto matched_id = get_id();
 
+			if (matched_before)
+				matched_before();
+			auto matched_id = get_id();
 			auto before_best_bid = imp.leg1_e->get_best_price(imp.leg1_e->_bid_book);
 			auto before_best_ask = imp.leg1_e->get_best_price(imp.leg1_e->_ask_book);
 			for (auto& odr_matched_record : leg1_orders.records)
@@ -216,8 +218,6 @@ namespace matching
 					before_best_ask,
 					after_best_bid,
 					after_best_ask);
-
-
 			before_best_bid = imp.leg2_e->get_best_price(imp.leg2_e->_bid_book);
 			before_best_ask = imp.leg2_e->get_best_price(imp.leg2_e->_ask_book);
 			for (auto& odr_matched_record : leg2_orders.records)
@@ -459,9 +459,9 @@ namespace matching
 			{
 				return price + mini_tick;
 			}
-			static void implied_match(engine* e, order& o)
+			static void implied_match(engine* e, order::implied_matche_record& o, std::function<void()> matched_before)
 			{
-				e->implied_match(e->_bid_implier, o);
+				e->implied_match(e->_bid_implier, o, std::move(matched_before));
 			}
 		};
 
@@ -472,9 +472,9 @@ namespace matching
 			{
 				return price - mini_tick;
 			}
-			static void implied_match(engine* e, order& o)
+			static void implied_match(engine* e, order::implied_matche_record& o, std::function<void()> matched_before)
 			{
-				e->implied_match(e->_ask_implier, o);
+				e->implied_match(e->_ask_implier, o, std::move(matched_before));
 			}
 		};
 
@@ -485,9 +485,9 @@ namespace matching
 			{
 				return cross_book_function_helper<bool, BookType>::get_non_cross_price(price, mini_tick);
 			}
-			static void implied_match(engine* e, order& o)
+			static void implied_match(engine* e, order::implied_matche_record& o, std::function<void()> matched_before = std::function<void()>())
 			{
-				cross_book_function_helper<bool, BookType>::implied_match(e, o);
+				cross_book_function_helper<bool, BookType>::implied_match(e, o, std::move(matched_before));
 			}
 		};
 
@@ -601,8 +601,28 @@ namespace matching
 			}
 			if (total_matched_quantity != o.remain_quantity)
 			{
-				o.order_state = order::order_status_type::CANCELED_BY_FOK;
-				_callback(o);
+
+				order::implied_matche_record self(&o);
+				self.remain_quantity -= total_matched_quantity;
+				cross_book_function<Book>::implied_match(this, self, [&]()
+				{
+					for (std::size_t i = 0; i < cross_odrs.size(); ++i)
+					{
+						auto& o2 = *cross_odrs[i];
+						handle_matched_order(o, o2);
+						if (0 == o2.remain_quantity)
+						{
+							full_erase_from_normal_book(book, o2);
+						}
+					}
+				});
+				if (0 != o.remain_quantity)
+				{
+					o.order_state = order::order_status_type::CANCELED_BY_FOK;
+					_callback(o);
+				}
+				else
+					return;
 			}
 			else
 			{
@@ -686,7 +706,8 @@ namespace matching
 			}
 			if (0 != o.remain_quantity)
 			{
-				cross_book_function<Book>::implied_match(this, o);
+				order::implied_matche_record self(&o);
+				cross_book_function<Book>::implied_match(this, self);
 			}
 			if (0 != o.remain_quantity)
 			{
