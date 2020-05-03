@@ -178,6 +178,7 @@ void handle_order(const matching::order& o)
 			<< ",last_match_price:" << o.last_match_price
 			<< ",last_match_quantity:" << o.last_match_quantity
 			<< ",last_matched_order_id:" << o.last_matched_order_id
+			<< ",last_matched_order_id2:" << o.last_matched_order_id2
 			<< ",matched_id:" << o.matched_id
 			<< ",status:" << status
 			<< ",matched_type:" << matched_type

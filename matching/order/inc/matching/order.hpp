@@ -2,6 +2,7 @@
 #define MATCHING_INC_ORDER_HPP_
 
 #include <limits>
+#include <vector>
 
 namespace matching
 {
@@ -68,10 +69,11 @@ namespace matching
 		unsigned long long display_quantity;
 		unsigned long long remain_quantity;
 		long long last_match_price;
-		long long last_match_quantity;
+		unsigned long long last_match_quantity;
 		unsigned long long order_id;
 		unsigned long long client_order_id;
 		unsigned long long last_matched_order_id;
+		unsigned long long last_matched_order_id2;
 		unsigned long long matched_id;
 		long long buy_stop_trigger_price;
 		long long buy_stop_limited_price;
@@ -99,6 +101,7 @@ namespace matching
 			order_id(0),
 			client_order_id(0),
 			last_matched_order_id(0),
+			last_matched_order_id2(2),
 			matched_id(0),
 			buy_stop_trigger_price(0),
 			buy_stop_limited_price(MARKET_PRICE),
@@ -156,6 +159,52 @@ namespace matching
 				return false;
 			return true;
 		}
+	public:
+		struct matched_record
+		{
+			long long last_match_price;
+			unsigned long long last_match_quantity;
+			unsigned long long matched_order_id1;
+			unsigned long long matched_order_id2;
+			matched_record():
+				last_match_price(0),
+				last_match_quantity(0),
+				matched_order_id1(0),
+				matched_order_id2(0)
+			{
+			}
+			~matched_record() = default;
+		};
+		struct implied_matche_record
+		{
+			order* odr;
+			unsigned long long remain_quantity;
+			std::vector<matched_record> records;
+			implied_matche_record():
+				odr(nullptr),
+				remain_quantity(0)
+			{
+			}
+			implied_matche_record(order* o):
+				odr(o),
+				remain_quantity(odr->remain_quantity),
+				records()
+			{
+			}
+			~implied_matche_record() = default;
+		};
+		using implied_matche_records = std::vector<implied_matche_record>;
+		struct implied_matche_order_top_result
+		{
+			implied_matche_records records;
+			unsigned long long total_quantity;
+			implied_matche_order_top_result():
+				records(),
+				total_quantity(0)
+			{
+			}
+			~implied_matche_order_top_result() = default;
+		};
 	};
 }
 

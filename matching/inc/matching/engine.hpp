@@ -17,8 +17,10 @@ namespace matching
 {
 	class engine
 	{
+	public:
+		//tiker, leg1, leg2
+		using implied_fun = std::function<bool(order::implied_matche_record&, order::implied_matche_record&, order::implied_matche_record&)>;
 	private:
-		using implied_fun = std::function<unsigned long long(const order&, const order&, long long)>;
 		struct impliter
 		{
 			engine* leg1_e;
@@ -39,6 +41,13 @@ namespace matching
 			impliter& operator= (const impliter&) = default;
 			impliter& operator= (impliter&&) = default;
 			~impliter() = default;
+			operator bool()
+			{
+				if (formula)
+					return true;
+				else
+					return false;
+			}
 		};
 	private:
 		static std::atomic<unsigned long long> _id;
@@ -69,6 +78,214 @@ namespace matching
 		ask_stop_book_type _ask_stop_book;
 		callback_type _callback;
 		long long _mini_tick;
+	private:
+		inline order::implied_matche_order_top_result get_bid_top_quantity(unsigned long long quantity)
+		{
+			order::implied_matche_order_top_result rt;
+			bool stop = false;
+			for (auto it1 = _bid_book.begin(); it1 != _bid_book.end(); ++it1)
+			{
+				auto& m2 = it1->second;
+				for (auto it2 = m2.begin(); it2 != m2.end(); ++it2)
+				{
+					rt.records.push_back(order::implied_matche_record(it2->second));
+					rt.total_quantity += it2->second->remain_quantity;
+					if (rt.total_quantity >= quantity)
+					{
+						stop = true;
+						break;
+					}
+				}
+				if (stop)
+					break;
+			}
+			return rt;
+		}
+
+		inline order::implied_matche_order_top_result get_ask_top_quantity(unsigned long long quantity)
+		{
+			order::implied_matche_order_top_result rt;
+			bool stop = false;
+			for (auto it1 = _ask_book.begin(); it1 != _ask_book.end(); ++it1)
+			{
+				auto& m2 = it1->second;
+				for (auto it2 = m2.begin(); it2 != m2.end(); ++it2)
+				{
+					rt.records.push_back(order::implied_matche_record(it2->second));
+					rt.total_quantity += it2->second->remain_quantity;
+					if (rt.total_quantity >= quantity)
+					{
+						stop = true;
+						break;
+					}
+				}
+				if (stop)
+					break;
+			}
+			return rt;
+		}
+
+		static inline order::implied_matche_order_top_result get_top_quantity(engine* e,
+				order::order_side side,
+				unsigned long long quantity)
+		{
+			if (order::order_side::BUY == side)
+			{
+				return e->get_bid_top_quantity(quantity);
+			}
+			else
+			{
+				return e->get_ask_top_quantity(quantity);
+			}
+		}
+		void implied_match(impliter& imp, order& o)
+		{
+			if (!imp)
+				return;
+			order::implied_matche_record self(&o);
+			auto leg1_orders = engine::get_top_quantity(imp.leg1_e, imp.leg1_side, self.remain_quantity);
+			auto leg2_orders = engine::get_top_quantity(imp.leg2_e, imp.leg2_side, self.remain_quantity);
+			if (order::order_time_condition::FOK == o.time_condition)
+			{
+				if (leg1_orders.total_quantity < self.remain_quantity)
+					return;
+				if (leg2_orders.total_quantity < self.remain_quantity)
+					return;
+			}
+			std::size_t i = 0;
+			std::size_t j = 0;
+			while (self.remain_quantity != 0 && i < leg1_orders.records.size() && j < leg2_orders.records.size())
+			{
+				auto& leg1_odr = leg1_orders.records[i];
+				auto& leg2_odr = leg2_orders.records[j];
+				if (!imp.formula(self, leg1_odr, leg2_odr))
+					break;
+				if (0 == leg1_odr.remain_quantity)
+					++i;
+				if (0 == leg2_odr.remain_quantity)
+					++j;
+			}
+			if (order::order_time_condition::FOK == o.time_condition)
+			{
+				if (0 != self.remain_quantity)
+					return;
+			}
+			auto matched_id = get_id();
+
+			auto before_best_bid = imp.leg1_e->get_best_price(imp.leg1_e->_bid_book);
+			auto before_best_ask = imp.leg1_e->get_best_price(imp.leg1_e->_ask_book);
+			for (auto& odr_matched_record : leg1_orders.records)
+			{
+				auto& leg_o = *(odr_matched_record.odr);
+				leg_o.matched_id = matched_id;
+				leg_o.matched_type = order::order_matched_type::MAKER;
+				for (auto& matched : odr_matched_record.records)
+				{
+					leg_o.last_match_price = matched.last_match_price;
+					leg_o.last_match_quantity = matched.last_match_quantity;
+					leg_o.last_matched_order_id = matched.matched_order_id1;
+					leg_o.last_matched_order_id2 = matched.matched_order_id2;
+					leg_o.remain_quantity -= matched.last_match_quantity;
+					if (0 == leg_o.remain_quantity)
+					{
+						leg_o.order_state = order::order_status_type::FILLED;
+					}
+					else
+					{
+						leg_o.order_state = order::order_status_type::PARTIAL_FILL;
+					}
+					leg_o.update_display();
+					imp.leg1_e->_callback(leg_o);
+				}
+				leg_o.matched_id = 0;
+				if (0 == leg_o.remain_quantity)
+				{
+					if (order::order_side::BUY == imp.leg1_side)
+					{
+						imp.leg1_e->full_erase_from_normal_book(imp.leg1_e->_bid_book, leg_o);
+					}
+					else
+					{
+						imp.leg1_e->full_erase_from_normal_book(imp.leg1_e->_ask_book, leg_o);
+					}
+				}
+			}
+			auto after_best_bid = imp.leg1_e->get_best_price(imp.leg1_e->_bid_book);
+			auto after_best_ask = imp.leg1_e->get_best_price(imp.leg1_e->_ask_book);
+			imp.leg1_e->handle_stop(before_best_bid,
+					before_best_ask,
+					after_best_bid,
+					after_best_ask);
+
+
+			before_best_bid = imp.leg2_e->get_best_price(imp.leg2_e->_bid_book);
+			before_best_ask = imp.leg2_e->get_best_price(imp.leg2_e->_ask_book);
+			for (auto& odr_matched_record : leg2_orders.records)
+			{
+				auto& leg_o = *(odr_matched_record.odr);
+				leg_o.matched_id = matched_id;
+				leg_o.matched_type = order::order_matched_type::MAKER;
+				for (auto& matched : odr_matched_record.records)
+				{
+					leg_o.last_match_price = matched.last_match_price;
+					leg_o.last_match_quantity = matched.last_match_quantity;
+					leg_o.last_matched_order_id = matched.matched_order_id1;
+					leg_o.last_matched_order_id2 = matched.matched_order_id2;
+					leg_o.remain_quantity -= matched.last_match_quantity;
+					if (0 == leg_o.remain_quantity)
+					{
+						leg_o.order_state = order::order_status_type::FILLED;
+					}
+					else
+					{
+						leg_o.order_state = order::order_status_type::PARTIAL_FILL;
+					}
+					leg_o.update_display();
+					imp.leg2_e->_callback(leg_o);
+				}
+				leg_o.matched_id = 0;
+				if (0 == leg_o.remain_quantity)
+				{
+					if (order::order_side::BUY == imp.leg2_side)
+					{
+						imp.leg2_e->full_erase_from_normal_book(imp.leg2_e->_bid_book, leg_o);
+					}
+					else
+					{
+						imp.leg2_e->full_erase_from_normal_book(imp.leg2_e->_ask_book, leg_o);
+					}
+				}
+			}
+			after_best_bid = imp.leg2_e->get_best_price(imp.leg2_e->_bid_book);
+			after_best_ask = imp.leg2_e->get_best_price(imp.leg2_e->_ask_book);
+			imp.leg2_e->handle_stop(before_best_bid,
+						before_best_ask,
+						after_best_bid,
+						after_best_ask);
+
+			o.matched_id = matched_id;
+			o.matched_type = order::order_matched_type::TAKER;
+			for (auto& matched : self.records)
+			{
+				o.last_match_price = matched.last_match_price;
+				o.last_match_quantity = matched.last_match_quantity;
+				o.last_matched_order_id = matched.matched_order_id1;
+				o.last_matched_order_id2 = matched.matched_order_id2;
+				o.remain_quantity -= matched.last_match_quantity;
+				if (0 == o.remain_quantity)
+				{
+					o.order_state = order::order_status_type::FILLED;
+				}
+				else
+				{
+					o.order_state = order::order_status_type::PARTIAL_FILL;
+				}
+				o.update_display();
+				_callback(o);
+			}
+			o.matched_id = 0;
+		}
+
 	private:
 		inline void lock()
 		{
@@ -242,6 +459,10 @@ namespace matching
 			{
 				return price + mini_tick;
 			}
+			static void implied_match(engine* e, order& o)
+			{
+				e->implied_match(e->_bid_implier, o);
+			}
 		};
 
 		template <typename Dummy>
@@ -251,6 +472,10 @@ namespace matching
 			{
 				return price - mini_tick;
 			}
+			static void implied_match(engine* e, order& o)
+			{
+				e->implied_match(e->_ask_implier, o);
+			}
 		};
 
 		template <typename BookType>
@@ -259,6 +484,10 @@ namespace matching
 			static long long get_non_cross_price(long long price, long long mini_tick)
 			{
 				return cross_book_function_helper<bool, BookType>::get_non_cross_price(price, mini_tick);
+			}
+			static void implied_match(engine* e, order& o)
+			{
+				cross_book_function_helper<bool, BookType>::implied_match(e, o);
 			}
 		};
 
@@ -294,10 +523,6 @@ namespace matching
 		{
 			erase_from_stop_book(book, odr);
 			_odr_map.erase(odr.order_id);
-		}
-
-		inline void handle_matched_implied(order&)
-		{
 		}
 
 		void handle_matched_order(order& o, order& o2)
@@ -459,7 +684,11 @@ namespace matching
 				if (stop)
 					break;
 			}
-			if (o.remain_quantity != 0)
+			if (0 != o.remain_quantity)
+			{
+				cross_book_function<Book>::implied_match(this, o);
+			}
+			if (0 != o.remain_quantity)
 			{
 				if (order::order_time_condition::IOC == o.time_condition)
 				{
