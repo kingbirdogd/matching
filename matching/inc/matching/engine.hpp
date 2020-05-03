@@ -9,15 +9,12 @@
 #include <atomic>
 #include <functional>
 #include <algorithm>
-#include <matching/implied_order.hpp>
-#include <matching/implied_base.hpp>
+#include <matching/order.hpp>
 
 namespace matching
 {
 	class engine
 	{
-	private:
-		friend implied_base;
 	private:
 		static std::atomic<unsigned long long> _id;
 	private:
@@ -26,12 +23,11 @@ namespace matching
 			return _id.fetch_add(1, std::memory_order_relaxed);
 		}
 	private:
-		using search_order_map = std::unordered_map<unsigned long long, implied_order>;
-		using id_order_map = std::map<unsigned long long, implied_order*>;
-		using order_set = std::unordered_set<implied_order*>;
-		using type_order_map = std::map<order::order_engine_type, id_order_map>;
-		using bid_book_type = std::map<long long, type_order_map, std::greater<long long>>;
-		using ask_book_type = std::map<long long, type_order_map, std::less<long long>>;
+		using search_order_map = std::unordered_map<unsigned long long, order>;
+		using id_order_map = std::map<unsigned long long, order*>;
+		using order_set = std::unordered_set<order*>;
+		using bid_book_type = std::map<long long, id_order_map, std::greater<long long>>;
+		using ask_book_type = std::map<long long, id_order_map, std::less<long long>>;
 		using bid_stop_book_type = std::map<long long, order_set, std::less<long long>>;
 		using ask_stop_book_type = std::map<long long, order_set, std::greater<long long>>;
 		using callback_type = std::function<void(const order&)>;
@@ -44,14 +40,64 @@ namespace matching
 		callback_type _callback;
 		long long _mini_tick;
 	private:
-		void _handle(implied_order& odr);
+		void _handle(order& odr);
 	public:
-		engine(callback_type&& callback, long long mini_tick = 1);
-		~engine();
-		void handle(const order& odr)
+		engine(callback_type&& callback, long long mini_tick = 1):
+			_odr_map(),
+			_bid_book(),
+			_ask_book(),
+			_bid_stop_book(),
+			_ask_stop_book(),
+			_callback(std::move(callback)),
+			_mini_tick(mini_tick)
 		{
-			implied_order o(odr);
-			_handle(o);
+		}
+		~engine() = default;
+		void handle(order& o)
+		{
+			if (order::order_action_type::NEW == o.order_action)
+			{
+				o.order_state = order::order_status_type::OPEN;
+				auto before_best_bid = get_best_price(_bid_book);
+				auto before_best_ask = get_best_price(_ask_book);
+				if (handle_new(o))
+				{
+					auto after_best_bid = get_best_price(_bid_book);
+					auto after_best_ask = get_best_price(_ask_book);
+					handle_stop(before_best_bid,
+							before_best_ask,
+							after_best_bid,
+							after_best_ask);
+				}
+			}
+			else if (order::order_action_type::CANCEL == o.order_action)
+			{
+				auto before_best_bid = get_best_price(_bid_book);
+				auto before_best_ask = get_best_price(_ask_book);
+				if (handle_cancel(o))
+				{
+					auto after_best_bid = get_best_price(_bid_book);
+					auto after_best_ask = get_best_price(_ask_book);
+					handle_stop(before_best_bid,
+							before_best_ask,
+							after_best_bid,
+							after_best_ask);
+				}
+			}
+			else
+			{
+				auto before_best_bid = get_best_price(_bid_book);
+				auto before_best_ask = get_best_price(_ask_book);
+				if (handle_amend(o))
+				{
+					auto after_best_bid = get_best_price(_bid_book);
+					auto after_best_ask = get_best_price(_ask_book);
+					handle_stop(before_best_bid,
+							before_best_ask,
+							after_best_bid,
+							after_best_ask);
+				}
+			}
 		}
 		inline void recovery(callback_type&& callback) const
 		{
@@ -62,25 +108,20 @@ namespace matching
 		}
 	private:
 		template <typename BookType>
-		static void erase_from_normal_book(BookType& book, implied_order& odr)
+		static void erase_from_normal_book(BookType& book, order& odr)
 		{
 			auto ori_it_price = book.find(odr.price);
-			auto ori_it_type = ori_it_price->second.find(odr.engine_type);
-			ori_it_type->second.erase(odr.order_id);
-			if (ori_it_type->second.empty())
+			ori_it_price->second.erase(odr.order_id);
+			if (ori_it_price->second.empty())
 			{
-				ori_it_price->second.erase(ori_it_type);
-				if (ori_it_price->second.empty())
-				{
-					book.erase(ori_it_price);
-				}
+				book.erase(ori_it_price);
 			}
 		}
 
 		template <typename Dummy, typename BookType>
 		struct get_price_helper
 		{
-			static long long get_price(implied_order& odr)
+			static long long get_price(order& odr)
 			{
 				return odr.buy_stop_trigger_price;
 			}
@@ -89,7 +130,7 @@ namespace matching
 		template <typename Dummy>
 		struct get_price_helper<Dummy, ask_stop_book_type>
 		{
-			static long long get_price(implied_order& odr)
+			static long long get_price(order& odr)
 			{
 				return odr.sell_stop_trigger_price;
 			}
@@ -103,13 +144,6 @@ namespace matching
 			{
 				return price + mini_tick;
 			}
-			static void handle_implied_cross(engine* e, const implied_order& o)
-			{
-				if (o.implied_ptr)
-				{
-					o.implied_ptr->handle_bid_implied_cross(e, o.last_match_quantity);
-				}
-			}
 		};
 
 		template <typename Dummy>
@@ -118,13 +152,6 @@ namespace matching
 			static long long get_non_cross_price(long long price, long long mini_tick)
 			{
 				return price - mini_tick;
-			}
-			static void handle_implied_cross(engine* e, const implied_order& o)
-			{
-				if (o.implied_ptr)
-				{
-					o.implied_ptr->handle_ask_implied_cross(e, o.last_match_quantity);
-				}
 			}
 		};
 
@@ -135,23 +162,19 @@ namespace matching
 			{
 				return cross_book_function_helper<bool, BookType>::get_non_cross_price(price, mini_tick);
 			}
-			static void handle_implied_cross(engine* e, const implied_order& o)
-			{
-				cross_book_function_helper<bool, BookType>::handle_implied_cross(e, o);
-			}
 		};
 
 		template <typename BookType>
 		struct get_stop_price_helper
 		{
-			static long long get_price(implied_order& odr)
+			static long long get_price(order& odr)
 			{
 				return get_price_helper<int, BookType>::get_price(odr);
 			}
 		};
 
 		template <typename BookType>
-		static void erase_from_stop_book(BookType& book, implied_order& odr)
+		static void erase_from_stop_book(BookType& book, order& odr)
 		{
 			auto ori_it_price = book.find(get_stop_price_helper<BookType>::get_price(odr));
 			ori_it_price->second.erase(&odr);
@@ -162,25 +185,25 @@ namespace matching
 		}
 
 		template <typename BookType>
-		void full_erase_from_normal_book(BookType& book, implied_order& odr)
+		void full_erase_from_normal_book(BookType& book, order& odr)
 		{
 			erase_from_normal_book(book, odr);
 			_odr_map.erase(odr.order_id);
 		}
 
 		template <typename BookType>
-		void full_erase_from_stop_book(BookType& book, implied_order& odr)
+		void full_erase_from_stop_book(BookType& book, order& odr)
 		{
 			erase_from_stop_book(book, odr);
 			_odr_map.erase(odr.order_id);
 		}
 
-		inline void handle_matched_implied(implied_order&)
+		inline void handle_matched_implied(order&)
 		{
 		}
 
 		template <typename Book>
-		void handle_matched_order(implied_order& o, implied_order& o2)
+		void handle_matched_order(order& o, order& o2)
 		{
 			auto matched_price = o2.price;
 			auto matched_quantity = std::min(o.remain_quantity, o2.remain_quantity);
@@ -213,23 +236,19 @@ namespace matching
 			}
 			o.matched_type = order::order_matched_type::TAKER;
 			o2.matched_type = order::order_matched_type::MAKER;
-			//auto o2_original_display = o2.display_quantity;
-			//o.display_quantity = o.display_quantity < o.remain_quantity ? o.display_quantity : o.remain_quantity;
-			//o2.display_quantity = o2.display_quantity < o2.remain_quantity ? o2.display_quantity : o2.remain_quantity;
 			o.update_display();
 			o2.update_display();
 			_callback(o2);
 			_callback(o);
 			o.matched_id = 0;
 			o2.matched_id = 0;
-			cross_book_function<Book>::handle_implied_cross(this, o2);
 		}
 
 		template <typename Book, std::size_t offSet>
-		inline void handle_fok_cross(Book& book, implied_order& o)
+		inline void handle_fok_cross(Book& book, order& o)
 		{
 			const long long& limited_price = *static_cast<long long*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(&o)) + offSet));
-			std::vector<implied_order*> cross_odrs;
+			std::vector<order*> cross_odrs;
 			unsigned long long total_matched_quantity = 0;
 			typename Book::key_compare cross_cmp;
 			bool stop = false;
@@ -240,22 +259,18 @@ namespace matching
 					auto& m2 = it->second;
 					for (auto it2 = m2.begin(); it2 != m2.end(); ++it2)
 					{
-						auto& m3 = it2->second;
-						for (auto it3 = m3.begin(); it3 != m3.end(); ++it3)
+						auto& o2 = *it2->second;
+						auto matched_quantity = std::min(o.remain_quantity, o2.remain_quantity);
+						total_matched_quantity += matched_quantity;
+						cross_odrs.push_back(&o2);
+						if (total_matched_quantity == o.remain_quantity)
 						{
-							auto& o2 = *it3->second;
-							auto matched_quantity = std::min(o.remain_quantity, o2.remain_quantity);
-							total_matched_quantity += matched_quantity;
-							cross_odrs.push_back(&o2);
-							if (total_matched_quantity == o.remain_quantity)
-							{
-								stop = true;
-								break;
-							}
-						}
-						if (stop)
+							stop = true;
 							break;
+						}
 					}
+					if (stop)
+						break;
 				}
 				else
 					break;
@@ -282,7 +297,7 @@ namespace matching
 		}
 
 		template <typename Book, std::size_t offSet>
-		inline bool handle_cross(Book& book, implied_order& o)
+		inline bool handle_cross(Book& book, order& o)
 		{
 			const long long& limited_price = *static_cast<long long*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(&o)) + offSet));
 			if (order::order_time_condition::FOK == o.time_condition)
@@ -316,36 +331,22 @@ namespace matching
 					auto& m2 = it->second;
 					for (auto it2 = m2.begin(); it2 != m2.end();)
 					{
-						auto& m3 = it2->second;
-						for (auto it3 = m3.begin(); it3 != m3.end();)
-						{
-							auto& o2 = *it3->second;
-							handle_matched_order<Book>(o, o2);
-							if (0 != o2.remain_quantity)
-							{
-								++it3;
-							}
-							else
-							{
-								it3 = m3.erase(it3);
-								_odr_map.erase(o2.order_id);
-							}
-							if (0 == o.remain_quantity)
-							{
-								stop = true;
-								break;
-							}
-						}
-						if (!m3.empty())
+						auto& o2 = *it2->second;
+						handle_matched_order<Book>(o, o2);
+						if (0 != o2.remain_quantity)
 						{
 							++it2;
 						}
 						else
 						{
 							it2 = m2.erase(it2);
+							_odr_map.erase(o2.order_id);
 						}
-						if (stop)
+						if (0 == o.remain_quantity)
+						{
+							stop = true;
 							break;
+						}
 					}
 					if (!m2.empty())
 					{
@@ -389,11 +390,11 @@ namespace matching
 		}
 
 		template <typename SelfBook,typename CrossBook>
-		inline void handle_normal_new(SelfBook& self, CrossBook& cross, implied_order& o)
+		inline void handle_normal_new(SelfBook& self, CrossBook& cross, order& o)
 		{
 			if (handle_cross<CrossBook, offsetof(order, price)>(cross, o))
 			{
-				self[o.price][o.engine_type][o.order_id] = &((_odr_map.emplace(o.order_id, o).first)->second);
+				self[o.price][o.order_id] = &((_odr_map.emplace(o.order_id, o).first)->second);
 			}
 		}
 
@@ -403,7 +404,7 @@ namespace matching
 			order::order_status_type RejectStatus1,
 			order::order_status_type RejectStatus2,
 			order::order_status_type RejectStatus3>
-		bool stop_check(Book& book, implied_order& o)
+		bool stop_check(Book& book, order& o)
 		{
 			const long long& trigger_price = *static_cast<long long*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(&o)) + TriggeroffSet));
 			const long long& limited_price = *static_cast<long long*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(&o)) + LimitoffSet));
@@ -433,13 +434,13 @@ namespace matching
 			return true;
 		}
 
-		inline void init_new_order(implied_order& o)
+		inline void init_new_order(order& o)
 		{
 			o.order_id = get_id();
 			o.remain_quantity = o.quantity;
 		}
 
-		inline bool handle_new(implied_order& o)
+		inline bool handle_new(order& o)
 		{
 			o.order_id = 0;
 			if (0 == o.quantity)
@@ -532,7 +533,7 @@ namespace matching
 			}
 		}
 
-		inline bool handle_cancel(implied_order& o)
+		inline bool handle_cancel(order& o)
 		{
 			auto it = _odr_map.find(o.order_id);
 			if (_odr_map.end() == it)
@@ -575,7 +576,7 @@ namespace matching
 		}
 
 		//can keep the priority if just reduce quantity
-		inline bool handle_amend(implied_order& o)
+		inline bool handle_amend(order& o)
 		{
 			if (0 == o.quantity)
 			{
@@ -662,7 +663,7 @@ namespace matching
 		inline void handle_stop(Book& book, CrossBook& cross_book, long long limited_price)
 		{
 			typename Book::key_compare cmp;
-			std::map<unsigned long long, implied_order*> stop_list;
+			std::map<unsigned long long, order*> stop_list;
 			do
 			{
 				stop_list.clear();

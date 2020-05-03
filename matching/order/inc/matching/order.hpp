@@ -32,11 +32,6 @@ namespace matching
 			MAKER_ONLY = 0x03,
 			MAKER_ONLY_REPRICE = 0x04
 		};
-		enum order_engine_type : unsigned char
-		{
-			NORMAL = 0x00,
-			IMPLIED = 0x01
-		};
 		enum order_status_type : unsigned char
 		{
 			OPEN = 0x00,
@@ -85,7 +80,7 @@ namespace matching
 		order_side side;
 		order_action_type order_action;
 		order_time_condition time_condition;
-		order_engine_type engine_type;
+		//order_engine_type engine_type;
 		order_status_type order_state;
 		order_matched_type matched_type;
 	private:
@@ -112,7 +107,6 @@ namespace matching
 			side(order_side::BUY),
 			order_action(order_action_type::NEW),
 			time_condition(order_time_condition::GTC),
-			engine_type(order_engine_type::NORMAL),
 			order_state(order_status_type::OPEN),
 			matched_type(order_matched_type::MAKER)
 		{

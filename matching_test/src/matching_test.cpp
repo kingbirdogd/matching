@@ -11,7 +11,6 @@ void handle_order(const matching::order& o)
 	std::string status = "";
 	std::string time_condition = "";
 	std::string action = "";
-	std::string engine_type = "";
 	std::string matched_type = "";
 	if (matching::order::order_side::BUY == o.side)
 	{
@@ -153,14 +152,6 @@ void handle_order(const matching::order& o)
 	{
 		action = "AMEND";
 	}
-	if (matching::order::order_engine_type::NORMAL == o.engine_type)
-	{
-		engine_type = "NORMAL";
-	}
-	else
-	{
-		engine_type = "IMPLIED";
-	}
 	if (matching::order::order_matched_type::TAKER == o.matched_type)
 	{
 		matched_type = "TAKER";
@@ -188,7 +179,6 @@ void handle_order(const matching::order& o)
 			<< ",last_match_quantity:" << o.last_match_quantity
 			<< ",last_matched_order_id:" << o.last_matched_order_id
 			<< ",matched_id:" << o.matched_id
-			<< ",engine_type:" << engine_type
 			<< ",status:" << status
 			<< ",matched_type:" << matched_type
 			<< std::endl;
