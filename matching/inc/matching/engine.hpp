@@ -18,6 +18,29 @@ namespace matching
 	class engine
 	{
 	private:
+		using implied_fun = std::function<unsigned long long(const order&, const order&, long long)>;
+		struct impliter
+		{
+			engine* leg1_e;
+			engine* leg2_e;
+			order::order_side leg1_side;
+			order::order_side leg2_side;
+			implied_fun formula;
+			impliter():
+				leg1_e(nullptr),
+				leg2_e(nullptr),
+				leg1_side(order::order_side::BUY),
+				leg2_side(order::order_side::BUY),
+				formula()
+			{
+			}
+			impliter(const impliter&) = default;
+			impliter(impliter&&) = default;
+			impliter& operator= (const impliter&) = default;
+			impliter& operator= (impliter&&) = default;
+			~impliter() = default;
+		};
+	private:
 		static std::atomic<unsigned long long> _id;
 	private:
 		inline static unsigned long long get_id()
@@ -35,7 +58,10 @@ namespace matching
 		using callback_type = std::function<void(const order&)>;
 		using mutex_set = std::set<core::spin_mutex*>;
 	private:
+		mutable core::spin_mutex _mutex;
 		mutable mutex_set _mutex_set;
+		mutable impliter _bid_implier;
+		mutable impliter _ask_implier;
 		search_order_map _odr_map;
 		bid_book_type _bid_book;
 		ask_book_type _ask_book;
@@ -43,7 +69,6 @@ namespace matching
 		ask_stop_book_type _ask_stop_book;
 		callback_type _callback;
 		long long _mini_tick;
-		mutable core::spin_mutex _mutex;
 	private:
 		inline void lock()
 		{
@@ -57,41 +82,47 @@ namespace matching
 		}
 	public:
 		engine(callback_type&& callback, long long mini_tick = 1):
+			_mutex(),
 			_mutex_set(),
+			_bid_implier(),
+			_ask_implier(),
 			_odr_map(),
 			_bid_book(),
 			_ask_book(),
 			_bid_stop_book(),
 			_ask_stop_book(),
 			_callback(std::move(callback)),
-			_mini_tick(mini_tick),
-			_mutex()
+			_mini_tick(mini_tick)
 		{
 			_mutex_set.insert(&_mutex);
 		}
 		engine(const engine& e):
+			_mutex(),
 			_mutex_set(),
+			_bid_implier(),
+			_ask_implier(),
 			_odr_map(e._odr_map),
 			_bid_book(e._bid_book),
 			_ask_book(e._ask_book),
 			_bid_stop_book(e._bid_stop_book),
 			_ask_stop_book(e._ask_stop_book),
 			_callback(e._callback),
-			_mini_tick(e._mini_tick),
-			_mutex()
+			_mini_tick(e._mini_tick)
 		{
 			_mutex_set.insert(&_mutex);
 		}
 		engine(engine&& e):
+			_mutex(),
 			_mutex_set(),
+			_bid_implier(),
+			_ask_implier(),
 			_odr_map(std::move(e._odr_map)),
 			_bid_book(std::move(e._bid_book)),
 			_ask_book(std::move(e._ask_book)),
 			_bid_stop_book(std::move(e._bid_stop_book)),
 			_ask_stop_book(std::move(e._ask_stop_book)),
 			_callback(std::move(e._callback)),
-			_mini_tick(e._mini_tick),
-			_mutex()
+			_mini_tick(e._mini_tick)
 		{
 			_mutex_set.insert(&_mutex);
 		}
@@ -269,7 +300,6 @@ namespace matching
 		{
 		}
 
-		template <typename Book>
 		void handle_matched_order(order& o, order& o2)
 		{
 			auto matched_price = o2.price;
@@ -354,7 +384,7 @@ namespace matching
 				for (std::size_t i = 0; i < cross_odrs.size(); ++i)
 				{
 					auto& o2 = *cross_odrs[i];
-					handle_matched_order<Book>(o, o2);
+					handle_matched_order(o, o2);
 					if (0 == o2.remain_quantity)
 					{
 						full_erase_from_normal_book(book, o2);
@@ -399,7 +429,7 @@ namespace matching
 					for (auto it2 = m2.begin(); it2 != m2.end();)
 					{
 						auto& o2 = *it2->second;
-						handle_matched_order<Book>(o, o2);
+						handle_matched_order(o, o2);
 						if (0 != o2.remain_quantity)
 						{
 							++it2;
@@ -788,6 +818,67 @@ namespace matching
 						offsetof(order, buy_stop_limited_price)>
 				(_bid_stop_book, _ask_book, after_best_ask);
 			}
+		}
+	public:
+		inline void set_bid_implier(engine& leg1_e,
+				engine& leg2_e,
+				order::order_side leg1_side,
+				order::order_side leg2_side,
+				implied_fun&& formula)
+		{
+			if (!formula)
+			{
+				return;
+			}
+			_mutex_set.insert(&(leg1_e._mutex));
+			_mutex_set.insert(&(leg2_e._mutex));
+			_bid_implier.leg1_e = &leg1_e;
+			_bid_implier.leg2_e = &leg2_e;
+			_bid_implier.leg1_side = leg1_side;
+			_bid_implier.leg2_side = leg2_side;
+			_bid_implier.formula = std::move(formula);
+		}
+		inline void unset_bid_implier()
+		{
+			if (!_bid_implier.formula)
+			{
+				return;
+			}
+			_bid_implier.formula = implied_fun();
+			_mutex_set.erase(&(_bid_implier.leg1_e->_mutex));
+			_mutex_set.erase(&(_bid_implier.leg2_e->_mutex));
+			_bid_implier.leg1_e = nullptr;
+			_bid_implier.leg2_e = nullptr;
+		}
+		inline void set_ask_implier(engine& leg1_e,
+				engine& leg2_e,
+				order::order_side leg1_side,
+				order::order_side leg2_side,
+				implied_fun&& formula)
+		{
+			if (!formula)
+			{
+				return;
+			}
+			_mutex_set.insert(&(leg1_e._mutex));
+			_mutex_set.insert(&(leg2_e._mutex));
+			_ask_implier.leg1_e = &leg1_e;
+			_ask_implier.leg2_e = &leg2_e;
+			_ask_implier.leg1_side = leg1_side;
+			_ask_implier.leg2_side = leg2_side;
+			_ask_implier.formula = std::move(formula);
+		}
+		inline void unset_ask_implier()
+		{
+			if (!_ask_implier.formula)
+			{
+				return;
+			}
+			_ask_implier.formula = implied_fun();
+			_mutex_set.erase(&(_ask_implier.leg1_e->_mutex));
+			_mutex_set.erase(&(_ask_implier.leg2_e->_mutex));
+			_ask_implier.leg1_e = nullptr;
+			_ask_implier.leg2_e = nullptr;
 		}
 	};
 }
