@@ -131,11 +131,11 @@ namespace matching
 		{
 			if (order::order_side::BUY == side)
 			{
-				return e->get_bid_top_quantity(quantity);
+				return e->get_ask_top_quantity(quantity);
 			}
 			else
 			{
-				return e->get_ask_top_quantity(quantity);
+				return e->get_bid_top_quantity(quantity);
 			}
 		}
 		void implied_match(impliter& imp, order::implied_matche_record& self, std::function<void()> matched_before)
@@ -204,11 +204,11 @@ namespace matching
 				{
 					if (order::order_side::BUY == imp.leg1_side)
 					{
-						imp.leg1_e->full_erase_from_normal_book(imp.leg1_e->_bid_book, leg_o);
+						imp.leg1_e->full_erase_from_normal_book(imp.leg1_e->_ask_book, leg_o);
 					}
 					else
 					{
-						imp.leg1_e->full_erase_from_normal_book(imp.leg1_e->_ask_book, leg_o);
+						imp.leg1_e->full_erase_from_normal_book(imp.leg1_e->_bid_book, leg_o);
 					}
 				}
 			}
@@ -248,11 +248,11 @@ namespace matching
 				{
 					if (order::order_side::BUY == imp.leg2_side)
 					{
-						imp.leg2_e->full_erase_from_normal_book(imp.leg2_e->_bid_book, leg_o);
+						imp.leg2_e->full_erase_from_normal_book(imp.leg2_e->_ask_book, leg_o);
 					}
 					else
 					{
-						imp.leg2_e->full_erase_from_normal_book(imp.leg2_e->_ask_book, leg_o);
+						imp.leg2_e->full_erase_from_normal_book(imp.leg2_e->_bid_book, leg_o);
 					}
 				}
 			}
