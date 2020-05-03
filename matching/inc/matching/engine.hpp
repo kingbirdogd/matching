@@ -294,7 +294,7 @@ namespace matching
 		}
 		inline void unlock()
 		{
-			for (auto it = _mutex_set.begin(); it != _mutex_set.end(); ++it)
+			for (auto it = _mutex_set.rbegin(); it != _mutex_set.rend(); ++it)
 				(*it)->unlock();
 		}
 	public:
