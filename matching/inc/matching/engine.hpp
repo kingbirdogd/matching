@@ -17,6 +17,22 @@ namespace matching
 {
 	class engine
 	{
+	public:
+		struct match_result
+		{
+			long long matched_price;
+			unsigned long long matched_quantity;
+			match_result():
+				matched_price(0),
+				matched_quantity(0)
+			{
+			}
+			~match_result();
+			operator bool() const
+			{
+				return (matched_quantity != 0);
+			}
+		};
 	private:
 		struct matched_record
 		{
@@ -186,6 +202,11 @@ namespace matching
 		{
 			return cursor_template<ask_book_type>(&_ask_book);
 		}
+		template <typename Book>
+		auto get_cursor(Book& book)
+		{
+			return cursor_template<Book>(&book);
+		}
 	public:
 		class implier_base
 		{
@@ -289,12 +310,10 @@ namespace matching
 				if (_leg2_cursor)
 					delete _leg2_cursor;
 			}
-			virtual void matching(const order& o,
+			virtual match_result matching(const order& o,
 					const order& leg1,
 					const order& leg2,
-					long long mini_ticker,
-					long long& matched_price,
-					unsigned long long& matched_quantity) = 0;
+					long long mini_ticker) = 0;
 		private:
 			void reset()
 			{
