@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <map>
+#include <set>
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
@@ -10,6 +11,7 @@
 #include <functional>
 #include <algorithm>
 #include <matching/order.hpp>
+#include <core/spin_mutex.hpp>
 
 namespace matching
 {
@@ -31,7 +33,9 @@ namespace matching
 		using bid_stop_book_type = std::map<long long, order_set, std::less<long long>>;
 		using ask_stop_book_type = std::map<long long, order_set, std::greater<long long>>;
 		using callback_type = std::function<void(const order&)>;
+		using mutex_set = std::set<core::spin_mutex*>;
 	private:
+		mutable mutex_set _mutex_set;
 		search_order_map _odr_map;
 		bid_book_type _bid_book;
 		ask_book_type _ask_book;
@@ -39,22 +43,84 @@ namespace matching
 		ask_stop_book_type _ask_stop_book;
 		callback_type _callback;
 		long long _mini_tick;
+		mutable core::spin_mutex _mutex;
 	private:
-		void _handle(order& odr);
+		inline void lock()
+		{
+			for (auto it = _mutex_set.begin(); it != _mutex_set.end(); ++it)
+				(*it)->lock();
+		}
+		inline void unlock()
+		{
+			for (auto it = _mutex_set.begin(); it != _mutex_set.end(); ++it)
+				(*it)->unlock();
+		}
 	public:
 		engine(callback_type&& callback, long long mini_tick = 1):
+			_mutex_set(),
 			_odr_map(),
 			_bid_book(),
 			_ask_book(),
 			_bid_stop_book(),
 			_ask_stop_book(),
 			_callback(std::move(callback)),
-			_mini_tick(mini_tick)
+			_mini_tick(mini_tick),
+			_mutex()
 		{
+			_mutex_set.insert(&_mutex);
+		}
+		engine(const engine& e):
+			_mutex_set(),
+			_odr_map(e._odr_map),
+			_bid_book(e._bid_book),
+			_ask_book(e._ask_book),
+			_bid_stop_book(e._bid_stop_book),
+			_ask_stop_book(e._ask_stop_book),
+			_callback(e._callback),
+			_mini_tick(e._mini_tick),
+			_mutex()
+		{
+			_mutex_set.insert(&_mutex);
+		}
+		engine(engine&& e):
+			_mutex_set(),
+			_odr_map(std::move(e._odr_map)),
+			_bid_book(std::move(e._bid_book)),
+			_ask_book(std::move(e._ask_book)),
+			_bid_stop_book(std::move(e._bid_stop_book)),
+			_ask_stop_book(std::move(e._ask_stop_book)),
+			_callback(std::move(e._callback)),
+			_mini_tick(e._mini_tick),
+			_mutex()
+		{
+			_mutex_set.insert(&_mutex);
+		}
+		engine& operator= (const engine& e)
+		{
+			_odr_map = e._odr_map;
+			_bid_book = e._bid_book;
+			_ask_book = e._ask_book;
+			_bid_stop_book = e._bid_stop_book;
+			_ask_stop_book = e._ask_stop_book;
+			_callback = e._callback;
+			_mini_tick = e._mini_tick;
+			return * this;
+		}
+		engine& operator= (engine&& e)
+		{
+			_odr_map = std::move(e._odr_map);
+			_bid_book = std::move(e._bid_book);
+			_ask_book = std::move(e._ask_book);
+			_bid_stop_book = std::move(e._bid_stop_book);
+			_ask_stop_book = std::move(e._ask_stop_book);
+			_callback = std::move(e._callback);
+			_mini_tick = e._mini_tick;
+			return * this;
 		}
 		~engine() = default;
 		void handle(order& o)
 		{
+			lock();
 			if (order::order_action_type::NEW == o.order_action)
 			{
 				o.order_state = order::order_status_type::OPEN;
@@ -98,6 +164,7 @@ namespace matching
 							after_best_ask);
 				}
 			}
+			unlock();
 		}
 		inline void recovery(callback_type&& callback) const
 		{
