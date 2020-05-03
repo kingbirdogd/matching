@@ -280,8 +280,86 @@ void test_object_pool()
 	}
 };
 
+void implied_test()
+{
+	matching::engine March(handle_order);
+	matching::engine June(handle_order);
+	matching::engine Spread(handle_order);
+	Spread.set_ask_implier(March,
+			June,
+			matching::order::order_side::BUY,
+			matching::order::order_side::SELL,
+			[](matching::order::implied_matche_record& o,
+			matching::order::implied_matche_record& leg1,
+			matching::order::implied_matche_record& leg2)
+	{
+		if (0 == o.remain_quantity)
+			return false;
+		auto price_diff = leg1.odr->price - leg2.odr->price;
+		if (price_diff > o.odr->price)
+			return false;
+		auto match_quantity = o.remain_quantity;
+		if (leg1.remain_quantity < match_quantity)
+			match_quantity = leg1.remain_quantity;
+		if (leg2.remain_quantity < match_quantity)
+			match_quantity = leg2.remain_quantity;
+		matching::order::matched_record o_record;
+		matching::order::matched_record leg1_record;
+		matching::order::matched_record leg2_record;
+		o_record.last_match_price = price_diff;
+		o_record.last_match_quantity = match_quantity;
+		o_record.matched_order_id1 = leg1.odr->order_id;
+		o_record.matched_order_id2 = leg2.odr->order_id;
+		leg1_record.last_match_price = leg1.odr->price;
+		leg1_record.last_match_quantity = match_quantity;
+		leg1_record.matched_order_id1 = o.odr->order_id;
+		leg1_record.matched_order_id2 = leg2.odr->order_id;
+		leg2_record.last_match_price = leg2.odr->price;
+		leg2_record.last_match_quantity = match_quantity;
+		leg2_record.matched_order_id1 = o.odr->order_id;
+		leg2_record.matched_order_id2 = leg1.odr->order_id;
+		o.records.push_back(o_record);
+		o.remain_quantity -= match_quantity;
+		leg1.records.push_back(leg1_record);
+		leg1.remain_quantity -= match_quantity;
+		leg2.records.push_back(leg2_record);
+		leg2.remain_quantity -= match_quantity;
+		return true;
+	});
+	matching::order o;
+	o.side = matching::order::order_side::SELL;
+	o.client_order_id = 1;
+	o.price = 9500;
+	o.quantity = 100;
+	o.display_quantity = 100;
+	March.handle(o);
+
+	o.side = matching::order::order_side::BUY;
+	o.client_order_id = 2;
+	o.price = 9450;
+	o.quantity = 50;
+	o.display_quantity = 50;
+	June.handle(o);
+
+	o.side = matching::order::order_side::SELL;
+	o.client_order_id = 3;
+	o.price = 50;
+	o.quantity = 30;
+	o.display_quantity = 30;
+	Spread.handle(o);
+
+	o.side = matching::order::order_side::BUY;
+	o.client_order_id = 4;
+	o.price = 50;
+	o.quantity = 100;
+	o.display_quantity = 100;
+	Spread.handle(o);
+}
+
 int main()
 {
+	implied_test();
+	return 0;
 	stop_test();
 	stop_test_by_cancel();
 	matching::engine e(handle_order);
