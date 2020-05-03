@@ -25,7 +25,7 @@ namespace core
 			unsigned long long expected = 0;
 			do
 			{
-				expected = 1;
+				expected = 0;
 			}
 			while (!_f.compare_exchange_weak(expected, 1, std::memory_order_relaxed, std::memory_order_relaxed));
 		}
