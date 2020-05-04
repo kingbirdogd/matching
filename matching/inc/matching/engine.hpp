@@ -368,6 +368,13 @@ namespace matching
 			{
 				_e->_callback(get_order());
 			}
+			void check()
+			{
+				if (0 == get_order().remain_quantity)
+				{
+					remove();
+				}
+			}
 		};
 	public:
 		struct match_result
