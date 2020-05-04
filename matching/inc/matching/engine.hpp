@@ -36,29 +36,52 @@ namespace matching
 	private:
 		struct cursor
 		{
+			engine* e;
+			cursor(engine* _e):
+				e(_e)
+			{
+			};
+			cursor() = delete;
+			cursor(const cursor&) = default;
+			cursor(cursor&&) = default;
+			cursor& operator= (const cursor&) = default;
+			cursor& operator= (cursor&&) = default;
 			virtual ~cursor() = default;
+			core::spin_mutex& get_mutex()
+			{
+				return e->_mutex;
+			}
+			void callback(const order& o)
+			{
+				e->_callback(o);
+			}
 			virtual void next() = 0;
 			virtual void remove() = 0;
 			virtual order& get_order() = 0;
 			virtual bool valid() const = 0;
 			virtual void reset() = 0;
+			virtual cursor* duplicate() = 0;
 		};
-		template <typename Map>
+		template <typename Map, typename OrderMap>
 		struct cursor_template : public cursor
 		{
 			using price_it = typename Map::iterator;
 			using price_odr = typename Map::mapped_type::iterator;
 			Map* m;
+			OrderMap* odr_m;
 			price_it it1;
 			price_odr it2;
 			cursor_template():
 				m(nullptr),
+				odr_m(nullptr),
 				it1(),
 				it2()
 			{
 			}
-			cursor_template(Map* ref_map):
+			cursor_template(engine* e, Map* ref_map, OrderMap* ref_omap):
+				cursor(e),
 				m(ref_map),
+				odr_m(ref_omap),
 				it1(m->begin()),
 				it2()
 			{
@@ -67,6 +90,10 @@ namespace matching
 					it2 = it1->second.begin();
 				}
 			}
+			cursor_template(const cursor_template&) = default;
+			cursor_template(cursor_template&&) = default;
+			cursor_template& operator= (const cursor_template&) = default;
+			cursor_template& operator= (cursor_template&&) = default;
 			virtual ~cursor_template() = default;
 			virtual void next()
 			{
@@ -82,6 +109,7 @@ namespace matching
 			}
 			virtual void remove()
 			{
+				auto odr_id = it2->second->order_id;
 				it2 = it1->second.erase(it2);
 				if (it1->second.empty())
 				{
@@ -99,6 +127,7 @@ namespace matching
 						it2 = it1->second.begin();
 					}
 				}
+				odr_m->erase(odr_id);
 			}
 			virtual order& get_order()
 			{
@@ -116,25 +145,25 @@ namespace matching
 					it2 = it1->second.begin();
 				}
 			}
+			virtual cursor* duplicate()
+			{
+				return new cursor_template<Map, OrderMap>(*this);
+			}
 		};
 	public:
 		class implier_base
 		{
 		private:
 			unsigned long long _priority;
-			engine* _leg1_e;
-			engine* _leg2_e;
-			order::order_side _leg1_side;
-			order::order_side _leg2_side;
 			cursor* _leg1_cursor;
 			cursor* _leg2_cursor;
 		private:
 			inline static cursor* get_cursor(engine* e, order::order_side side)
 			{
 				if (order::order_side::BUY == side)
-					return new cursor_template<ask_book_type>(e->get_ask_cursor());
+					return new cursor_template<ask_book_type, search_order_map>(e->get_ask_cursor());
 				else
-					return new cursor_template<bid_book_type>(e->get_bid_cursor());
+					return new cursor_template<bid_book_type, search_order_map>(e->get_bid_cursor());
 			}
 		public:
 			implier_base() = delete;
@@ -147,30 +176,19 @@ namespace matching
 					order::order_side leg2_side
 			):
 				_priority(priority),
-				_leg1_e(leg1_e),
-				_leg2_e(leg2_e),
-				_leg1_side(leg1_side),
-				_leg2_side(leg2_side),
-				_leg1_cursor(get_cursor(_leg1_e, _leg1_side)),
-				_leg2_cursor(get_cursor(_leg2_e, _leg2_side))
+				_leg1_cursor(get_cursor(leg1_e, leg1_side)),
+				_leg2_cursor(get_cursor(leg2_e, leg2_side))
 			{
 			}
 			implier_base(const implier_base& imp):
 				_priority(imp._priority),
-				_leg1_e(imp._leg1_e),
-				_leg2_e(imp._leg2_e),
-				_leg1_side(imp._leg1_side),
-				_leg2_side(imp._leg2_side),
-				_leg1_cursor(get_cursor(_leg1_e, _leg1_side)),
-				_leg2_cursor(get_cursor(_leg2_e, _leg2_side))
+				_leg1_cursor(imp._leg1_cursor->duplicate()),
+				_leg2_cursor(imp._leg2_cursor->duplicate())
 			{
+
 			}
 			implier_base(implier_base&& imp):
 				_priority(imp._priority),
-				_leg1_e(imp._leg1_e),
-				_leg2_e(imp._leg2_e),
-				_leg1_side(imp._leg1_side),
-				_leg2_side(imp._leg2_side),
 				_leg1_cursor(imp._leg1_cursor),
 				_leg2_cursor(imp._leg2_cursor)
 			{
@@ -180,25 +198,17 @@ namespace matching
 			implier_base& operator= (const implier_base& imp)
 			{
 				_priority = imp._priority;
-				_leg1_e = imp._leg1_e;
-				_leg2_e = imp._leg2_e;
-				_leg1_side = imp._leg1_side;
-				_leg2_side = imp._leg2_side;
 				if (_leg1_cursor)
 					delete _leg1_cursor;
 				if (_leg2_cursor)
 					delete _leg2_cursor;
-				_leg1_cursor = get_cursor(_leg1_e, _leg1_side);
-				_leg2_cursor = get_cursor(_leg2_e, _leg2_side);
+				_leg1_cursor = imp._leg1_cursor->duplicate();
+				_leg2_cursor = imp._leg2_cursor->duplicate();
 				return *this;
 			}
 			implier_base& operator= (implier_base&& imp)
 			{
 				_priority = imp._priority;
-				_leg1_e = imp._leg1_e;
-				_leg2_e = imp._leg2_e;
-				_leg1_side = imp._leg1_side;
-				_leg2_side = imp._leg2_side;
 				if (_leg1_cursor)
 					delete _leg1_cursor;
 				if (_leg2_cursor)
@@ -304,18 +314,18 @@ namespace matching
 		callback_type _callback;
 		long long _mini_tick;
 	private:
-		cursor_template<bid_book_type> get_bid_cursor()
+		cursor_template<bid_book_type, search_order_map> get_bid_cursor()
 		{
-			return cursor_template<bid_book_type>(&_bid_book);
+			return cursor_template<bid_book_type, search_order_map>(this, &_bid_book, &_odr_map);
 		}
-		cursor_template<ask_book_type> get_ask_cursor()
+		cursor_template<ask_book_type, search_order_map> get_ask_cursor()
 		{
-			return cursor_template<ask_book_type>(&_ask_book);
+			return cursor_template<ask_book_type, search_order_map>(this, &_ask_book, &_odr_map);
 		}
 		template <typename Book>
 		auto get_cursor(Book& book)
 		{
-			return cursor_template<Book>(&book);
+			return cursor_template<Book, search_order_map>(this, &book, &_odr_map);
 		}
 
 	private:
