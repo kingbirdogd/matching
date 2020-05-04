@@ -286,7 +286,7 @@ namespace matching
 					return sum;
 				}
 			}
-			void remove()
+			void erase()
 			{
 				if (!valid())
 					return;
