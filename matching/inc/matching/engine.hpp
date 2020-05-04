@@ -364,16 +364,23 @@ namespace matching
 			{
 				return _e->_mutex;
 			}
-			void callback()
-			{
-				_e->_callback(get_order());
-			}
 			void check()
 			{
 				if (0 == get_order().remain_quantity)
 				{
 					remove();
 				}
+			}
+			void callback()
+			{
+				auto& o = get_order();
+				_e->_callback(o);
+				o.reset_match();
+				if (0 == o.remain_quantity)
+				{
+					remove();
+				}
+
 			}
 		};
 	public:
