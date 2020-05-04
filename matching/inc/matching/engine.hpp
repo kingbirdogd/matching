@@ -425,12 +425,7 @@ namespace matching
 			implier_base& operator= (const implier_base& imp) = default;
 			implier_base& operator= (implier_base&& imp)  = default;
 			virtual ~implier_base() = default;
-			virtual match_result matching(
-						long long taker_price,
-						unsigned long long taker_remain_quantity,
-						const order& leg1,
-						const order& leg2,
-						long long mini_ticker) = 0;
+			virtual long long match_price(long long leg1_price, long long leg2_price) = 0;
 			private:
 				void reset()
 				{
