@@ -364,9 +364,9 @@ namespace matching
 			{
 				return _e->_mutex;
 			}
-			void callback(const order& o)
+			void callback()
 			{
-				_e->_callback(o);
+				_e->_callback(get_order());
 			}
 		};
 	public:
