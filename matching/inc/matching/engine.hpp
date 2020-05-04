@@ -17,6 +17,358 @@ namespace matching
 {
 	class engine
 	{
+	private:
+		using search_order_map = std::unordered_map<unsigned long long, order>;
+		using id_order_map = std::map<unsigned long long, order*>;
+		using order_set = std::unordered_set<order*>;
+		using bid_book_type = std::map<long long, id_order_map, std::greater<long long>>;
+		using ask_book_type = std::map<long long, id_order_map, std::less<long long>>;
+		using bid_stop_book_type = std::map<long long, order_set, std::less<long long>>;
+		using ask_stop_book_type = std::map<long long, order_set, std::greater<long long>>;
+		using callback_type = std::function<void(const order&)>;
+		using mutex_set = std::set<core::spin_mutex*>;
+	private:
+		class iterator
+		{
+		private:
+			using price_it = typename bid_book_type::iterator;
+			using price_odr = typename id_order_map::iterator;
+		private:
+			engine* _e;
+			order::order_side _size;
+			price_it _it1;
+			price_odr _it2;
+		public:
+			iterator():
+				_e(nullptr),
+				_size(order::order_side::BUY),
+				_it1(),
+				_it2()
+			{
+			}
+			iterator(engine* e, order::order_side side):
+				_e(e),
+				_size(side),
+				_it1(),
+				_it2()
+			{
+				reset();
+			}
+			iterator(const iterator&) = default;
+			iterator(iterator&&) = default;
+			iterator& operator= (const iterator&) = default;
+			iterator& operator= (iterator&&) = default;
+			~iterator() = default;
+			void reset()
+			{
+				if(order::order_side::BUY == _size)
+				{
+					_it1 = _e->_ask_book.begin();
+					if (_e->_ask_book.end() != _it1)
+					{
+						_it2 = _it1->second.begin();
+					}
+				}
+				else
+				{
+					_it1 = _e->_bid_book.begin();
+					if (_e->_bid_book.end() != _it1)
+					{
+						_it2 = _it1->second.begin();
+					}
+				}
+			}
+			void next()
+			{
+				++_it2;
+				if (_it1->second.end() == _it2)
+				{
+					++_it1;
+					if(order::order_side::BUY == _size)
+					{
+						if (_e->_ask_book.end() != _it1)
+						{
+							_it2 = _it1->second.begin();
+						}
+					}
+					else
+					{
+						if (_e->_bid_book.end() != _it1)
+						{
+							_it2 = _it1->second.begin();
+						}
+					}
+				}
+			}
+			void previous()
+			{
+				if (_it1->second.begin() == _it2)
+				{
+					if(order::order_side::BUY == _size)
+					{
+						if (_e->_ask_book.begin() != _it1)
+						{
+							--_it1;
+							auto r_it = _it1->second.rbegin();
+							_it2 = _it1->second.find(r_it->second->order_id);
+						}
+					}
+					else
+					{
+						if (_e->_bid_book.begin() != _it1)
+						{
+							--_it1;
+							auto r_it = _it1->second.rbegin();
+							_it2 = _it1->second.find(r_it->second->order_id);
+						}
+					}
+				}
+				else
+				{
+					--_it2;
+				}
+			}
+			iterator& operator++()
+			{
+				next();
+				return *this;
+			}
+			iterator operator++(int)
+			{
+				iterator rt(*this);
+				next();
+				return rt;
+			}
+			iterator& operator--()
+			{
+				previous();
+				return *this;
+			}
+			iterator operator--(int)
+			{
+				iterator rt(*this);
+				previous();
+				return rt;
+			}
+			iterator& operator+=(std::size_t size)
+			{
+				for (std::size_t i = 0; i < size; ++i)
+					next();
+				return *this;
+			}
+			iterator& operator-=(std::size_t size)
+			{
+				for (std::size_t i = 0; i < size; ++i)
+					previous();
+				return *this;
+			}
+			iterator operator+(std::size_t size) const
+			{
+				iterator rt(*this);
+				for (std::size_t i = 0; i < size; ++i)
+					rt.next();
+				return rt;
+			}
+			iterator operator-(std::size_t size) const
+			{
+				iterator rt(*this);
+				for (std::size_t i = 0; i < size; ++i)
+					rt.previous();
+				return rt;
+			}
+			iterator& operator[](std::size_t idx)
+			{
+				reset();
+				for (std::size_t i = 0; i < idx; ++i)
+					next();
+				return *this;
+			}
+			std::size_t price_size()
+			{
+				if(order::order_side::BUY == _size)
+				{
+					return _e->_ask_book.size();
+				}
+				else
+				{
+					return _e->_bid_book.size();
+				}
+			}
+			std::size_t order_size()
+			{
+				std::size_t sum = 0;
+				if(order::order_side::BUY == _size)
+				{
+					for (auto it = _e->_ask_book.begin(); it != _e->_ask_book.end(); ++it)
+					{
+						sum += it->second.size();
+					}
+					return sum;
+				}
+				else
+				{
+					for (auto it = _e->_bid_book.begin(); it != _e->_bid_book.end(); ++it)
+					{
+						sum += it->second.size();
+					}
+					return sum;
+				}
+			}
+			std::size_t order_size(long long limited_price)
+			{
+				std::size_t sum = 0;
+				if(order::order_side::BUY == _size)
+				{
+					for (auto it = _e->_ask_book.begin(); it != _e->_ask_book.end() && it->first <= limited_price; ++it)
+					{
+						sum += it->second.size();
+					}
+					return sum;
+				}
+				else
+				{
+					for (auto it = _e->_bid_book.begin(); it != _e->_bid_book.end() && it->first >= limited_price; ++it)
+					{
+						sum += it->second.size();
+					}
+					return sum;
+				}
+			}
+			std::size_t quantity()
+			{
+				std::size_t sum = 0;
+				if(order::order_side::BUY == _size)
+				{
+					for (auto it = _e->_ask_book.begin(); it != _e->_ask_book.end(); ++it)
+					{
+						for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+						{
+							sum += it2->second->remain_quantity;
+						}
+					}
+					return sum;
+				}
+				else
+				{
+					for (auto it = _e->_bid_book.begin(); it != _e->_bid_book.end(); ++it)
+					{
+						for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+						{
+							sum += it2->second->remain_quantity;
+						}
+					}
+					return sum;
+				}
+			}
+			std::size_t quantity(long long limited_price)
+			{
+				std::size_t sum = 0;
+				if(order::order_side::BUY == _size)
+				{
+					for (auto it = _e->_ask_book.begin(); it != _e->_ask_book.end() && it->first <= limited_price; ++it)
+					{
+						for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+						{
+							sum += it2->second->remain_quantity;
+						}
+					}
+					return sum;
+				}
+				else
+				{
+					for (auto it = _e->_bid_book.begin(); it != _e->_bid_book.end() && it->first >= limited_price; ++it)
+					{
+						for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+						{
+							sum += it2->second->remain_quantity;
+						}
+					}
+					return sum;
+				}
+			}
+			void remove()
+			{
+				if (!valid())
+					return;
+				auto odr_id = _it2->second->order_id;
+				_it2 = _it1->second.erase(_it2);
+				if (_it1->second.empty())
+				{
+					if(order::order_side::BUY == _size)
+					{
+						_it1 = _e->_ask_book.erase(_it1);
+						if (_e->_ask_book.end() != _it1)
+						{
+							_it2 = _it1->second.begin();
+						}
+					}
+					else
+					{
+						_it1 = _e->_bid_book.erase(_it1);
+						if (_e->_bid_book.end() != _it1)
+						{
+							_it2 = _it1->second.begin();
+						}
+					}
+				}
+				else if (_it1->second.end() == _it2)
+				{
+					++_it1;
+					if(order::order_side::BUY == _size)
+					{
+						if (_e->_ask_book.end() != _it1)
+						{
+							_it2 = _it1->second.begin();
+						}
+					}
+					else
+					{
+						if (_e->_bid_book.end() != _it1)
+						{
+							_it2 = _it1->second.begin();
+						}
+					}
+				}
+				_e->_odr_map.erase(odr_id);
+			}
+			order& get_order()
+			{
+				return *(_it2->second);
+			}
+			operator order& ()
+			{
+				return get_order();
+			}
+			order* operator->()
+			{
+				return _it2->second;
+			}
+			bool valid() const
+			{
+				if (!_e)
+					return false;
+				if(order::order_side::BUY == _size)
+				{
+					return (_e->_ask_book.end() != _it1);
+				}
+				else
+				{
+					return (_e->_bid_book.end() != _it1);
+				}
+			}
+			operator bool()
+			{
+				return valid();
+			}
+			core::spin_mutex& get_mutex()
+			{
+				return _e->_mutex;
+			}
+			void callback(const order& o)
+			{
+				_e->_callback(o);
+			}
+		};
 	public:
 		struct match_result
 		{
@@ -33,222 +385,56 @@ namespace matching
 				return (matched_quantity != 0);
 			}
 		};
-	private:
-		struct cursor
-		{
-			engine* e;
-			cursor(engine* _e):
-				e(_e)
-			{
-			};
-			cursor() = delete;
-			cursor(const cursor&) = default;
-			cursor(cursor&&) = default;
-			cursor& operator= (const cursor&) = default;
-			cursor& operator= (cursor&&) = default;
-			virtual ~cursor() = default;
-			core::spin_mutex& get_mutex()
-			{
-				return e->_mutex;
-			}
-			void callback(const order& o)
-			{
-				e->_callback(o);
-			}
-			virtual void next() = 0;
-			virtual void remove() = 0;
-			virtual order& get_order() = 0;
-			virtual bool valid() const = 0;
-			virtual void reset() = 0;
-			virtual cursor* duplicate() = 0;
-		};
-		template <typename Map, typename OrderMap>
-		struct cursor_template : public cursor
-		{
-			using price_it = typename Map::iterator;
-			using price_odr = typename Map::mapped_type::iterator;
-			Map* m;
-			OrderMap* odr_m;
-			price_it it1;
-			price_odr it2;
-			cursor_template():
-				m(nullptr),
-				odr_m(nullptr),
-				it1(),
-				it2()
-			{
-			}
-			cursor_template(engine* e, Map* ref_map, OrderMap* ref_omap):
-				cursor(e),
-				m(ref_map),
-				odr_m(ref_omap),
-				it1(m->begin()),
-				it2()
-			{
-				if (m->end() != it1)
-				{
-					it2 = it1->second.begin();
-				}
-			}
-			cursor_template(const cursor_template&) = default;
-			cursor_template(cursor_template&&) = default;
-			cursor_template& operator= (const cursor_template&) = default;
-			cursor_template& operator= (cursor_template&&) = default;
-			virtual ~cursor_template() = default;
-			virtual void next()
-			{
-				++it2;
-				if (it1->second.end() == it2)
-				{
-					++it1;
-					if (m->end() != it1)
-					{
-						it2 = it1->second.begin();
-					}
-				}
-			}
-			virtual void remove()
-			{
-				auto odr_id = it2->second->order_id;
-				it2 = it1->second.erase(it2);
-				if (it1->second.empty())
-				{
-					it1 = m->erase(it1);
-					if (m->end() != it1)
-					{
-						it2 = it1->second.begin();
-					}
-				}
-				else if (it1->second.end() == it2)
-				{
-					++it1;
-					if (m->end() != it1)
-					{
-						it2 = it1->second.begin();
-					}
-				}
-				odr_m->erase(odr_id);
-			}
-			virtual order& get_order()
-			{
-				return *(it2->second);
-			}
-			virtual bool valid() const
-			{
-				return (m->end() != it1);
-			}
-			virtual void reset()
-			{
-				it1 = m->begin();
-				if (m->end() != it1)
-				{
-					it2 = it1->second.begin();
-				}
-			}
-			virtual cursor* duplicate()
-			{
-				return new cursor_template<Map, OrderMap>(*this);
-			}
-		};
 	public:
 		class implier_base
 		{
 		private:
-			unsigned long long _priority;
-			cursor* _leg1_cursor;
-			cursor* _leg2_cursor;
-		private:
-			inline static cursor* get_cursor(engine* e, order::order_side side)
-			{
-				if (order::order_side::BUY == side)
-					return new cursor_template<ask_book_type, search_order_map>(e->get_ask_cursor());
-				else
-					return new cursor_template<bid_book_type, search_order_map>(e->get_bid_cursor());
-			}
+			//unsigned long long _priority;
+			iterator _leg1;
+			iterator _leg2;
 		public:
 			implier_base() = delete;
 			implier_base
 			(
-					unsigned long long priority,
-					engine* leg1_e,
-					engine* leg2_e,
-					order::order_side leg1_side,
-					order::order_side leg2_side
+				//unsigned long long priority,
+				engine* leg1_e,
+				engine* leg2_e,
+				order::order_side leg1_side,
+				order::order_side leg2_side
 			):
-				_priority(priority),
-				_leg1_cursor(get_cursor(leg1_e, leg1_side)),
-				_leg2_cursor(get_cursor(leg2_e, leg2_side))
+				//_priority(priority),
+				_leg1(iterator(leg1_e, leg1_side)),
+				_leg2(iterator(leg2_e, leg2_side))
 			{
 			}
-			implier_base(const implier_base& imp):
-				_priority(imp._priority),
-				_leg1_cursor(imp._leg1_cursor->duplicate()),
-				_leg2_cursor(imp._leg2_cursor->duplicate())
-			{
-
-			}
-			implier_base(implier_base&& imp):
-				_priority(imp._priority),
-				_leg1_cursor(imp._leg1_cursor),
-				_leg2_cursor(imp._leg2_cursor)
-			{
-				imp._leg1_cursor = nullptr;
-				imp._leg2_cursor = nullptr;
-			}
-			implier_base& operator= (const implier_base& imp)
-			{
-				_priority = imp._priority;
-				if (_leg1_cursor)
-					delete _leg1_cursor;
-				if (_leg2_cursor)
-					delete _leg2_cursor;
-				_leg1_cursor = imp._leg1_cursor->duplicate();
-				_leg2_cursor = imp._leg2_cursor->duplicate();
-				return *this;
-			}
-			implier_base& operator= (implier_base&& imp)
-			{
-				_priority = imp._priority;
-				if (_leg1_cursor)
-					delete _leg1_cursor;
-				if (_leg2_cursor)
-					delete _leg2_cursor;
-				_leg1_cursor = imp._leg1_cursor;
-				_leg2_cursor = imp._leg2_cursor;
-				imp._leg1_cursor = nullptr;
-				imp._leg2_cursor = nullptr;
-				return *this;
-			}
-			virtual ~implier_base()
-			{
-				if (_leg1_cursor)
-					delete _leg1_cursor;
-				if (_leg2_cursor)
-					delete _leg2_cursor;
-			}
-			virtual match_result matching(const order& o,
-					const order& leg1,
-					const order& leg2,
-					long long mini_ticker) = 0;
-		private:
-			void reset()
-			{
-				_leg1_cursor->reset();
-				_leg2_cursor->reset();
-			}
-		};
+			implier_base(const implier_base& imp) = default;
+			implier_base(implier_base&& imp) = default;
+			implier_base& operator= (const implier_base& imp) = default;
+			implier_base& operator= (implier_base&& imp)  = default;
+			virtual ~implier_base() = default;
+			virtual match_result matching(
+						long long taker_price,
+						unsigned long long taker_remain_quantity,
+						const order& leg1,
+						const order& leg2,
+						long long mini_ticker) = 0;
+			private:
+				void reset()
+				{
+					_leg1.reset();
+					_leg2.reset();
+				}
+			};
 	private:
 		struct matched_record
 		{
 			match_result result;
-			order* leg1;
-			order* leg2;
-			implier_base* imp;
+			iterator leg1;
+			iterator leg2;
 			matched_record():
 				result(),
-				leg1(nullptr),
-				leg2(nullptr),
-				imp(nullptr)
+				leg1(),
+				leg2()
 			{
 			}
 		};
@@ -292,16 +478,6 @@ namespace matching
 			return _id.fetch_add(1, std::memory_order_relaxed);
 		}
 	private:
-		using search_order_map = std::unordered_map<unsigned long long, order>;
-		using id_order_map = std::map<unsigned long long, order*>;
-		using order_set = std::unordered_set<order*>;
-		using bid_book_type = std::map<long long, id_order_map, std::greater<long long>>;
-		using ask_book_type = std::map<long long, id_order_map, std::less<long long>>;
-		using bid_stop_book_type = std::map<long long, order_set, std::less<long long>>;
-		using ask_stop_book_type = std::map<long long, order_set, std::greater<long long>>;
-		using callback_type = std::function<void(const order&)>;
-		using mutex_set = std::set<core::spin_mutex*>;
-	private:
 		mutable core::spin_mutex _mutex;
 		mutable mutex_set _mutex_set;
 		impliter _bid_implier;
@@ -313,21 +489,6 @@ namespace matching
 		ask_stop_book_type _ask_stop_book;
 		callback_type _callback;
 		long long _mini_tick;
-	private:
-		cursor_template<bid_book_type, search_order_map> get_bid_cursor()
-		{
-			return cursor_template<bid_book_type, search_order_map>(this, &_bid_book, &_odr_map);
-		}
-		cursor_template<ask_book_type, search_order_map> get_ask_cursor()
-		{
-			return cursor_template<ask_book_type, search_order_map>(this, &_ask_book, &_odr_map);
-		}
-		template <typename Book>
-		auto get_cursor(Book& book)
-		{
-			return cursor_template<Book, search_order_map>(this, &book, &_odr_map);
-		}
-
 	private:
 		inline order::implied_matche_order_top_result get_bid_top_quantity(unsigned long long quantity)
 		{
