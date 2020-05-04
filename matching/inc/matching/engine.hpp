@@ -375,7 +375,6 @@ namespace matching
 			{
 				auto& o = get_order();
 				_e->_callback(o);
-				o.reset_match();
 				if (0 == o.remain_quantity)
 				{
 					remove();

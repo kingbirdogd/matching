@@ -119,12 +119,6 @@ namespace matching
 		{
 			display_quantity = display_quantity < remain_quantity ? display_quantity : remain_quantity;
 		}
-		void reset_match()
-		{
-			matched_id = 0;
-			last_matched_order_id = 0;
-			last_matched_order_id2 = 0;
-		}
 		inline static bool can_amend(const order& o1, const order& o2)
 		{
 			if (o1._get_flag_value() != o2._get_flag_value())
