@@ -383,22 +383,6 @@ namespace matching
 			}
 		};
 	public:
-		struct match_result
-		{
-			long long matched_price;
-			unsigned long long matched_quantity;
-			match_result():
-				matched_price(0),
-				matched_quantity(0)
-			{
-			}
-			~match_result();
-			operator bool() const
-			{
-				return (matched_quantity != 0);
-			}
-		};
-	public:
 		class implier_base
 		{
 		private:
@@ -425,25 +409,37 @@ namespace matching
 			implier_base& operator= (const implier_base& imp) = default;
 			implier_base& operator= (implier_base&& imp)  = default;
 			virtual ~implier_base() = default;
-			virtual long long match_price(long long leg1_price, long long leg2_price) = 0;
-			private:
-				void reset()
-				{
-					_leg1.reset();
-					_leg2.reset();
-				}
-			};
+			//if nothing match return order::MARKET_PRICE;
+			virtual long long matchd_price(long long leg1_price, long long leg2_price) = 0;
+		private:
+			void reset()
+			{
+				_leg1.reset();
+				_leg2.reset();
+			}
+		};
 	private:
 		struct matched_record
 		{
-			match_result result;
+			long long matched_price;
+			long long matched_quantity;
 			iterator leg1;
 			iterator leg2;
 			matched_record():
-				result(),
+				matched_price(order::MARKET_PRICE),
+				matched_quantity(0),
 				leg1(),
 				leg2()
 			{
+			}
+			matched_record(const matched_record&) = default;
+			matched_record(matched_record&&) = default;
+			matched_record& operator= (const matched_record&) = default;
+			matched_record& operator= (matched_record&&) = default;
+			~matched_record() = default;
+			operator bool()
+			{
+				return (order::MARKET_PRICE != matched_price);
 			}
 		};
 	public:
