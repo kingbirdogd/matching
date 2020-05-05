@@ -927,7 +927,7 @@ namespace matching
 				book.erase(ori_it_price);
 			}
 		}
-
+	private:
 		inline void init_new_order(order& o)
 		{
 			o.order_id = get_id();
