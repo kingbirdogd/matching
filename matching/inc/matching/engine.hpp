@@ -1535,6 +1535,22 @@ namespace matching
 				callback(item.second);
 			}
 		}
+		inline void set_bid_implier(implier_base* imp)
+		{
+			_bid_book_matcher.set_implier(imp);
+		}
+		inline void unset_bid_implier(implier_base* imp)
+		{
+			_bid_book_matcher.unset_implier(imp);
+		}
+		inline void set_ask_implier(implier_base* imp)
+		{
+			_ask_book_matcher.set_implier(imp);
+		}
+		inline void unset_ask_implier(implier_base* imp)
+		{
+			_ask_book_matcher.unset_implier(imp);
+		}
 	};
 }
 
