@@ -912,10 +912,83 @@ namespace matching
 	private:
 		void trigger_buy_stop()
 		{
+			long long mini_tick = _mini_tick;
+			mini_tick *= -1;
+			std::vector<order*> odr_list;
+			do
+			{
+				odr_list.clear();
+				auto best = best_ask();
+				for (auto it = _bid_stop_book.begin(); it != _bid_stop_book.end();)
+				{
+					if (best >= it->first)
+					{
+						for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+						{
+							odr_list.push_back(*it2);
+						}
+						it = _bid_stop_book.erase(it);
+					}
+					else
+					{
+						++it;
+					}
+				}
+				for (std::size_t i = 0; i < odr_list.size(); ++i)
+				{
+					auto& o = (*odr_list[i]);
+					o.price = o.buy_stop_limited_price;
+					if (order::order_time_condition::FOK == o.time_condition)
+					{
+						_ask_book_matcher.fok_match(_ask_book.key_comp(), o);
+					}
+					else
+					{
+						_ask_book_matcher.normal_match(_ask_book.key_comp(), o, _bid_book, mini_tick);
+					}
+				}
+			}
+			while(!odr_list.empty());
 		}
 
 		void trigger_sell_stop()
 		{
+			long long mini_tick = _mini_tick;
+			std::vector<order*> odr_list;
+			do
+			{
+				odr_list.clear();
+				auto best = best_bid();
+				for (auto it = _ask_stop_book.begin(); it != _ask_stop_book.end();)
+				{
+					if (best <= it->first)
+					{
+						for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
+						{
+							odr_list.push_back(*it2);
+						}
+						it = _ask_stop_book.erase(it);
+					}
+					else
+					{
+						++it;
+					}
+				}
+				for (std::size_t i = 0; i < odr_list.size(); ++i)
+				{
+					auto& o = (*odr_list[i]);
+					o.price = o.sell_stop_limited_price;
+					if (order::order_time_condition::FOK == o.time_condition)
+					{
+						_bid_book_matcher.fok_match(_bid_book.key_comp(), o);
+					}
+					else
+					{
+						_bid_book_matcher.normal_match(_bid_book.key_comp(), o, _ask_book, mini_tick);
+					}
+				}
+			}
+			while(!odr_list.empty());
 		}
 	private:
 		inline void init_new_order(order& o)
