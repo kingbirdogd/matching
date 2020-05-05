@@ -39,14 +39,14 @@ namespace matching
 			using price_odr = typename id_order_map::iterator;
 		private:
 			engine* _e;
-			order::order_side _size;
+			order::order_side _side;
 			price_it _it1;
 			price_odr _it2;
 			unsigned long long _remain_quantity;
 		public:
 			iterator():
 				_e(nullptr),
-				_size(order::order_side::BUY),
+				_side(order::order_side::BUY),
 				_it1(),
 				_it2(),
 				_remain_quantity(0)
@@ -54,7 +54,7 @@ namespace matching
 			}
 			iterator(engine* e, order::order_side side):
 				_e(e),
-				_size(side),
+				_side(side),
 				_it1(),
 				_it2()
 			{
@@ -67,7 +67,7 @@ namespace matching
 			~iterator() = default;
 			void reset()
 			{
-				if(order::order_side::BUY == _size)
+				if(order::order_side::BUY == _side)
 				{
 					_it1 = _e->_ask_book.begin();
 					if (_e->_ask_book.end() != _it1)
@@ -92,7 +92,7 @@ namespace matching
 				if (_it1->second.end() == _it2)
 				{
 					++_it1;
-					if(order::order_side::BUY == _size)
+					if(order::order_side::BUY == _side)
 					{
 						if (_e->_ask_book.end() != _it1)
 						{
@@ -118,7 +118,7 @@ namespace matching
 			{
 				if (_it1->second.begin() == _it2)
 				{
-					if(order::order_side::BUY == _size)
+					if(order::order_side::BUY == _side)
 					{
 						if (_e->_ask_book.begin() != _it1)
 						{
@@ -202,7 +202,7 @@ namespace matching
 			}
 			std::size_t price_size()
 			{
-				if(order::order_side::BUY == _size)
+				if(order::order_side::BUY == _side)
 				{
 					return _e->_ask_book.size();
 				}
@@ -214,7 +214,7 @@ namespace matching
 			std::size_t order_size()
 			{
 				std::size_t sum = 0;
-				if(order::order_side::BUY == _size)
+				if(order::order_side::BUY == _side)
 				{
 					for (auto it = _e->_ask_book.begin(); it != _e->_ask_book.end(); ++it)
 					{
@@ -234,7 +234,7 @@ namespace matching
 			std::size_t order_size(long long limited_price)
 			{
 				std::size_t sum = 0;
-				if(order::order_side::BUY == _size)
+				if(order::order_side::BUY == _side)
 				{
 					for (auto it = _e->_ask_book.begin(); it != _e->_ask_book.end() && it->first <= limited_price; ++it)
 					{
@@ -254,7 +254,7 @@ namespace matching
 			std::size_t quantity()
 			{
 				std::size_t sum = 0;
-				if(order::order_side::BUY == _size)
+				if(order::order_side::BUY == _side)
 				{
 					for (auto it = _e->_ask_book.begin(); it != _e->_ask_book.end(); ++it)
 					{
@@ -280,7 +280,7 @@ namespace matching
 			std::size_t quantity(long long limited_price)
 			{
 				std::size_t sum = 0;
-				if(order::order_side::BUY == _size)
+				if(order::order_side::BUY == _side)
 				{
 					for (auto it = _e->_ask_book.begin(); it != _e->_ask_book.end() && it->first <= limited_price; ++it)
 					{
@@ -311,7 +311,7 @@ namespace matching
 				_it2 = _it1->second.erase(_it2);
 				if (_it1->second.empty())
 				{
-					if(order::order_side::BUY == _size)
+					if(order::order_side::BUY == _side)
 					{
 						_it1 = _e->_ask_book.erase(_it1);
 						if (_e->_ask_book.end() != _it1)
@@ -333,7 +333,7 @@ namespace matching
 				else if (_it1->second.end() == _it2)
 				{
 					++_it1;
-					if(order::order_side::BUY == _size)
+					if(order::order_side::BUY == _side)
 					{
 						if (_e->_ask_book.end() != _it1)
 						{
@@ -376,7 +376,7 @@ namespace matching
 			{
 				if (!_e)
 					return false;
-				if(order::order_side::BUY == _size)
+				if(order::order_side::BUY == _side)
 				{
 					return (_e->_ask_book.end() != _it1);
 				}
@@ -495,7 +495,7 @@ namespace matching
 		struct matched_record
 		{
 			long long matched_price;
-			long long matched_quantity;
+			unsigned long long matched_quantity;
 			iterator leg1;
 			iterator leg2;
 			matched_record():
@@ -656,8 +656,8 @@ namespace matching
 				}
 				return rt;
 			}
-			template <typename CMP>
-			void normal_match(const CMP& cmp, long long limited_price, order& o)
+			template <typename CMP, typename SelfBook>
+			void normal_match(const CMP& cmp, order& o, SelfBook& self, long long mini_tick)
 			{
 				reset();
 				while (0 != o.remain_quantity)
@@ -666,8 +666,19 @@ namespace matching
 					auto it = top(cmp, rt.matched_price, rt.matched_quantity);
 					if (rt)
 					{
-						if ((order::MARKET_PRICE != limited_price) && cmp(limited_price, rt.matched_price))
+						if ((order::MARKET_PRICE != o.price) && cmp(o.price, rt.matched_price))
 						{
+							return;
+						}
+						else if (order::order_time_condition::MAKER_ONLY == o.time_condition)
+						{
+							o.order_state = order::order_status_type::CANCELED_BY_MAKER_ONLY;
+							_local._e->callback(o);
+							return;
+						}
+						else if (order::order_time_condition::MAKER_ONLY_REPRICE == o.time_condition)
+						{
+							o.price += mini_tick;
 							break;
 						}
 						auto matched_quantity = rt.matched_quantity < o.remain_quantity ? rt.matched_quantity : o.remain_quantity;
@@ -687,19 +698,44 @@ namespace matching
 					}
 					else
 					{
-						break;
+						return;
 					}
+				}
+				if (o.remain_quantity == o.quantity)
+				{
+					_local._e->callback(o);
+				}
+				if (0 != o.remain_quantity)
+				{
+					if (order::MARKET_PRICE == o.price)
+					{
+						if (order::order_side::BUY == _local._side)
+						{
+							o.price = _local._e->best_bid();
+						}
+						else
+						{
+							o.price = _local._e->best_ask();
+						}
+						if (order::MARKET_PRICE == o.price)
+						{
+							o.order_state = order::order_status_type::CANCELED_BY_MARKET_ORDER_NOTHING_MATCH;
+							_local._e->callback(o);
+							return;
+						}
+					}
+					self[o.price][o.order_id] = &((_local._e->_odr_map.emplace(o.order_id, o).first)->second);
 				}
 			}
 			template <typename CMP>
-			void fok_match(const CMP& cmp, long long limited_price, order& o)
+			void fok_match(const CMP& cmp, order& o)
 			{
 				reset();
 				auto remain_quantity = o.remain_quantity;
 				std::vector<matched_record> records;
 				while (0 != remain_quantity)
 				{
-					auto record = match(cmp, limited_price, remain_quantity);
+					auto record = match(cmp, o.price, remain_quantity);
 					if (record)
 					{
 						remain_quantity -= record.matched_quantity;
@@ -714,6 +750,7 @@ namespace matching
 				{
 					o.order_state = order::order_status_type::CANCELED_BY_FOK;
 					_local._e->callback(o);
+					return;
 				}
 				else
 				{
@@ -813,6 +850,15 @@ namespace matching
 		{
 			//TODO market data handler
 			_callback(o);
+		}
+	private:
+		long long best_bid()
+		{
+			return _bid_book_matcher.top_price(_bid_book.key_comp());
+		}
+		long long best_ask()
+		{
+			return _ask_book_matcher.top_price(_ask_book.key_comp());
 		}
 	private:
 		inline void lock()
@@ -979,6 +1025,14 @@ namespace matching
 			}
 		};
 
+		template <typename BookType>
+		struct get_stop_price_helper
+		{
+			static long long get_price(order& odr)
+			{
+				return get_price_helper<int, BookType>::get_price(odr);
+			}
+		};
 
 		template <typename Dummy, typename BookType>
 		struct cross_book_function_helper
@@ -1004,15 +1058,6 @@ namespace matching
 			static long long get_non_cross_price(long long price, long long mini_tick)
 			{
 				return cross_book_function_helper<bool, BookType>::get_non_cross_price(price, mini_tick);
-			}
-		};
-
-		template <typename BookType>
-		struct get_stop_price_helper
-		{
-			static long long get_price(order& odr)
-			{
-				return get_price_helper<int, BookType>::get_price(odr);
 			}
 		};
 
@@ -1277,10 +1322,12 @@ namespace matching
 		{
 			o.order_id = get_id();
 			o.remain_quantity = o.quantity;
+			o.order_state = order::order_status_type::OPEN;
 		}
 
 		inline bool handle_new(order& o)
 		{
+			long long mini_tick = _mini_tick;
 			o.order_id = 0;
 			if (0 == o.quantity)
 			{
@@ -1297,25 +1344,99 @@ namespace matching
 			if (order::order_side::BUY == o.side)
 			{
 				init_new_order(o);
-				handle_normal_new(_bid_book, _ask_book, o);
+				if (order::order_type::MARKET == o.type)
+				{
+					if (order::MARKET_PRICE != o.price)
+					{
+						o.price = best_ask() + o.price;
+					}
+				}
+				else if (order::MARKET_PRICE == o.price)
+				{
+					o.order_state = order::order_status_type::REJECT_LIMITE_ORDER_WITH_MARKET_PRICE;
+					_callback(o);
+					return false;
+				}
+				if (order::order_time_condition::FOK == o.time_condition)
+				{
+					_ask_book_matcher.fok_match(_ask_book.key_comp(), o);
+				}
+				else
+				{
+					_ask_book_matcher.normal_match(_ask_book.key_comp(), o, _bid_book, mini_tick * -1);
+				}
 				return true;
 			}
 			else if (order::order_side::SELL == o.side)
 			{
 				init_new_order(o);
-				handle_normal_new(_ask_book, _bid_book, o);
+				if (order::order_type::MARKET == o.type)
+				{
+					if (order::MARKET_PRICE != o.price)
+					{
+						o.price = best_bid() - o.price;
+					}
+				}
+				else if (order::MARKET_PRICE == o.price)
+				{
+					o.order_state = order::order_status_type::REJECT_LIMITE_ORDER_WITH_MARKET_PRICE;
+					_callback(o);
+					return false;
+				}
+				if (order::order_time_condition::FOK == o.time_condition)
+				{
+					_bid_book_matcher.fok_match(_bid_book.key_comp(), o);
+				}
+				else
+				{
+					_bid_book_matcher.normal_match(_bid_book.key_comp(), o, _ask_book, mini_tick);
+				}
 				return true;
 			}
 			else if (order::order_side::BUY_STOP == o.side)
 			{
-				if (stop_check<decltype(_ask_book),
-						offsetof(order, buy_stop_trigger_price),
-						offsetof(order, buy_stop_limited_price),
-						order::order_status_type::REJECT_BUY_STOP_TRIGGER_LESS_THAN_STOP_LIMITED,
-						order::order_status_type::REJECT_BUY_STOP_NO_BEST_ASK,
-						order::order_status_type::REJECT_BUY_STOP_TRIGGER_LESS_THAN_BEST_ASK>(_ask_book,o))
+				o.price = 0;
+				auto best_a = best_ask();
+				if (order::order_type::MARKET == o.type)
 				{
-					init_new_order(o);
+					if (order::MARKET_PRICE != o.buy_stop_limited_price)
+					{
+						auto base_price = o.buy_stop_trigger_price;
+						if (order::MARKET_PRICE != best_a)
+						{
+							if (best_a > base_price)
+								base_price = best_a;
+						}
+						o.buy_stop_limited_price = base_price + o.buy_stop_limited_price;
+					}
+				}
+				if (order::MARKET_PRICE == o.buy_stop_limited_price)
+				{
+					o.order_state = order::order_status_type::REJECT_LIMITE_ORDER_WITH_MARKET_PRICE;
+					_callback(o);
+					return false;
+				}
+				if (o.buy_stop_trigger_price > o.buy_stop_limited_price)
+				{
+					o.order_state = order::order_status_type::REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMITED;
+					_callback(o);
+					return false;
+				}
+				init_new_order(o);
+				if (order::MARKET_PRICE == best_a || o.buy_stop_trigger_price <= best_a)
+				{
+					o.price = o.buy_stop_limited_price;
+					if (order::order_time_condition::FOK == o.time_condition)
+					{
+						_ask_book_matcher.fok_match(_ask_book.key_comp(), o);
+					}
+					else
+					{
+						_ask_book_matcher.normal_match(_ask_book.key_comp(), o, _bid_book, mini_tick * -1);
+					}
+				}
+				else
+				{
 					_bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
 					_callback(o);
 				}
@@ -1323,43 +1444,134 @@ namespace matching
 			}
 			else if (order::order_side::SELL_STOP == o.side)
 			{
-				if (stop_check<decltype(_bid_book),
-						offsetof(order, sell_stop_trigger_price),
-						offsetof(order, sell_stop_limited_price),
-						order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED,
-						order::order_status_type::REJECT_SELL_STOP_NO_BEST_BID,
-						order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_BEST_BID>(_bid_book,o))
+				o.price = 0;
+				auto best_b = best_bid();
+				if (order::order_type::MARKET == o.type)
 				{
-					init_new_order(o);
-					_ask_stop_book[o.sell_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+					if (order::MARKET_PRICE != o.sell_stop_limited_price)
+					{
+						auto base_price = o.sell_stop_trigger_price;
+						if (order::MARKET_PRICE != best_b)
+						{
+							if (best_b < base_price)
+								base_price = best_b;
+						}
+						o.sell_stop_limited_price = base_price + o.sell_stop_limited_price;
+					}
+				}
+				if (order::MARKET_PRICE == o.sell_stop_limited_price)
+				{
+					o.order_state = order::order_status_type::REJECT_LIMITE_ORDER_WITH_MARKET_PRICE;
+					_callback(o);
+					return false;
+				}
+				if (o.sell_stop_trigger_price < o.sell_stop_limited_price)
+				{
+					o.order_state = order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED;
+					_callback(o);
+					return false;
+				}
+				init_new_order(o);
+				if (order::MARKET_PRICE == best_b || o.sell_stop_trigger_price >= best_b)
+				{
+					o.price = o.sell_stop_limited_price;
+					if (order::order_time_condition::FOK == o.time_condition)
+					{
+						_bid_book_matcher.fok_match(_bid_book.key_comp(), o);
+					}
+					else
+					{
+						_bid_book_matcher.normal_match(_bid_book.key_comp(), o, _ask_book, mini_tick);
+					}
+				}
+				else
+				{
+					_ask_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
 					_callback(o);
 				}
 				return false;
 			}
 			else if (order::order_side::BUY_SELL_STOP == o.side)
 			{
-				if (o.buy_stop_trigger_price <= o.sell_stop_trigger_price)
+				o.price = 0;
+				auto best_a = best_ask();
+				auto best_b = best_bid();
+				if (order::order_type::MARKET == o.type)
 				{
-					o.order_state = order::order_status_type::REJECT_BUY_SELL_STOP_TRIGGER_CROSS;
-					_callback(o);
+					if (order::MARKET_PRICE != o.buy_stop_limited_price)
+					{
+						auto base_price = o.buy_stop_trigger_price;
+						if (order::MARKET_PRICE != best_a)
+						{
+							if (best_a > base_price)
+								base_price = best_a;
+						}
+						o.buy_stop_limited_price = base_price + o.buy_stop_limited_price;
+					}
+					if (order::MARKET_PRICE != o.sell_stop_limited_price)
+					{
+						auto base_price = o.sell_stop_trigger_price;
+						if (order::MARKET_PRICE != best_b)
+						{
+							if (best_b < base_price)
+								base_price = best_b;
+						}
+						o.sell_stop_limited_price = base_price + o.sell_stop_limited_price;
+					}
 				}
-				else if(stop_check<decltype(_ask_book),
-						offsetof(order, buy_stop_trigger_price),
-						offsetof(order, buy_stop_limited_price),
-						order::order_status_type::REJECT_BUY_STOP_TRIGGER_LESS_THAN_STOP_LIMITED,
-						order::order_status_type::REJECT_BUY_STOP_NO_BEST_ASK,
-						order::order_status_type::REJECT_BUY_STOP_TRIGGER_LESS_THAN_BEST_ASK>(_ask_book,o) &&
-						stop_check<decltype(_bid_book),
-						offsetof(order, sell_stop_trigger_price),
-						offsetof(order, sell_stop_limited_price),
-						order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED,
-						order::order_status_type::REJECT_SELL_STOP_NO_BEST_BID,
-						order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_BEST_BID>(_bid_book,o))
+				if (order::MARKET_PRICE == o.buy_stop_limited_price)
 				{
-					init_new_order(o);
-					auto podr = &((_odr_map.emplace(o.order_id, o).first)->second);
-					_bid_stop_book[o.buy_stop_trigger_price].insert(podr);
-					_ask_stop_book[o.sell_stop_trigger_price].insert(podr);
+					o.order_state = order::order_status_type::REJECT_LIMITE_ORDER_WITH_MARKET_PRICE;
+					_callback(o);
+					return false;
+				}
+				if (o.buy_stop_trigger_price > o.buy_stop_limited_price)
+				{
+					o.order_state = order::order_status_type::REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMITED;
+					_callback(o);
+					return false;
+				}
+				if (order::MARKET_PRICE == o.sell_stop_limited_price)
+				{
+					o.order_state = order::order_status_type::REJECT_LIMITE_ORDER_WITH_MARKET_PRICE;
+					_callback(o);
+					return false;
+				}
+				if (o.sell_stop_trigger_price < o.sell_stop_limited_price)
+				{
+					o.order_state = order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED;
+					_callback(o);
+					return false;
+				}
+				init_new_order(o);
+				if (order::MARKET_PRICE == best_a || o.buy_stop_trigger_price <= best_a)
+				{
+					o.price = o.buy_stop_limited_price;
+					if (order::order_time_condition::FOK == o.time_condition)
+					{
+						_ask_book_matcher.fok_match(_ask_book.key_comp(), o);
+					}
+					else
+					{
+						_ask_book_matcher.normal_match(_ask_book.key_comp(), o, _bid_book, mini_tick * -1);
+					}
+				}
+				else if (order::MARKET_PRICE == best_b || o.sell_stop_trigger_price >= best_b)
+				{
+					o.price = o.sell_stop_limited_price;
+					if (order::order_time_condition::FOK == o.time_condition)
+					{
+						_bid_book_matcher.fok_match(_bid_book.key_comp(), o);
+					}
+					else
+					{
+						_bid_book_matcher.normal_match(_bid_book.key_comp(), o, _ask_book, mini_tick);
+					}
+				}
+				else
+				{
+					_bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+					_ask_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
 					_callback(o);
 				}
 				return false;

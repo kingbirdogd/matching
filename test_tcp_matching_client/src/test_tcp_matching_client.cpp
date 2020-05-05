@@ -85,7 +85,7 @@ void handle_order(const matching::order& o)
 	{
 		status = "REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY";
 	}
-	else if (o.order_state == matching::order::order_status_type::REJECT_BUY_STOP_TRIGGER_LESS_THAN_STOP_LIMITED)
+	else if (o.order_state == matching::order::order_status_type::REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMITED)
 	{
 		status = "REJECT_BUY_STOP_TRIGGER_LESS_THAN_STOP_LIMITED";
 	}
