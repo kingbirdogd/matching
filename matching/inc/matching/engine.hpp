@@ -347,6 +347,10 @@ namespace matching
 			{
 				return _it2->second;
 			}
+			const order* operator->() const
+			{
+				return _it2->second;
+			}
 			bool valid() const
 			{
 				if (!_e)
@@ -453,7 +457,7 @@ namespace matching
 			implier_base& operator= (implier_base&& imp)  = default;
 			virtual ~implier_base() = default;
 			//if nothing match return order::MARKET_PRICE;
-			virtual long long matchd_price(long long leg1_price, long long leg2_price, long long mini_tick) = 0;
+			virtual long long matchd_price(long long leg1_price, long long leg2_price, unsigned long long mini_tick) = 0;
 		private:
 			void reset()
 			{
@@ -491,7 +495,7 @@ namespace matching
 		private:
 			iterator _local;
 			std::map<unsigned long long, implier_base*, std::greater<unsigned long long>> _impliers;
-		public:
+		private:
 			matcher(engine* e, order::order_side side):
 				_local(e, side),
 				_impliers()
@@ -537,7 +541,58 @@ namespace matching
 					_local._e->_mutex_set.insert(&(leg2._e->_mutex));
 				}
 			}
-
+			void reset()
+			{
+				_local.reset();
+				for (auto it = _impliers.begin(); it != _impliers.end(); ++it)
+				{
+					it->second->_leg1.reset();
+					it->second->_leg2.reset();
+				}
+			}
+			template <typename CMP>
+			long long top_price(const CMP& cmp) const
+			{
+				auto price = _local.top_price();
+				for (auto it = _impliers.begin(); it != _impliers.end(); ++it)
+				{
+					auto matched_price = it->second->matchd_price(it->second->_leg1->price,
+							it->second->_leg2->price,
+							_local._e->_mini_tick);
+					if (order::MARKET_PRICE != matched_price)
+					{
+						if (order::MARKET_PRICE == price || cmp(matched_price, price))
+						{
+							price = matched_price;
+						}
+					}
+				}
+				return price;
+			}
+			template <typename CMP>
+			auto top(const CMP& cmp, long long& top_price, unsigned long long& top_quantity) const
+			{
+				auto rt = _impliers.end();
+				top_price = _local.top_price();
+				top_quantity = _local.top_quantity();
+				for (auto it = _impliers.begin(); it != _impliers.end(); ++it)
+				{
+					auto matched_price = it->second->matchd_price(it->second->_leg1->price,
+							it->second->_leg2->price,
+							_local._e->_mini_tick);
+					if (order::MARKET_PRICE != matched_price)
+					{
+						if (order::MARKET_PRICE == top_price || cmp(matched_price, top_price))
+						{
+							top_price = matched_price;
+							top_quantity = it->second->_leg1->quantity < it->second->_leg2->quantity
+									? it->second->_leg1->quantity : it->second->_leg2->quantity;
+							rt = it;
+						}
+					}
+				}
+				return rt;
+			}
 		};
 	private:
 		static std::atomic<unsigned long long> _id;
@@ -550,8 +605,27 @@ namespace matching
 		bid_stop_book_type _bid_stop_book;
 		ask_stop_book_type _ask_stop_book;
 		callback_type _callback;
-		long long _mini_tick;
-
+		unsigned long long _mini_tick;
+	public:
+		inline static long long round_down(long long price, unsigned long long mini_tick)
+		{
+			long long mod = price % mini_tick;
+			if (mod >= 0)
+				return price - mod;
+			else
+				return price - mod - mini_tick;
+		}
+		inline static long long round_up(long long price, unsigned long long mini_tick)
+		{
+			long long mod = price % mini_tick;
+			if (mod == 0)
+				return mini_tick;
+			if (mod > 0)
+				return price + mini_tick - mod;
+			else
+				return price - mod;
+			//return price - mini_tick - price % mini_tick;
+		}
 	private:
 		inline static unsigned long long get_id()
 		{
@@ -609,7 +683,7 @@ namespace matching
 				(*it)->unlock();
 		}
 	public:
-		engine(callback_type&& callback, long long mini_tick = 1):
+		engine(callback_type&& callback, unsigned long long mini_tick = 1):
 			_mutex(),
 			_mutex_set(),
 			_odr_map(),
