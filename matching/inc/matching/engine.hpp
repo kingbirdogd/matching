@@ -521,7 +521,7 @@ namespace matching
 		private:
 			iterator _local;
 			std::map<unsigned long long, implier_base*, std::greater<unsigned long long>> _impliers;
-		private:
+		public:
 			matcher(engine* e, order::order_side side):
 				_local(e, side),
 				_impliers()
@@ -539,15 +539,13 @@ namespace matching
 				auto it = _impliers.find(imp->_priority);
 				if (_impliers.end() != it)
 				{
-					auto& leg1 = it->second->_leg1;
-					auto& leg2 = it->second->_leg2;
-					if (leg1)
+					if (it->second->_leg1)
 					{
-						_local._e->_mutex_set.erase(&(leg1._e->_mutex));
+						_local._e->_mutex_set.erase(&(it->second->_leg1._e->_mutex));
 					}
-					if (leg2)
+					if (it->second->_leg2)
 					{
-						_local._e->_mutex_set.erase(&(leg2._e->_mutex));
+						_local._e->_mutex_set.erase(&(it->second->_leg2._e->_mutex));
 					}
 					_impliers.erase(it);
 				}
@@ -556,15 +554,13 @@ namespace matching
 			{
 				unset_implier(imp);
 				_impliers.emplace(imp->_priority, imp);
-				auto& leg1 = imp->_leg1;
-				auto& leg2 = imp->_leg2;
-				if (leg1)
+				if (imp->_leg1)
 				{
-					_local._e->_mutex_set.insert(&(leg1._e->_mutex));
+					_local._e->_mutex_set.insert(&(imp->_leg1._e->_mutex));
 				}
-				if (leg2)
+				if (imp->_leg2)
 				{
-					_local._e->_mutex_set.insert(&(leg2._e->_mutex));
+					_local._e->_mutex_set.insert(&(imp->_leg2._e->_mutex));
 				}
 			}
 			void reset()
@@ -750,6 +746,8 @@ namespace matching
 		ask_book_type _ask_book;
 		bid_stop_book_type _bid_stop_book;
 		ask_stop_book_type _ask_stop_book;
+		matcher _bid_book_matcher;
+		matcher _ask_book_matcher;
 		callback_type _callback;
 		unsigned long long _mini_tick;
 	public:
@@ -836,6 +834,8 @@ namespace matching
 			_ask_book(),
 			_bid_stop_book(),
 			_ask_stop_book(),
+			_bid_book_matcher(this, order::order_side::SELL),
+			_ask_book_matcher(this, order::order_side::BUY),
 			_callback(std::move(callback)),
 			_mini_tick(mini_tick)
 		{
@@ -849,6 +849,8 @@ namespace matching
 			_ask_book(e._ask_book),
 			_bid_stop_book(e._bid_stop_book),
 			_ask_stop_book(e._ask_stop_book),
+			_bid_book_matcher(this, order::order_side::SELL),
+			_ask_book_matcher(this, order::order_side::BUY),
 			_callback(e._callback),
 			_mini_tick(e._mini_tick)
 		{
@@ -862,6 +864,8 @@ namespace matching
 			_ask_book(std::move(e._ask_book)),
 			_bid_stop_book(std::move(e._bid_stop_book)),
 			_ask_stop_book(std::move(e._ask_stop_book)),
+			_bid_book_matcher(this, order::order_side::SELL),
+			_ask_book_matcher(this, order::order_side::BUY),
 			_callback(std::move(e._callback)),
 			_mini_tick(e._mini_tick)
 		{
