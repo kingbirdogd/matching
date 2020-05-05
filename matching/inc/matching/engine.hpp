@@ -21,10 +21,10 @@ namespace matching
 		using search_order_map = std::unordered_map<unsigned long long, order>;
 		using id_order_map = std::map<unsigned long long, order*>;
 		using order_set = std::unordered_set<order*>;
-		using bid_book_type = std::map<long long, id_order_map, std::greater<long long>>;
-		using ask_book_type = std::map<long long, id_order_map, std::less<long long>>;
-		using bid_stop_book_type = std::map<long long, order_set, std::less<long long>>;
-		using ask_stop_book_type = std::map<long long, order_set, std::greater<long long>>;
+		using bid_book_type = std::map<long long, id_order_map, order::greater>;
+		using ask_book_type = std::map<long long, id_order_map, order::less>;
+		using bid_stop_book_type = std::map<long long, order_set, order::less>;
+		using ask_stop_book_type = std::map<long long, order_set, order::greater>;
 		using callback_type = std::function<void(const order&)>;
 		using mutex_set = std::set<core::spin_mutex*>;
 	private:

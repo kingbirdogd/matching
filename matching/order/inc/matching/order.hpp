@@ -11,6 +11,23 @@ namespace matching
 	public:
 		const static long long MARKET_PRICE = std::numeric_limits<long long>::max();
 	public:
+		class less
+		{
+		public:
+			constexpr bool operator()(const long long& l, const long long& r) const
+			{
+				return ((MARKET_PRICE == r) ? true : (l < r));
+			}
+		};
+		class greater
+		{
+		public:
+			constexpr bool operator()(const long long& l, const long long& r) const
+			{
+				return ((MARKET_PRICE == r) ? true : (l > r));
+			}
+		};
+	public:
 		enum order_side : unsigned char
 		{
 			BUY = 0x00,
@@ -18,6 +35,11 @@ namespace matching
 			BUY_STOP = 0x02,
 			SELL_STOP = 0x03,
 			BUY_SELL_STOP = 0x04
+		};
+		enum order_type : unsigned char
+		{
+			LIMITED = 0x00,
+			MARKET = 0x01
 		};
 		enum order_action_type : unsigned char
 		{
@@ -56,7 +78,8 @@ namespace matching
 			REJECT_SELL_STOP_TRIGGER_LESS_THAN_BEST_BID = 0x12,
 			REJECT_BUY_SELL_STOP_TRIGGER_CROSS = 0x13,
 			REJECT_UNKNOW_ORDER_ACTION = 0x14,
-			REJECT_QUANTITY_ZERO = 0x15
+			REJECT_QUANTITY_ZERO = 0x15,
+			REJECT_LIMITED_PRICE_ERROR = 0x16
 		};
 		enum order_matched_type : unsigned char
 		{
@@ -80,9 +103,9 @@ namespace matching
 		long long sell_stop_trigger_price;
 		long long sell_stop_limited_price;
 		order_side side;
+		order_type type;
 		order_action_type order_action;
 		order_time_condition time_condition;
-		//order_engine_type engine_type;
 		order_status_type order_state;
 		order_matched_type matched_type;
 	private:
@@ -108,6 +131,7 @@ namespace matching
 			sell_stop_trigger_price(0),
 			sell_stop_limited_price(MARKET_PRICE),
 			side(order_side::BUY),
+			type(order_type::LIMITED),
 			order_action(order_action_type::NEW),
 			time_condition(order_time_condition::GTC),
 			order_state(order_status_type::OPEN),

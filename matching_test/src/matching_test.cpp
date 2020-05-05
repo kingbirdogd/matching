@@ -116,9 +116,13 @@ void handle_order(const matching::order& o)
 	{
 		status = "REJECT_UNKNOW_ORDER_ACTION";
 	}
-	else
+	else if (o.order_state == matching::order::order_status_type::REJECT_QUANTITY_ZERO)
 	{
 		status = "REJECT_QUANTITY_ZERO";
+	}
+	else
+	{
+		status = "REJECT_LIMITED_PRICE_ERROR";
 	}
 	if (matching::order::order_time_condition::GTC == o.time_condition)
 	{
