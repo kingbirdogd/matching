@@ -447,7 +447,6 @@ namespace matching
 				else
 					return _remain_quantity;
 			}
-
 			void reduce_matching(unsigned long long quantity)
 			{
 				_remain_quantity -= quantity;
@@ -578,14 +577,18 @@ namespace matching
 				auto price = _local.top_price();
 				for (auto it = _impliers.begin(); it != _impliers.end(); ++it)
 				{
-					auto matched_price = it->second->matchd_price(it->second->_leg1->price,
-							it->second->_leg2->price,
-							_local._e->_mini_tick);
-					if (order::MARKET_PRICE != matched_price)
+					auto matched_price = order::MARKET_PRICE;
+					if (it->second->_leg1 && it->second->_leg2)
 					{
-						if (order::MARKET_PRICE == price || cmp(matched_price, price))
+						matched_price = it->second->matchd_price(it->second->_leg1->price,
+								it->second->_leg2->price,
+								_local._e->_mini_tick);
+						if (order::MARKET_PRICE != matched_price)
 						{
-							price = matched_price;
+							if (order::MARKET_PRICE == price || cmp(matched_price, price))
+							{
+								price = matched_price;
+							}
 						}
 					}
 				}
@@ -599,17 +602,21 @@ namespace matching
 				top_quantity = _local.top_matching_quantity();
 				for (auto it = _impliers.begin(); it != _impliers.end(); ++it)
 				{
-					auto matched_price = it->second->matchd_price(it->second->_leg1->price,
-							it->second->_leg2->price,
-							_local._e->_mini_tick);
-					if (order::MARKET_PRICE != matched_price)
+					auto matched_price = order::MARKET_PRICE;
+					if (it->second->_leg1 && it->second->_leg2)
 					{
-						if (order::MARKET_PRICE == top_price || cmp(matched_price, top_price))
+						matched_price = it->second->matchd_price(it->second->_leg1->price,
+								it->second->_leg2->price,
+								_local._e->_mini_tick);
+						if (order::MARKET_PRICE != matched_price)
 						{
-							top_price = matched_price;
-							top_quantity = it->second->_leg1.top_matching_quantity() < it->second->_leg2.top_matching_quantity()
-									? it->second->_leg1.top_matching_quantity() : it->second->_leg2.top_matching_quantity();
-							rt = it;
+							if (order::MARKET_PRICE == top_price || cmp(matched_price, top_price))
+							{
+								top_price = matched_price;
+								top_quantity = it->second->_leg1.top_matching_quantity() < it->second->_leg2.top_matching_quantity()
+											? it->second->_leg1.top_matching_quantity() : it->second->_leg2.top_matching_quantity();
+								rt = it;
+							}
 						}
 					}
 				}
