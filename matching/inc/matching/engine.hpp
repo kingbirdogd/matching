@@ -28,8 +28,12 @@ namespace matching
 		using callback_type = std::function<void(const order&)>;
 		using mutex_set = std::set<core::spin_mutex*>;
 	private:
+		class matcher;
+	private:
 		class iterator
 		{
+		private:
+			friend matcher;
 		private:
 			using price_it = typename bid_book_type::iterator;
 			using price_odr = typename id_order_map::iterator;
@@ -371,15 +375,38 @@ namespace matching
 					erase();
 				}
 			}
-			void callback()
+			void maker_match(
+					unsigned long long matched_id,
+					unsigned long long last_match_quantity,
+					unsigned long long last_matched_order_id,
+					unsigned long long last_matched_order_id2 = 0)
 			{
 				auto& o = get_order();
-				_e->_callback(o);
+				engine::maker_match(o, matched_id,
+						last_match_quantity,
+						last_matched_order_id,
+						last_matched_order_id2);
+				_e->callback(o);
 				if (0 == o.remain_quantity)
 				{
 					erase();
 				}
-
+			}
+			void taker_match(order& o,
+					unsigned long long matched_id,
+					long long last_match_price,
+					unsigned long long last_match_quantity,
+					unsigned long long last_matched_order_id,
+					unsigned long long last_matched_order_id2 = 0)
+			{
+				engine::match(o,
+						order::order_matched_type::TAKER,
+						matched_id,
+						last_match_price,
+						last_match_quantity,
+						last_matched_order_id,
+						last_matched_order_id2);
+				_e->callback(o);
 			}
 			long long top_price() const
 			{
@@ -400,20 +427,22 @@ namespace matching
 		class implier_base
 		{
 		private:
-			//unsigned long long _priority;
+			friend matcher;
+		private:
+			unsigned long long _priority;
 			iterator _leg1;
 			iterator _leg2;
 		public:
 			implier_base() = delete;
 			implier_base
 			(
-				//unsigned long long priority,
+				unsigned long long priority,
 				engine* leg1_e,
 				engine* leg2_e,
 				order::order_side leg1_side,
 				order::order_side leg2_side
 			):
-				//_priority(priority),
+				_priority(priority),
 				_leg1(iterator(leg1_e, leg1_side)),
 				_leg2(iterator(leg2_e, leg2_side))
 			{
@@ -424,7 +453,7 @@ namespace matching
 			implier_base& operator= (implier_base&& imp)  = default;
 			virtual ~implier_base() = default;
 			//if nothing match return order::MARKET_PRICE;
-			virtual long long matchd_price(long long leg1_price, long long leg2_price) = 0;
+			virtual long long matchd_price(long long leg1_price, long long leg2_price, long long mini_tick) = 0;
 		private:
 			void reset()
 			{
@@ -461,53 +490,60 @@ namespace matching
 		{
 		private:
 			iterator _local;
-			std::map<unsigned long long, matched_record, std::greater<unsigned long long>> _impliers;
+			std::map<unsigned long long, implier_base*, std::greater<unsigned long long>> _impliers;
 		public:
-		};
-	public:
-		//tiker, leg1, leg2
-		using implied_fun = std::function<bool(order::implied_matche_record&, order::implied_matche_record&, order::implied_matche_record&)>;
-	private:
-		struct impliter
-		{
-			engine* leg1_e;
-			engine* leg2_e;
-			order::order_side leg1_side;
-			order::order_side leg2_side;
-			implied_fun formula;
-			impliter():
-				leg1_e(nullptr),
-				leg2_e(nullptr),
-				leg1_side(order::order_side::BUY),
-				leg2_side(order::order_side::BUY),
-				formula()
+			matcher(engine* e, order::order_side side):
+				_local(e, side),
+				_impliers()
 			{
+				_local._e->_mutex_set.insert(&(_local._e->_mutex));
 			}
-			impliter(const impliter&) = default;
-			impliter(impliter&&) = default;
-			impliter& operator= (const impliter&) = default;
-			impliter& operator= (impliter&&) = default;
-			~impliter() = default;
-			operator bool()
+			matcher() = delete;
+			matcher(const matcher&) = delete;
+			matcher(matcher&&) = delete;
+			matcher& operator= (const matcher&) = delete;
+			matcher& operator= (matcher&&) = delete;
+			~matcher() = default;
+			void unset_implier(implier_base* imp)
 			{
-				if (formula)
-					return true;
-				else
-					return false;
+				auto it = _impliers.find(imp->_priority);
+				if (_impliers.end() != it)
+				{
+					auto& leg1 = it->second->_leg1;
+					auto& leg2 = it->second->_leg2;
+					if (leg1)
+					{
+						_local._e->_mutex_set.erase(&(leg1._e->_mutex));
+					}
+					if (leg2)
+					{
+						_local._e->_mutex_set.erase(&(leg2._e->_mutex));
+					}
+					_impliers.erase(it);
+				}
 			}
+			void set_implier(implier_base* imp)
+			{
+				unset_implier(imp);
+				_impliers.emplace(imp->_priority, imp);
+				auto& leg1 = imp->_leg1;
+				auto& leg2 = imp->_leg2;
+				if (leg1)
+				{
+					_local._e->_mutex_set.insert(&(leg1._e->_mutex));
+				}
+				if (leg2)
+				{
+					_local._e->_mutex_set.insert(&(leg2._e->_mutex));
+				}
+			}
+
 		};
 	private:
 		static std::atomic<unsigned long long> _id;
 	private:
-		inline static unsigned long long get_id()
-		{
-			return _id.fetch_add(1, std::memory_order_relaxed);
-		}
-	private:
 		mutable core::spin_mutex _mutex;
 		mutable mutex_set _mutex_set;
-		impliter _bid_implier;
-		impliter _ask_implier;
 		search_order_map _odr_map;
 		bid_book_type _bid_book;
 		ask_book_type _ask_book;
@@ -515,214 +551,52 @@ namespace matching
 		ask_stop_book_type _ask_stop_book;
 		callback_type _callback;
 		long long _mini_tick;
+
 	private:
-		inline order::implied_matche_order_top_result get_bid_top_quantity(unsigned long long quantity)
+		inline static unsigned long long get_id()
 		{
-			order::implied_matche_order_top_result rt;
-			bool stop = false;
-			for (auto it1 = _bid_book.begin(); it1 != _bid_book.end(); ++it1)
-			{
-				auto& m2 = it1->second;
-				for (auto it2 = m2.begin(); it2 != m2.end(); ++it2)
-				{
-					rt.records.push_back(order::implied_matche_record(it2->second));
-					rt.total_quantity += it2->second->remain_quantity;
-					if (rt.total_quantity >= quantity)
-					{
-						stop = true;
-						break;
-					}
-				}
-				if (stop)
-					break;
-			}
-			return rt;
+			return _id.fetch_add(1, std::memory_order_relaxed);
 		}
-
-		inline order::implied_matche_order_top_result get_ask_top_quantity(unsigned long long quantity)
+		inline static void match(order& o,
+				order::order_matched_type match_type,
+				unsigned long long matched_id,
+				long long last_match_price,
+				unsigned long long last_match_quantity,
+				unsigned long long last_matched_order_id,
+				unsigned long long last_matched_order_id2 = 0)
 		{
-			order::implied_matche_order_top_result rt;
-			bool stop = false;
-			for (auto it1 = _ask_book.begin(); it1 != _ask_book.end(); ++it1)
-			{
-				auto& m2 = it1->second;
-				for (auto it2 = m2.begin(); it2 != m2.end(); ++it2)
-				{
-					rt.records.push_back(order::implied_matche_record(it2->second));
-					rt.total_quantity += it2->second->remain_quantity;
-					if (rt.total_quantity >= quantity)
-					{
-						stop = true;
-						break;
-					}
-				}
-				if (stop)
-					break;
-			}
-			return rt;
-		}
-
-		static inline order::implied_matche_order_top_result get_top_quantity(engine* e,
-				order::order_side side,
-				unsigned long long quantity)
-		{
-			if (order::order_side::BUY == side)
-			{
-				return e->get_ask_top_quantity(quantity);
-			}
-			else
-			{
-				return e->get_bid_top_quantity(quantity);
-			}
-		}
-		void implied_match(impliter& imp, order::implied_matche_record& self, std::function<void()> matched_before)
-		{
-			if (!imp)
-				return;
-			order& o = *self.odr;
-			auto leg1_orders = engine::get_top_quantity(imp.leg1_e, imp.leg1_side, self.remain_quantity);
-			auto leg2_orders = engine::get_top_quantity(imp.leg2_e, imp.leg2_side, self.remain_quantity);
-			if (order::order_time_condition::FOK == o.time_condition)
-			{
-				if (leg1_orders.total_quantity < self.remain_quantity)
-					return;
-				if (leg2_orders.total_quantity < self.remain_quantity)
-					return;
-			}
-			std::size_t i = 0;
-			std::size_t j = 0;
-			while (self.remain_quantity != 0 && i < leg1_orders.records.size() && j < leg2_orders.records.size())
-			{
-				auto& leg1_odr = leg1_orders.records[i];
-				auto& leg2_odr = leg2_orders.records[j];
-				if (!imp.formula(self, leg1_odr, leg2_odr))
-					break;
-				if (0 == leg1_odr.remain_quantity)
-					++i;
-				if (0 == leg2_odr.remain_quantity)
-					++j;
-			}
-			if (order::order_time_condition::FOK == o.time_condition)
-			{
-				if (0 != self.remain_quantity)
-					return;
-			}
-
-			if (matched_before)
-				matched_before();
-			auto matched_id = get_id();
-			auto before_best_bid = imp.leg1_e->get_best_price(imp.leg1_e->_bid_book);
-			auto before_best_ask = imp.leg1_e->get_best_price(imp.leg1_e->_ask_book);
-			for (auto& odr_matched_record : leg1_orders.records)
-			{
-				auto& leg_o = *(odr_matched_record.odr);
-				leg_o.matched_id = matched_id;
-				leg_o.matched_type = order::order_matched_type::MAKER;
-				for (auto& matched : odr_matched_record.records)
-				{
-					leg_o.last_match_price = matched.last_match_price;
-					leg_o.last_match_quantity = matched.last_match_quantity;
-					leg_o.last_matched_order_id = matched.matched_order_id1;
-					leg_o.last_matched_order_id2 = matched.matched_order_id2;
-					leg_o.remain_quantity -= matched.last_match_quantity;
-					if (0 == leg_o.remain_quantity)
-					{
-						leg_o.order_state = order::order_status_type::FILLED;
-					}
-					else
-					{
-						leg_o.order_state = order::order_status_type::PARTIAL_FILL;
-					}
-					leg_o.update_display();
-					imp.leg1_e->_callback(leg_o);
-				}
-				leg_o.matched_id = 0;
-				if (0 == leg_o.remain_quantity)
-				{
-					if (order::order_side::BUY == imp.leg1_side)
-					{
-						imp.leg1_e->full_erase_from_normal_book(imp.leg1_e->_ask_book, leg_o);
-					}
-					else
-					{
-						imp.leg1_e->full_erase_from_normal_book(imp.leg1_e->_bid_book, leg_o);
-					}
-				}
-			}
-			auto after_best_bid = imp.leg1_e->get_best_price(imp.leg1_e->_bid_book);
-			auto after_best_ask = imp.leg1_e->get_best_price(imp.leg1_e->_ask_book);
-			imp.leg1_e->handle_stop(before_best_bid,
-					before_best_ask,
-					after_best_bid,
-					after_best_ask);
-			before_best_bid = imp.leg2_e->get_best_price(imp.leg2_e->_bid_book);
-			before_best_ask = imp.leg2_e->get_best_price(imp.leg2_e->_ask_book);
-			for (auto& odr_matched_record : leg2_orders.records)
-			{
-				auto& leg_o = *(odr_matched_record.odr);
-				leg_o.matched_id = matched_id;
-				leg_o.matched_type = order::order_matched_type::MAKER;
-				for (auto& matched : odr_matched_record.records)
-				{
-					leg_o.last_match_price = matched.last_match_price;
-					leg_o.last_match_quantity = matched.last_match_quantity;
-					leg_o.last_matched_order_id = matched.matched_order_id1;
-					leg_o.last_matched_order_id2 = matched.matched_order_id2;
-					leg_o.remain_quantity -= matched.last_match_quantity;
-					if (0 == leg_o.remain_quantity)
-					{
-						leg_o.order_state = order::order_status_type::FILLED;
-					}
-					else
-					{
-						leg_o.order_state = order::order_status_type::PARTIAL_FILL;
-					}
-					leg_o.update_display();
-					imp.leg2_e->_callback(leg_o);
-				}
-				leg_o.matched_id = 0;
-				if (0 == leg_o.remain_quantity)
-				{
-					if (order::order_side::BUY == imp.leg2_side)
-					{
-						imp.leg2_e->full_erase_from_normal_book(imp.leg2_e->_ask_book, leg_o);
-					}
-					else
-					{
-						imp.leg2_e->full_erase_from_normal_book(imp.leg2_e->_bid_book, leg_o);
-					}
-				}
-			}
-			after_best_bid = imp.leg2_e->get_best_price(imp.leg2_e->_bid_book);
-			after_best_ask = imp.leg2_e->get_best_price(imp.leg2_e->_ask_book);
-			imp.leg2_e->handle_stop(before_best_bid,
-						before_best_ask,
-						after_best_bid,
-						after_best_ask);
-
+			o.matched_type = match_type;
 			o.matched_id = matched_id;
-			o.matched_type = order::order_matched_type::TAKER;
-			for (auto& matched : self.records)
-			{
-				o.last_match_price = matched.last_match_price;
-				o.last_match_quantity = matched.last_match_quantity;
-				o.last_matched_order_id = matched.matched_order_id1;
-				o.last_matched_order_id2 = matched.matched_order_id2;
-				o.remain_quantity -= matched.last_match_quantity;
-				if (0 == o.remain_quantity)
-				{
-					o.order_state = order::order_status_type::FILLED;
-				}
-				else
-				{
-					o.order_state = order::order_status_type::PARTIAL_FILL;
-				}
-				o.update_display();
-				_callback(o);
-			}
-			o.matched_id = 0;
-		}
+			o.last_match_price = last_match_price;
+			o.last_match_quantity = last_match_quantity;
+			o.last_matched_order_id = last_matched_order_id;
+			o.last_matched_order_id2 = last_matched_order_id2;
+			o.remain_quantity -= o.last_match_quantity;
+			if (0 == o.remain_quantity)
+				o.order_state = order::order_status_type::FILLED;
+			else
+				o.order_state = order::order_status_type::PARTIAL_FILL;
 
+		}
+		inline static void maker_match(order& o,
+				unsigned long long matched_id,
+				unsigned long long last_match_quantity,
+				unsigned long long last_matched_order_id,
+				unsigned long long last_matched_order_id2 = 0)
+		{
+			match(o,
+					order::order_matched_type::MAKER,
+					matched_id,
+					o.price,
+					last_match_quantity,
+					last_matched_order_id,
+					last_matched_order_id2);
+		}
+		void callback(const order& o)
+		{
+			//TODO market data handler
+			_callback(o);
+		}
 	private:
 		inline void lock()
 		{
@@ -738,8 +612,6 @@ namespace matching
 		engine(callback_type&& callback, long long mini_tick = 1):
 			_mutex(),
 			_mutex_set(),
-			_bid_implier(),
-			_ask_implier(),
 			_odr_map(),
 			_bid_book(),
 			_ask_book(),
@@ -753,8 +625,6 @@ namespace matching
 		engine(const engine& e):
 			_mutex(),
 			_mutex_set(),
-			_bid_implier(),
-			_ask_implier(),
 			_odr_map(e._odr_map),
 			_bid_book(e._bid_book),
 			_ask_book(e._ask_book),
@@ -768,8 +638,6 @@ namespace matching
 		engine(engine&& e):
 			_mutex(),
 			_mutex_set(),
-			_bid_implier(),
-			_ask_implier(),
 			_odr_map(std::move(e._odr_map)),
 			_bid_book(std::move(e._bid_book)),
 			_ask_book(std::move(e._ask_book)),
@@ -896,10 +764,6 @@ namespace matching
 			{
 				return price + mini_tick;
 			}
-			static void implied_match(engine* e, order::implied_matche_record& o, std::function<void()> matched_before)
-			{
-				e->implied_match(e->_bid_implier, o, std::move(matched_before));
-			}
 		};
 
 		template <typename Dummy>
@@ -909,10 +773,6 @@ namespace matching
 			{
 				return price - mini_tick;
 			}
-			static void implied_match(engine* e, order::implied_matche_record& o, std::function<void()> matched_before)
-			{
-				e->implied_match(e->_ask_implier, o, std::move(matched_before));
-			}
 		};
 
 		template <typename BookType>
@@ -921,10 +781,6 @@ namespace matching
 			static long long get_non_cross_price(long long price, long long mini_tick)
 			{
 				return cross_book_function_helper<bool, BookType>::get_non_cross_price(price, mini_tick);
-			}
-			static void implied_match(engine* e, order::implied_matche_record& o, std::function<void()> matched_before = std::function<void()>())
-			{
-				cross_book_function_helper<bool, BookType>::implied_match(e, o, std::move(matched_before));
 			}
 		};
 
@@ -1039,27 +895,8 @@ namespace matching
 			if (total_matched_quantity != o.remain_quantity)
 			{
 
-				order::implied_matche_record self(&o);
-				self.remain_quantity -= total_matched_quantity;
-				cross_book_function<Book>::implied_match(this, self, [&]()
-				{
-					for (std::size_t i = 0; i < cross_odrs.size(); ++i)
-					{
-						auto& o2 = *cross_odrs[i];
-						handle_matched_order(o, o2);
-						if (0 == o2.remain_quantity)
-						{
-							full_erase_from_normal_book(book, o2);
-						}
-					}
-				});
-				if (0 != o.remain_quantity)
-				{
-					o.order_state = order::order_status_type::CANCELED_BY_FOK;
-					_callback(o);
-				}
-				else
-					return;
+				o.order_state = order::order_status_type::CANCELED_BY_FOK;
+				_callback(o);
 			}
 			else
 			{
@@ -1140,11 +977,6 @@ namespace matching
 					break;
 				if (stop)
 					break;
-			}
-			if (0 != o.remain_quantity)
-			{
-				order::implied_matche_record self(&o);
-				cross_book_function<Book>::implied_match(this, self);
 			}
 			if (0 != o.remain_quantity)
 			{
@@ -1505,67 +1337,6 @@ namespace matching
 						offsetof(order, buy_stop_limited_price)>
 				(_bid_stop_book, _ask_book, after_best_ask);
 			}
-		}
-	public:
-		inline void set_bid_implier(engine& leg1_e,
-				engine& leg2_e,
-				order::order_side leg1_side,
-				order::order_side leg2_side,
-				implied_fun&& formula)
-		{
-			if (!formula)
-			{
-				return;
-			}
-			_mutex_set.insert(&(leg1_e._mutex));
-			_mutex_set.insert(&(leg2_e._mutex));
-			_bid_implier.leg1_e = &leg1_e;
-			_bid_implier.leg2_e = &leg2_e;
-			_bid_implier.leg1_side = leg1_side;
-			_bid_implier.leg2_side = leg2_side;
-			_bid_implier.formula = std::move(formula);
-		}
-		inline void unset_bid_implier()
-		{
-			if (!_bid_implier.formula)
-			{
-				return;
-			}
-			_bid_implier.formula = implied_fun();
-			_mutex_set.erase(&(_bid_implier.leg1_e->_mutex));
-			_mutex_set.erase(&(_bid_implier.leg2_e->_mutex));
-			_bid_implier.leg1_e = nullptr;
-			_bid_implier.leg2_e = nullptr;
-		}
-		inline void set_ask_implier(engine& leg1_e,
-				engine& leg2_e,
-				order::order_side leg1_side,
-				order::order_side leg2_side,
-				implied_fun&& formula)
-		{
-			if (!formula)
-			{
-				return;
-			}
-			_mutex_set.insert(&(leg1_e._mutex));
-			_mutex_set.insert(&(leg2_e._mutex));
-			_ask_implier.leg1_e = &leg1_e;
-			_ask_implier.leg2_e = &leg2_e;
-			_ask_implier.leg1_side = leg1_side;
-			_ask_implier.leg2_side = leg2_side;
-			_ask_implier.formula = std::move(formula);
-		}
-		inline void unset_ask_implier()
-		{
-			if (!_ask_implier.formula)
-			{
-				return;
-			}
-			_ask_implier.formula = implied_fun();
-			_mutex_set.erase(&(_ask_implier.leg1_e->_mutex));
-			_mutex_set.erase(&(_ask_implier.leg2_e->_mutex));
-			_ask_implier.leg1_e = nullptr;
-			_ask_implier.leg2_e = nullptr;
 		}
 	};
 }

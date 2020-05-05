@@ -284,6 +284,7 @@ void test_object_pool()
 	}
 };
 
+/*
 void implied_test()
 {
 	matching::engine March(handle_order);
@@ -359,11 +360,12 @@ void implied_test()
 	o.display_quantity = 100;
 	Spread.handle(o);
 }
+*/
 
 int main()
 {
-	implied_test();
-	return 0;
+	//implied_test();
+	//return 0;
 	stop_test();
 	stop_test_by_cancel();
 	matching::engine e(handle_order);
