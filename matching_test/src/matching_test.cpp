@@ -1,4 +1,5 @@
 #include <matching/engine.hpp>
+#include <matching/implied_spread_in_bid.hpp>
 #include <matching/implied_spread_in_ask.hpp>
 #include <memory/object_pool.hpp>
 #include <iostream>
@@ -280,8 +281,9 @@ void implied_test()
 	matching::engine March(handle_order);
 	matching::engine June(handle_order);
 	matching::engine Spread(handle_order);
+	matching::implied_spread_in_bid spread_bid_implier(1, &March, &June);
 	matching::implied_spread_in_ask spread_ask_implier(1, &March, &June);
-	std::cout << sizeof(spread_ask_implier) << std::endl;
+	Spread.set_bid_implier(&spread_bid_implier);
 	Spread.set_ask_implier(&spread_ask_implier);
 	matching::order o;
 	o.side = matching::order::order_side::SELL;
