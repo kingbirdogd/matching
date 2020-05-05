@@ -393,13 +393,6 @@ namespace matching
 			{
 				return _e->_mutex;
 			}
-			void check()
-			{
-				if (0 == get_order().remain_quantity)
-				{
-					erase();
-				}
-			}
 			void maker_match(
 					unsigned long long matched_id,
 					unsigned long long last_match_quantity,
@@ -626,7 +619,6 @@ namespace matching
 				}
 				return rt;
 			}
-
 			template <typename CMP>
 			matched_record match(const CMP& cmp, long long limited_price, unsigned long long quantity)
 			{
@@ -634,6 +626,11 @@ namespace matching
 				auto it = top(cmp, rt.matched_price, rt.matched_quantity);
 				if (rt)
 				{
+					if ((order::MARKET_PRICE != limited_price) && cmp(limited_price, rt.matched_price))
+					{
+						rt.matched_price = order::MARKET_PRICE;
+						return rt;
+					}
 					if (rt.matched_quantity < quantity)
 						rt.matched_quantity = quantity;
 					if (_impliers.end() == it)
@@ -662,6 +659,85 @@ namespace matching
 					}
 				}
 				return rt;
+			}
+			template <typename CMP>
+			void normal_match(const CMP& cmp, long long limited_price, order& o)
+			{
+				reset();
+				while (0 != o.remain_quantity)
+				{
+					matched_record rt;
+					auto it = top(cmp, rt.matched_price, rt.matched_quantity);
+					if (rt)
+					{
+						if ((order::MARKET_PRICE != limited_price) && cmp(limited_price, rt.matched_price))
+						{
+							break;
+						}
+						auto matched_quantity = rt.matched_quantity < o.remain_quantity ? rt.matched_quantity : o.remain_quantity;
+						auto matched_id = engine::get_id();
+						if (_impliers.end() == it)
+						{
+							_local.maker_match(matched_id, matched_quantity, o.order_id);
+							_local.taker_match(o, matched_id, rt.matched_price, matched_quantity, _local->order_id);
+						}
+						else
+						{
+							auto& imp = (*it->second);
+							imp._leg1.maker_match(matched_id, matched_quantity, o.order_id, imp._leg2->order_id);
+							imp._leg2.maker_match(matched_id, matched_quantity, o.order_id, imp._leg1->order_id);
+							_local.taker_match(o, matched_id, rt.matched_price, matched_quantity, imp._leg1->order_id, imp._leg2->order_id);
+						}
+					}
+					else
+					{
+						break;
+					}
+				}
+			}
+			template <typename CMP>
+			void fok_match(const CMP& cmp, long long limited_price, order& o)
+			{
+				reset();
+				auto remain_quantity = o.remain_quantity;
+				std::vector<matched_record> records;
+				while (0 != remain_quantity)
+				{
+					auto record = match(cmp, limited_price, remain_quantity);
+					if (record)
+					{
+						remain_quantity -= record.matched_quantity;
+						records.push_back(record);
+					}
+					else
+					{
+						break;
+					}
+				}
+				if (0 != remain_quantity)
+				{
+					o.order_state = order::order_status_type::CANCELED_BY_FOK;
+					_local._e->callback(o);
+				}
+				else
+				{
+					for (std::size_t i = 0; i < records.size(); ++i)
+					{
+						auto& rt = records[i];
+						auto matched_id = engine::get_id();
+						if (!rt.leg2)
+						{
+							rt.leg1.maker_match(matched_id, rt.matched_quantity, o.order_id);
+							_local.taker_match(o, matched_id, rt.matched_price, rt.matched_quantity, rt.leg1->order_id);
+						}
+						else
+						{
+							rt.leg1.maker_match(matched_id, rt.matched_quantity, o.order_id, rt.leg2->order_id);
+							rt.leg2.maker_match(matched_id, rt.matched_quantity, o.order_id, rt.leg1->order_id);
+							_local.taker_match(o, matched_id, rt.matched_price, rt.matched_quantity, rt.leg1->order_id, rt.leg2->order_id);
+						}
+					}
+				}
 			}
 		};
 	private:
@@ -694,7 +770,6 @@ namespace matching
 				return price + mini_tick - mod;
 			else
 				return price - mod;
-			//return price - mini_tick - price % mini_tick;
 		}
 	private:
 		inline static unsigned long long get_id()
@@ -720,7 +795,7 @@ namespace matching
 				o.order_state = order::order_status_type::FILLED;
 			else
 				o.order_state = order::order_status_type::PARTIAL_FILL;
-
+			o.update_display();
 		}
 		inline static void maker_match(order& o,
 				unsigned long long matched_id,
