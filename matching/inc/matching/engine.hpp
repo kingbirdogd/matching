@@ -675,7 +675,7 @@ namespace matching
 					{
 						if ((order::MARKET_PRICE != o.price) && cmp(o.price, rt.matched_price))
 						{
-							return;
+							break;
 						}
 						else if (order::order_time_condition::MAKER_ONLY == o.time_condition)
 						{
@@ -705,7 +705,7 @@ namespace matching
 					}
 					else
 					{
-						return;
+						break;
 					}
 				}
 				if (o.remain_quantity == o.quantity)
@@ -1288,6 +1288,7 @@ namespace matching
 			{
 				o.order_state = order::order_status_type::REJECT_CANCEL_ORDER_ID_NOT_FOUND;
 				callback(o);
+				return;
 			}
 			auto& ori_odr = it->second;
 			ori_odr.client_order_id = o.client_order_id;
