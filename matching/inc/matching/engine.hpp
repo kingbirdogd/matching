@@ -890,42 +890,32 @@ namespace matching
 			}
 		}
 
-		template <typename Dummy, typename BookType>
-		struct get_price_helper
+		void erase_buy_stop(order& o)
 		{
-			static long long get_price(order& odr)
-			{
-				return odr.buy_stop_trigger_price;
-			}
-		};
-
-		template <typename Dummy>
-		struct get_price_helper<Dummy, ask_stop_book_type>
-		{
-			static long long get_price(order& odr)
-			{
-				return odr.sell_stop_trigger_price;
-			}
-		};
-
-		template <typename BookType>
-		struct get_stop_price_helper
-		{
-			static long long get_price(order& odr)
-			{
-				return get_price_helper<int, BookType>::get_price(odr);
-			}
-		};
-
-		template <typename BookType>
-		static void erase_from_stop_book(BookType& book, order& odr)
-		{
-			auto ori_it_price = book.find(get_stop_price_helper<BookType>::get_price(odr));
-			ori_it_price->second.erase(&odr);
+			auto ori_it_price = _bid_stop_book.find(o.buy_stop_trigger_price);
+			ori_it_price->second.erase(&o);
 			if (ori_it_price->second.empty())
 			{
-				book.erase(ori_it_price);
+				_bid_stop_book.erase(ori_it_price);
 			}
+		}
+
+		void erase_sell_stop(order& o)
+		{
+			auto ori_it_price = _ask_stop_book.find(o.sell_stop_trigger_price);
+			ori_it_price->second.erase(&o);
+			if (ori_it_price->second.empty())
+			{
+				_bid_stop_book.erase(ori_it_price);
+			}
+		}
+	private:
+		void trigger_buy_stop()
+		{
+		}
+
+		void trigger_sell_stop()
+		{
 		}
 	private:
 		inline void init_new_order(order& o)
@@ -1218,7 +1208,7 @@ namespace matching
 			{
 				if (0 == ori_odr.price)
 				{
-					erase_from_stop_book(_bid_stop_book, ori_odr);
+					erase_buy_stop(ori_odr);
 				}
 				else
 				{
@@ -1229,7 +1219,7 @@ namespace matching
 			{
 				if (0 == ori_odr.price)
 				{
-					erase_from_stop_book(_ask_stop_book, ori_odr);
+					erase_sell_stop(ori_odr);
 				}
 				else
 				{
@@ -1240,8 +1230,8 @@ namespace matching
 			{
 				if (0 == ori_odr.price)
 				{
-					erase_from_stop_book(_bid_stop_book, ori_odr);
-					erase_from_stop_book(_ask_stop_book, ori_odr);
+					erase_buy_stop(ori_odr);
+					erase_sell_stop(ori_odr);
 				}
 				else if (ori_odr.price == ori_odr.buy_stop_limited_price)
 				{
