@@ -1,6 +1,10 @@
 #include <matching/engine.hpp>
 #include <matching/implied_spread_in_bid.hpp>
 #include <matching/implied_spread_in_ask.hpp>
+#include <matching/implied_spread_a_out_bid.hpp>
+#include <matching/implied_spread_a_out_ask.hpp>
+#include <matching/implied_spread_b_out_bid.hpp>
+#include <matching/implied_spread_b_out_ask.hpp>
 #include <memory/object_pool.hpp>
 #include <iostream>
 #include <unordered_map>
@@ -283,8 +287,16 @@ void implied_test()
 	matching::engine Spread(handle_order);
 	matching::implied_spread_in_bid spread_bid_implier(1, &March, &June);
 	matching::implied_spread_in_ask spread_ask_implier(1, &March, &June);
+	matching::implied_spread_in_bid a_bid_implier(1, &Spread, &June);
+	matching::implied_spread_in_ask a_ask_implier(1, &Spread, &June);
+	matching::implied_spread_in_bid b_bid_implier(1, &March, &Spread);
+	matching::implied_spread_in_ask b_ask_implier(1, &March, &Spread);
 	Spread.set_bid_implier(&spread_bid_implier);
 	Spread.set_ask_implier(&spread_ask_implier);
+	March.set_bid_implier(&a_bid_implier);
+	March.set_ask_implier(&a_ask_implier);
+	June.set_bid_implier(&b_bid_implier);
+	June.set_ask_implier(&b_ask_implier);
 	matching::order o;
 	o.side = matching::order::order_side::SELL;
 	o.client_order_id = 1;

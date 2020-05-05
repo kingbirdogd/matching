@@ -17,8 +17,8 @@ namespace matching
 			implier_base(priority,
 					leg1_e,
 					leg2_e,
-					matching::order::order_side::SELL,
-					matching::order::order_side::BUY,
+					order::order_side::SELL,
+					order::order_side::BUY,
 					pips)
 		{
 		}
@@ -28,8 +28,8 @@ namespace matching
 				implier_base(priority,
 							leg1_e,
 							leg2_e,
-							matching::order::order_side::SELL,
-							matching::order::order_side::BUY,
+							order::order_side::SELL,
+							order::order_side::BUY,
 							0)
 		{
 		}
@@ -44,10 +44,6 @@ namespace matching
 		}
 	};
 }
-
-
-
-
 
 
 

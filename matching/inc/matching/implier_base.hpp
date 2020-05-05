@@ -44,7 +44,7 @@ namespace matching
 		virtual ~implier_base() = default;
 		virtual long long matchd_price(long long leg1_price, long long leg2_price, unsigned long long mini_tick) = 0;
 	};
-};
+}
 
 
 
