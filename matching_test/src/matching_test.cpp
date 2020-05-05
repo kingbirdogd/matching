@@ -330,7 +330,6 @@ void implied_test()
 int main()
 {
 	implied_test();
-	return 0;
 	stop_test();
 	stop_test_by_cancel();
 	matching::engine e(handle_order);
