@@ -368,7 +368,7 @@ namespace matching
 			{
 				if (0 == get_order().remain_quantity)
 				{
-					remove();
+					erase();
 				}
 			}
 			void callback()
@@ -377,7 +377,7 @@ namespace matching
 				_e->_callback(o);
 				if (0 == o.remain_quantity)
 				{
-					remove();
+					erase();
 				}
 
 			}
