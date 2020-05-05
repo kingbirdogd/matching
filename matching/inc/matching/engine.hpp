@@ -1273,51 +1273,6 @@ namespace matching
 			return false;
 		}
 
-		template <typename SelfBook,typename CrossBook>
-		inline void handle_normal_new(SelfBook& self, CrossBook& cross, order& o)
-		{
-			if (handle_cross<CrossBook, offsetof(order, price)>(cross, o))
-			{
-				self[o.price][o.order_id] = &((_odr_map.emplace(o.order_id, o).first)->second);
-			}
-		}
-
-		template<typename Book,
-			std::size_t TriggeroffSet,
-			std::size_t LimitoffSet,
-			order::order_status_type RejectStatus1,
-			order::order_status_type RejectStatus2,
-			order::order_status_type RejectStatus3>
-		bool stop_check(Book& book, order& o)
-		{
-			const long long& trigger_price = *static_cast<long long*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(&o)) + TriggeroffSet));
-			const long long& limited_price = *static_cast<long long*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(&o)) + LimitoffSet));
-			typename Book::key_compare cross_cmp;
-			if (limited_price != order::MARKET_PRICE)
-			{
-				if (cross_cmp(limited_price, trigger_price))
-				{
-					o.order_state = RejectStatus1;
-					_callback(o);
-					return false;
-				}
-			}
-			auto it = book.begin();
-			if (book.end() == it)
-			{
-				o.order_state = RejectStatus2;
-				_callback(o);
-				return false;
-			}
-			if (!cross_cmp(it->first, trigger_price))
-			{
-				o.order_state = RejectStatus3;
-				_callback(o);
-				return false;
-			}
-			return true;
-		}
-
 		inline void init_new_order(order& o)
 		{
 			o.order_id = get_id();
