@@ -381,6 +381,20 @@ namespace matching
 				}
 
 			}
+			long long top_price() const
+			{
+				if (!valid())
+					return order::MARKET_PRICE;
+				else
+					return _it2->second->price;
+			}
+			unsigned long long top_quantity() const
+			{
+				if (!valid())
+					return 0;
+				else
+					return _it2->second->remain_quantity;
+			}
 		};
 	public:
 		class implier_base
@@ -441,6 +455,14 @@ namespace matching
 			{
 				return (order::MARKET_PRICE != matched_price);
 			}
+		};
+	private:
+		class matcher
+		{
+		private:
+			iterator _local;
+			std::map<unsigned long long, matched_record, std::greater<unsigned long long>> _impliers;
+		public:
 		};
 	public:
 		//tiker, leg1, leg2

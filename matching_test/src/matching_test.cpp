@@ -539,7 +539,7 @@ int main()
 	std::cout << "5th recovery end" << std::endl;
 
 	o.order_action = matching::order::order_action_type::AMEND;
-	o.side = o.side = matching::order::order_side::BUY;
+	o.side = matching::order::order_side::BUY;
 	o.client_order_id = 8;
 	o.order_id = client_to_engine_id_map[8];
 	o.quantity = 200;

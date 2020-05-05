@@ -16,7 +16,14 @@ namespace matching
 		public:
 			constexpr bool operator()(const long long& l, const long long& r) const
 			{
-				return ((MARKET_PRICE == r) ? true : (l < r));
+				if (l == r)
+					return false;
+				else if (MARKET_PRICE == r)
+					return true;
+				else if (MARKET_PRICE == l)
+					return false;
+				else
+					return l < r;
 			}
 		};
 		class greater
@@ -24,7 +31,14 @@ namespace matching
 		public:
 			constexpr bool operator()(const long long& l, const long long& r) const
 			{
-				return ((MARKET_PRICE == r) ? true : (l > r));
+				if (l == r)
+					return false;
+				else if (MARKET_PRICE == r)
+					return true;
+				else if (MARKET_PRICE == l)
+					return false;
+				else
+					return l > r;
 			}
 		};
 	public:
@@ -138,6 +152,10 @@ namespace matching
 			matched_type(order_matched_type::MAKER)
 		{
 		}
+		order(const order&) = default;
+		order(order&&) = default;
+		order& operator= (const order&) = default;
+		order& operator= (order&&) = default;
 		~order() = default;
 		void update_display()
 		{
