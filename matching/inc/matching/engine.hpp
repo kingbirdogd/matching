@@ -1608,18 +1608,43 @@ namespace matching
 			}
 			else if (order::order_side::BUY_STOP == ori_odr.side)
 			{
-				erase_from_stop_book(_bid_stop_book, ori_odr);
+				if (0 == ori_odr.price)
+				{
+					erase_from_stop_book(_bid_stop_book, ori_odr);
+				}
+				else
+				{
+					erase_from_normal_book(_bid_book, ori_odr);
+				}
 				is_impact_order = false;
 			}
 			else if (order::order_side::SELL_STOP == ori_odr.side)
 			{
-				erase_from_stop_book(_ask_stop_book, ori_odr);
+				if (0 == ori_odr.price)
+				{
+					erase_from_stop_book(_ask_stop_book, ori_odr);
+				}
+				else
+				{
+					erase_from_normal_book(_ask_book, ori_odr);
+				}
 				is_impact_order = false;
 			}
 			else
 			{
-				erase_from_stop_book(_bid_stop_book, ori_odr);
-				erase_from_stop_book(_ask_stop_book, ori_odr);
+				if (0 == ori_odr.price)
+				{
+					erase_from_stop_book(_bid_stop_book, ori_odr);
+					erase_from_stop_book(_ask_stop_book, ori_odr);
+				}
+				else if (ori_odr.price == ori_odr.buy_stop_limited_price)
+				{
+					erase_from_normal_book(_bid_book, ori_odr);
+				}
+				else
+				{
+					erase_from_normal_book(_ask_book, ori_odr);
+				}
 				is_impact_order = false;
 			}
 			_odr_map.erase(it);
@@ -1657,7 +1682,6 @@ namespace matching
 				ori_odr.display_quantity = o.display_quantity;
 				ori_odr.remain_quantity = ori_odr.quantity;
 				_callback(ori_odr);
-				//No order impact
 				return false;
 			}
 			else
