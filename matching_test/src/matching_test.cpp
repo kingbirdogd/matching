@@ -7,11 +7,20 @@ std::unordered_map<unsigned long long, unsigned long long> client_to_engine_id_m
 
 void handle_order(const matching::order& o)
 {
+	std::string type = "";
 	std::string side = "";
 	std::string status = "";
 	std::string time_condition = "";
 	std::string action = "";
 	std::string matched_type = "";
+	if (matching::order::order_type::LIMITED == o.type)
+	{
+		type = "LIMITED";
+	}
+	else
+	{
+		type = "MARKET";
+	}
 	if (matching::order::order_side::BUY == o.side)
 	{
 		side = "BUY";
@@ -88,29 +97,9 @@ void handle_order(const matching::order& o)
 	{
 		status = "REJECT_BUY_STOP_TRIGGER_LESS_THAN_STOP_LIMITED";
 	}
-	else if (o.order_state == matching::order::order_status_type::REJECT_BUY_STOP_NO_BEST_ASK)
-	{
-		status = "REJECT_BUY_STOP_NO_BEST_ASK";
-	}
-	else if (o.order_state == matching::order::order_status_type::REJECT_BUY_STOP_TRIGGER_LESS_THAN_BEST_ASK)
-	{
-		status = "REJECT_BUY_STOP_TRIGGER_LESS_THAN_BEST_ASK";
-	}
 	else if (o.order_state == matching::order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED)
 	{
 		status = "REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED";
-	}
-	else if (o.order_state == matching::order::order_status_type::REJECT_SELL_STOP_NO_BEST_BID)
-	{
-		status = "REJECT_SELL_STOP_NO_BEST_BID";
-	}
-	else if (o.order_state == matching::order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_BEST_BID)
-	{
-		status = "REJECT_SELL_STOP_TRIGGER_LESS_THAN_BEST_BID";
-	}
-	else if (o.order_state == matching::order::order_status_type::REJECT_BUY_SELL_STOP_TRIGGER_CROSS)
-	{
-		status = "REJECT_BUY_SELL_STOP_TRIGGER_CROSS";
 	}
 	else if (o.order_state == matching::order::order_status_type::REJECT_UNKNOW_ORDER_ACTION)
 	{
