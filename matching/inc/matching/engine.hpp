@@ -878,75 +878,6 @@ namespace matching
 			for (auto it = _mutex_set.rbegin(); it != _mutex_set.rend(); ++it)
 				(*it)->unlock();
 		}
-	public:
-		engine(callback_type&& callback, unsigned long long mini_tick = 1):
-			_mutex(),
-			_mutex_set(),
-			_odr_map(),
-			_bid_book(),
-			_ask_book(),
-			_bid_stop_book(),
-			_ask_stop_book(),
-			_bid_book_matcher(this, order::order_side::SELL),
-			_ask_book_matcher(this, order::order_side::BUY),
-			_callback(std::move(callback)),
-			_mini_tick(mini_tick)
-		{
-			_mutex_set.insert(&_mutex);
-		}
-		engine(const engine& e):
-			_mutex(),
-			_mutex_set(),
-			_odr_map(e._odr_map),
-			_bid_book(e._bid_book),
-			_ask_book(e._ask_book),
-			_bid_stop_book(e._bid_stop_book),
-			_ask_stop_book(e._ask_stop_book),
-			_bid_book_matcher(this, order::order_side::SELL),
-			_ask_book_matcher(this, order::order_side::BUY),
-			_callback(e._callback),
-			_mini_tick(e._mini_tick)
-		{
-			_mutex_set.insert(&_mutex);
-		}
-		engine(engine&& e):
-			_mutex(),
-			_mutex_set(),
-			_odr_map(std::move(e._odr_map)),
-			_bid_book(std::move(e._bid_book)),
-			_ask_book(std::move(e._ask_book)),
-			_bid_stop_book(std::move(e._bid_stop_book)),
-			_ask_stop_book(std::move(e._ask_stop_book)),
-			_bid_book_matcher(this, order::order_side::SELL),
-			_ask_book_matcher(this, order::order_side::BUY),
-			_callback(std::move(e._callback)),
-			_mini_tick(e._mini_tick)
-		{
-			_mutex_set.insert(&_mutex);
-		}
-		engine& operator= (const engine& e)
-		{
-			_odr_map = e._odr_map;
-			_bid_book = e._bid_book;
-			_ask_book = e._ask_book;
-			_bid_stop_book = e._bid_stop_book;
-			_ask_stop_book = e._ask_stop_book;
-			_callback = e._callback;
-			_mini_tick = e._mini_tick;
-			return * this;
-		}
-		engine& operator= (engine&& e)
-		{
-			_odr_map = std::move(e._odr_map);
-			_bid_book = std::move(e._bid_book);
-			_ask_book = std::move(e._ask_book);
-			_bid_stop_book = std::move(e._bid_stop_book);
-			_ask_stop_book = std::move(e._ask_stop_book);
-			_callback = std::move(e._callback);
-			_mini_tick = e._mini_tick;
-			return * this;
-		}
-		~engine() = default;
 	private:
 		template <typename BookType>
 		static void erase_from_normal_book(BookType& book, order& odr)
@@ -986,33 +917,6 @@ namespace matching
 			}
 		};
 
-		template <typename Dummy, typename BookType>
-		struct cross_book_function_helper
-		{
-			static long long get_non_cross_price(long long price, long long mini_tick)
-			{
-				return price + mini_tick;
-			}
-		};
-
-		template <typename Dummy>
-		struct cross_book_function_helper<Dummy, ask_book_type>
-		{
-			static long long get_non_cross_price(long long price, long long mini_tick)
-			{
-				return price - mini_tick;
-			}
-		};
-
-		template <typename BookType>
-		struct cross_book_function
-		{
-			static long long get_non_cross_price(long long price, long long mini_tick)
-			{
-				return cross_book_function_helper<bool, BookType>::get_non_cross_price(price, mini_tick);
-			}
-		};
-
 		template <typename BookType>
 		static void erase_from_stop_book(BookType& book, order& odr)
 		{
@@ -1022,207 +926,6 @@ namespace matching
 			{
 				book.erase(ori_it_price);
 			}
-		}
-
-		template <typename BookType>
-		void full_erase_from_normal_book(BookType& book, order& odr)
-		{
-			erase_from_normal_book(book, odr);
-			_odr_map.erase(odr.order_id);
-		}
-
-		template <typename BookType>
-		void full_erase_from_stop_book(BookType& book, order& odr)
-		{
-			erase_from_stop_book(book, odr);
-			_odr_map.erase(odr.order_id);
-		}
-
-		void handle_matched_order(order& o, order& o2)
-		{
-			auto matched_price = o2.price;
-			auto matched_quantity = std::min(o.remain_quantity, o2.remain_quantity);
-			auto matched_id = get_id();
-			o.matched_id = matched_id;
-			o2.matched_id = matched_id;
-			o.remain_quantity -= matched_quantity;
-			o2.remain_quantity -= matched_quantity;
-			o.last_match_price = matched_price;
-			o.last_match_quantity = matched_quantity;
-			o2.last_match_price = matched_price;
-			o2.last_match_quantity = matched_quantity;
-			o.last_matched_order_id = o2.order_id;
-			o2.last_matched_order_id = o.order_id;
-			if (0 == o.remain_quantity)
-			{
-				o.order_state = order::order_status_type::FILLED;
-			}
-			else
-			{
-				o.order_state = order::order_status_type::PARTIAL_FILL;
-			}
-			if (0 == o2.remain_quantity)
-			{
-				o2.order_state = order::order_status_type::FILLED;
-			}
-			else
-			{
-				o2.order_state = order::order_status_type::PARTIAL_FILL;
-			}
-			o.matched_type = order::order_matched_type::TAKER;
-			o2.matched_type = order::order_matched_type::MAKER;
-			o.update_display();
-			o2.update_display();
-			_callback(o2);
-			_callback(o);
-			o.matched_id = 0;
-			o2.matched_id = 0;
-		}
-
-		template <typename Book, std::size_t offSet>
-		inline void handle_fok_cross(Book& book, order& o)
-		{
-			const long long& limited_price = *static_cast<long long*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(&o)) + offSet));
-			std::vector<order*> cross_odrs;
-			unsigned long long total_matched_quantity = 0;
-			typename Book::key_compare cross_cmp;
-			bool stop = false;
-			for (auto it = book.begin(); it != book.end(); ++it)
-			{
-				if (!cross_cmp(limited_price, it->first) || order::MARKET_PRICE == limited_price)
-				{
-					auto& m2 = it->second;
-					for (auto it2 = m2.begin(); it2 != m2.end(); ++it2)
-					{
-						auto& o2 = *it2->second;
-						auto matched_quantity = std::min(o.remain_quantity, o2.remain_quantity);
-						total_matched_quantity += matched_quantity;
-						cross_odrs.push_back(&o2);
-						if (total_matched_quantity == o.remain_quantity)
-						{
-							stop = true;
-							break;
-						}
-					}
-					if (stop)
-						break;
-				}
-				else
-					break;
-				if (stop)
-					break;
-			}
-			if (total_matched_quantity != o.remain_quantity)
-			{
-
-				o.order_state = order::order_status_type::CANCELED_BY_FOK;
-				_callback(o);
-			}
-			else
-			{
-				for (std::size_t i = 0; i < cross_odrs.size(); ++i)
-				{
-					auto& o2 = *cross_odrs[i];
-					handle_matched_order(o, o2);
-					if (0 == o2.remain_quantity)
-					{
-						full_erase_from_normal_book(book, o2);
-					}
-				}
-			}
-		}
-
-		template <typename Book, std::size_t offSet>
-		inline bool handle_cross(Book& book, order& o)
-		{
-			const long long& limited_price = *static_cast<long long*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(&o)) + offSet));
-			if (order::order_time_condition::FOK == o.time_condition)
-			{
-				handle_fok_cross<Book, offSet>(book, o);
-				return false;
-			}
-			typename Book::key_compare cross_cmp;
-			if (order::MARKET_PRICE == limited_price && book.empty())
-			{
-				o.order_state = order::order_status_type::CANCELED_BY_MARKET_ORDER_NOTHING_MATCH;
-				_callback(o);
-				return false;
-			}
-			bool stop = false;
-			for (auto it = book.begin(); it != book.end();)
-			{
-				if (!cross_cmp(limited_price, it->first) || order::MARKET_PRICE == limited_price)
-				{
-					if (order::order_time_condition::MAKER_ONLY == o.time_condition)
-					{
-						o.order_state = order::order_status_type::CANCELED_BY_MAKER_ONLY;
-						_callback(o);
-						return false;
-					}
-					else if (order::order_time_condition::MAKER_ONLY_REPRICE == o.time_condition)
-					{
-						o.price = cross_book_function<Book>::get_non_cross_price(it->first, _mini_tick);
-						return true;
-					}
-					auto& m2 = it->second;
-					for (auto it2 = m2.begin(); it2 != m2.end();)
-					{
-						auto& o2 = *it2->second;
-						handle_matched_order(o, o2);
-						if (0 != o2.remain_quantity)
-						{
-							++it2;
-						}
-						else
-						{
-							it2 = m2.erase(it2);
-							_odr_map.erase(o2.order_id);
-						}
-						if (0 == o.remain_quantity)
-						{
-							stop = true;
-							break;
-						}
-					}
-					if (!m2.empty())
-					{
-						++it;
-					}
-					else
-					{
-						it = book.erase(it);
-					}
-				}
-				else
-					break;
-				if (stop)
-					break;
-			}
-			if (0 != o.remain_quantity)
-			{
-				if (order::order_time_condition::IOC == o.time_condition)
-				{
-					if (0 != o.remain_quantity)
-					{
-						if (o.remain_quantity == o.quantity)
-							o.order_state = order::order_status_type::CANCELED_ALL_BY_IOC;
-						else
-							o.order_state = order::order_status_type::CANCELED_PARTIAL_BY_IOC;
-						_callback(o);
-					}
-					return false;
-				}
-				if (order::MARKET_PRICE == limited_price && 0 != o.remain_quantity)
-				{
-					o.order_state = order::order_status_type::CANCELED_BY_MARKET_ORDER_NOT_FULL_MATCHED;
-					_callback(o);
-					return false;
-				}
-				else if (o.remain_quantity == o.quantity)
-					_callback(o);
-				return true;
-			}
-			return false;
 		}
 
 		inline void init_new_order(order& o)
@@ -1591,6 +1294,75 @@ namespace matching
 				handle_new(o);
 			}
 		}
+	public:
+		engine(callback_type&& callback, unsigned long long mini_tick = 1):
+			_mutex(),
+			_mutex_set(),
+			_odr_map(),
+			_bid_book(),
+			_ask_book(),
+			_bid_stop_book(),
+			_ask_stop_book(),
+			_bid_book_matcher(this, order::order_side::SELL),
+			_ask_book_matcher(this, order::order_side::BUY),
+			_callback(std::move(callback)),
+			_mini_tick(mini_tick)
+		{
+			_mutex_set.insert(&_mutex);
+		}
+		engine(const engine& e):
+			_mutex(),
+			_mutex_set(),
+			_odr_map(e._odr_map),
+			_bid_book(e._bid_book),
+			_ask_book(e._ask_book),
+			_bid_stop_book(e._bid_stop_book),
+			_ask_stop_book(e._ask_stop_book),
+			_bid_book_matcher(this, order::order_side::SELL),
+			_ask_book_matcher(this, order::order_side::BUY),
+			_callback(e._callback),
+			_mini_tick(e._mini_tick)
+		{
+			_mutex_set.insert(&_mutex);
+		}
+		engine(engine&& e):
+			_mutex(),
+			_mutex_set(),
+			_odr_map(std::move(e._odr_map)),
+			_bid_book(std::move(e._bid_book)),
+			_ask_book(std::move(e._ask_book)),
+			_bid_stop_book(std::move(e._bid_stop_book)),
+			_ask_stop_book(std::move(e._ask_stop_book)),
+			_bid_book_matcher(this, order::order_side::SELL),
+			_ask_book_matcher(this, order::order_side::BUY),
+			_callback(std::move(e._callback)),
+			_mini_tick(e._mini_tick)
+		{
+			_mutex_set.insert(&_mutex);
+		}
+		engine& operator= (const engine& e)
+		{
+			_odr_map = e._odr_map;
+			_bid_book = e._bid_book;
+			_ask_book = e._ask_book;
+			_bid_stop_book = e._bid_stop_book;
+			_ask_stop_book = e._ask_stop_book;
+			_callback = e._callback;
+			_mini_tick = e._mini_tick;
+			return * this;
+		}
+		engine& operator= (engine&& e)
+		{
+			_odr_map = std::move(e._odr_map);
+			_bid_book = std::move(e._bid_book);
+			_ask_book = std::move(e._ask_book);
+			_bid_stop_book = std::move(e._bid_stop_book);
+			_ask_stop_book = std::move(e._ask_stop_book);
+			_callback = std::move(e._callback);
+			_mini_tick = e._mini_tick;
+			return * this;
+		}
+		~engine() = default;
 	public:
 		void handle(order& o)
 		{
