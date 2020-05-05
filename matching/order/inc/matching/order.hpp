@@ -11,37 +11,6 @@ namespace matching
 	public:
 		const static long long MARKET_PRICE = std::numeric_limits<long long>::max();
 	public:
-		class less
-		{
-		public:
-			constexpr bool operator()(const long long& l, const long long& r) const
-			{
-				if (l == r)
-					return false;
-				else if (MARKET_PRICE == r)
-					return true;
-				else if (MARKET_PRICE == l)
-					return false;
-				else
-					return l < r;
-			}
-		};
-		class greater
-		{
-		public:
-			constexpr bool operator()(const long long& l, const long long& r) const
-			{
-				if (l == r)
-					return false;
-				else if (MARKET_PRICE == r)
-					return true;
-				else if (MARKET_PRICE == l)
-					return false;
-				else
-					return l > r;
-			}
-		};
-	public:
 		enum order_side : unsigned char
 		{
 			BUY = 0x00,
