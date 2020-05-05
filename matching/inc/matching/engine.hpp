@@ -692,15 +692,18 @@ namespace matching
 						auto matched_id = engine::get_id();
 						if (_impliers.end() == it)
 						{
+							auto local_id = _local->order_id;
 							_local.maker_match(matched_id, matched_quantity, o.order_id);
-							_local.taker_match(o, matched_id, rt.matched_price, matched_quantity, _local->order_id);
+							_local.taker_match(o, matched_id, rt.matched_price, matched_quantity, local_id);
 						}
 						else
 						{
 							auto& imp = (*it->second);
-							imp._leg1.maker_match(matched_id, matched_quantity, o.order_id, imp._leg2->order_id);
-							imp._leg2.maker_match(matched_id, matched_quantity, o.order_id, imp._leg1->order_id);
-							_local.taker_match(o, matched_id, rt.matched_price, matched_quantity, imp._leg1->order_id, imp._leg2->order_id);
+							auto id1 = imp._leg1->order_id;
+							auto id2 = imp._leg2->order_id;
+							imp._leg1.maker_match(matched_id, matched_quantity, o.order_id, id2);
+							imp._leg2.maker_match(matched_id, matched_quantity, o.order_id, id1);
+							_local.taker_match(o, matched_id, rt.matched_price, matched_quantity, id1, id2);
 						}
 					}
 					else
@@ -767,14 +770,17 @@ namespace matching
 						auto matched_id = engine::get_id();
 						if (!rt.leg2)
 						{
+							auto id1 = rt.leg1->order_id;
 							rt.leg1.maker_match(matched_id, rt.matched_quantity, o.order_id);
-							_local.taker_match(o, matched_id, rt.matched_price, rt.matched_quantity, rt.leg1->order_id);
+							_local.taker_match(o, matched_id, rt.matched_price, rt.matched_quantity, id1);
 						}
 						else
 						{
-							rt.leg1.maker_match(matched_id, rt.matched_quantity, o.order_id, rt.leg2->order_id);
-							rt.leg2.maker_match(matched_id, rt.matched_quantity, o.order_id, rt.leg1->order_id);
-							_local.taker_match(o, matched_id, rt.matched_price, rt.matched_quantity, rt.leg1->order_id, rt.leg2->order_id);
+							auto id1 = rt.leg1->order_id;
+							auto id2 = rt.leg2->order_id;
+							rt.leg1.maker_match(matched_id, rt.matched_quantity, o.order_id, id2);
+							rt.leg2.maker_match(matched_id, rt.matched_quantity, o.order_id, id1);
+							_local.taker_match(o, matched_id, rt.matched_price, rt.matched_quantity, id1, id2);
 						}
 					}
 				}
