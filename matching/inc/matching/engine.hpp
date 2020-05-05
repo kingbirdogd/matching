@@ -1281,7 +1281,7 @@ namespace matching
 			}
 		}
 
-		inline void handle_cancel(order& o, bool trigger = true)
+		inline void handle_cancel(order& o)
 		{
 			auto it = _odr_map.find(o.order_id);
 			if (_odr_map.end() == it)
@@ -1295,13 +1295,11 @@ namespace matching
 			callback(ori_odr);
 			if (order::order_side::BUY == ori_odr.side)
 			{
-				if (trigger)
+				bool trigger = false;
+				auto it = _bid_book.begin();
+				if ((1 == it->second.size()) && (ori_odr.price == it->first))
 				{
-					auto it = _bid_book.begin();
-					if ((1 != it->second.size()) || (ori_odr.price != it->first))
-					{
-						trigger = false;
-					}
+					trigger = false;
 				}
 				erase_from_normal_book(_bid_book, ori_odr);
 				if (trigger)
@@ -1311,13 +1309,11 @@ namespace matching
 			}
 			else if (order::order_side::SELL == ori_odr.side)
 			{
-				if (trigger)
+				bool trigger = false;
+				auto it = _ask_book.begin();
+				if ((1 == it->second.size()) && (ori_odr.price == it->first))
 				{
-					auto it = _ask_book.begin();
-					if ((1 != it->second.size()) || (ori_odr.price != it->first))
-					{
-						trigger = false;
-					}
+					trigger = false;
 				}
 				erase_from_normal_book(_ask_book, ori_odr);
 				if (trigger)
@@ -1333,13 +1329,11 @@ namespace matching
 				}
 				else
 				{
-					if (trigger)
+					bool trigger = false;
+					auto it = _bid_book.begin();
+					if ((1 == it->second.size()) && (ori_odr.price == it->first))
 					{
-						auto it = _bid_book.begin();
-						if ((1 != it->second.size()) || (ori_odr.price != it->first))
-						{
-							trigger = false;
-						}
+						trigger = false;
 					}
 					erase_from_normal_book(_bid_book, ori_odr);
 					if (trigger)
@@ -1356,13 +1350,11 @@ namespace matching
 				}
 				else
 				{
-					if (trigger)
+					bool trigger = false;
+					auto it = _ask_book.begin();
+					if ((1 == it->second.size()) && (ori_odr.price == it->first))
 					{
-						auto it = _ask_book.begin();
-						if ((1 != it->second.size()) || (ori_odr.price != it->first))
-						{
-							trigger = false;
-						}
+						trigger = false;
 					}
 					erase_from_normal_book(_ask_book, ori_odr);
 					if (trigger)
@@ -1380,13 +1372,11 @@ namespace matching
 				}
 				else if (ori_odr.price == ori_odr.buy_stop_limited_price)
 				{
-					if (trigger)
+					bool trigger = false;
+					auto it = _bid_book.begin();
+					if ((1 == it->second.size()) && (ori_odr.price == it->first))
 					{
-						auto it = _bid_book.begin();
-						if ((1 != it->second.size()) || (ori_odr.price != it->first))
-						{
-							trigger = false;
-						}
+						trigger = false;
 					}
 					erase_from_normal_book(_bid_book, ori_odr);
 					if (trigger)
@@ -1396,13 +1386,11 @@ namespace matching
 				}
 				else
 				{
-					if (trigger)
+					bool trigger = false;
+					auto it = _ask_book.begin();
+					if ((1 == it->second.size()) && (ori_odr.price == it->first))
 					{
-						auto it = _ask_book.begin();
-						if ((1 != it->second.size()) || (ori_odr.price != it->first))
-						{
-							trigger = false;
-						}
+						trigger = false;
 					}
 					erase_from_normal_book(_ask_book, ori_odr);
 					if (trigger)
