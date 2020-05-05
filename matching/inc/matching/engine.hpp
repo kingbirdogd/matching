@@ -42,12 +42,14 @@ namespace matching
 			order::order_side _size;
 			price_it _it1;
 			price_odr _it2;
+			unsigned long long _remain_quantity;
 		public:
 			iterator():
 				_e(nullptr),
 				_size(order::order_side::BUY),
 				_it1(),
-				_it2()
+				_it2(),
+				_remain_quantity(0)
 			{
 			}
 			iterator(engine* e, order::order_side side):
@@ -71,6 +73,7 @@ namespace matching
 					if (_e->_ask_book.end() != _it1)
 					{
 						_it2 = _it1->second.begin();
+						_remain_quantity = _it2->second->remain_quantity;
 					}
 				}
 				else
@@ -79,6 +82,7 @@ namespace matching
 					if (_e->_bid_book.end() != _it1)
 					{
 						_it2 = _it1->second.begin();
+						_remain_quantity = _it2->second->remain_quantity;
 					}
 				}
 			}
@@ -93,6 +97,7 @@ namespace matching
 						if (_e->_ask_book.end() != _it1)
 						{
 							_it2 = _it1->second.begin();
+							_remain_quantity = _it2->second->remain_quantity;
 						}
 					}
 					else
@@ -100,8 +105,13 @@ namespace matching
 						if (_e->_bid_book.end() != _it1)
 						{
 							_it2 = _it1->second.begin();
+							_remain_quantity = _it2->second->remain_quantity;
 						}
 					}
+				}
+				else
+				{
+					_remain_quantity = _it2->second->remain_quantity;
 				}
 			}
 			void previous()
@@ -115,6 +125,7 @@ namespace matching
 							--_it1;
 							auto r_it = _it1->second.rbegin();
 							_it2 = _it1->second.find(r_it->second->order_id);
+							_remain_quantity = _it2->second->remain_quantity;
 						}
 					}
 					else
@@ -124,12 +135,14 @@ namespace matching
 							--_it1;
 							auto r_it = _it1->second.rbegin();
 							_it2 = _it1->second.find(r_it->second->order_id);
+							_remain_quantity = _it2->second->remain_quantity;
 						}
 					}
 				}
 				else
 				{
 					--_it2;
+					_remain_quantity = _it2->second->remain_quantity;
 				}
 			}
 			iterator& operator++()
@@ -304,6 +317,7 @@ namespace matching
 						if (_e->_ask_book.end() != _it1)
 						{
 							_it2 = _it1->second.begin();
+							_remain_quantity = _it2->second->remain_quantity;
 						}
 					}
 					else
@@ -312,6 +326,7 @@ namespace matching
 						if (_e->_bid_book.end() != _it1)
 						{
 							_it2 = _it1->second.begin();
+							_remain_quantity = _it2->second->remain_quantity;
 						}
 					}
 				}
@@ -323,6 +338,7 @@ namespace matching
 						if (_e->_ask_book.end() != _it1)
 						{
 							_it2 = _it1->second.begin();
+							_remain_quantity = _it2->second->remain_quantity;
 						}
 					}
 					else
@@ -330,8 +346,13 @@ namespace matching
 						if (_e->_bid_book.end() != _it1)
 						{
 							_it2 = _it1->second.begin();
+							_remain_quantity = _it2->second->remain_quantity;
 						}
 					}
+				}
+				else
+				{
+					_remain_quantity = _it2->second->remain_quantity;
 				}
 				_e->_odr_map.erase(odr_id);
 			}
@@ -425,6 +446,18 @@ namespace matching
 					return 0;
 				else
 					return _it2->second->remain_quantity;
+			}
+			unsigned long long top_matching_quantity() const
+			{
+				if (!valid())
+					return 0;
+				else
+					return _remain_quantity;
+			}
+
+			void reduce_matching(unsigned long long quantity)
+			{
+				_remain_quantity -= quantity;
 			}
 		};
 	public:
@@ -574,7 +607,7 @@ namespace matching
 			{
 				auto rt = _impliers.end();
 				top_price = _local.top_price();
-				top_quantity = _local.top_quantity();
+				top_quantity = _local.top_matching_quantity();
 				for (auto it = _impliers.begin(); it != _impliers.end(); ++it)
 				{
 					auto matched_price = it->second->matchd_price(it->second->_leg1->price,
@@ -585,9 +618,46 @@ namespace matching
 						if (order::MARKET_PRICE == top_price || cmp(matched_price, top_price))
 						{
 							top_price = matched_price;
-							top_quantity = it->second->_leg1->quantity < it->second->_leg2->quantity
-									? it->second->_leg1->quantity : it->second->_leg2->quantity;
+							top_quantity = it->second->_leg1.top_matching_quantity() < it->second->_leg2.top_matching_quantity()
+									? it->second->_leg1.top_matching_quantity() : it->second->_leg2.top_matching_quantity();
 							rt = it;
+						}
+					}
+				}
+				return rt;
+			}
+
+			template <typename CMP>
+			matched_record match(const CMP& cmp, long long limited_price, unsigned long long quantity)
+			{
+				matched_record rt;
+				auto it = top(cmp, rt.matched_price, rt.matched_quantity);
+				if (rt)
+				{
+					if (rt.matched_quantity < quantity)
+						rt.matched_quantity = quantity;
+					if (_impliers.end() == it)
+					{
+						rt.leg1 = _local;
+						if (rt.matched_quantity == _local.top_matching_quantity())
+						{
+							++_local;
+						}
+					}
+					else
+					{
+						auto& imp = (*it->second);
+						rt.leg1 = imp._leg1;
+						rt.leg2 = imp._leg2;
+						imp._leg1.reduce_matching(rt.matched_quantity);
+						imp._leg2.reduce_matching(rt.matched_quantity);
+						if (0 == imp._leg1.top_matching_quantity())
+						{
+							++(imp._leg1);
+						}
+						if (0 == imp._leg2.top_matching_quantity())
+						{
+							++(imp._leg2);
 						}
 					}
 				}
