@@ -1038,6 +1038,10 @@ namespace matching
 				{
 					_ask_book_matcher.normal_match(_ask_book.key_comp(), o, _bid_book, mini_tick * -1);
 				}
+				if (o.remain_quantity != o.quantity)
+				{
+					trigger_buy_stop();
+				}
 				return;
 			}
 			else if (order::order_side::SELL == o.side)
@@ -1063,6 +1067,10 @@ namespace matching
 				else
 				{
 					_bid_book_matcher.normal_match(_bid_book.key_comp(), o, _ask_book, mini_tick);
+				}
+				if (o.remain_quantity != o.quantity)
+				{
+					trigger_sell_stop();
 				}
 				return;
 			}
@@ -1106,6 +1114,10 @@ namespace matching
 					else
 					{
 						_ask_book_matcher.normal_match(_ask_book.key_comp(), o, _bid_book, mini_tick * -1);
+					}
+					if (o.remain_quantity != o.quantity)
+					{
+						trigger_buy_stop();
 					}
 				}
 				else
@@ -1155,6 +1167,10 @@ namespace matching
 					else
 					{
 						_bid_book_matcher.normal_match(_bid_book.key_comp(), o, _ask_book, mini_tick);
+					}
+					if (o.remain_quantity != o.quantity)
+					{
+						trigger_sell_stop();
 					}
 				}
 				else
@@ -1228,6 +1244,10 @@ namespace matching
 					{
 						_ask_book_matcher.normal_match(_ask_book.key_comp(), o, _bid_book, mini_tick * -1);
 					}
+					if (o.remain_quantity != o.quantity)
+					{
+						trigger_buy_stop();
+					}
 				}
 				else if (order::MARKET_PRICE == best_b || o.sell_stop_trigger_price >= best_b)
 				{
@@ -1239,6 +1259,10 @@ namespace matching
 					else
 					{
 						_bid_book_matcher.normal_match(_bid_book.key_comp(), o, _ask_book, mini_tick);
+					}
+					if (o.remain_quantity != o.quantity)
+					{
+						trigger_sell_stop();
 					}
 				}
 				else
@@ -1257,7 +1281,7 @@ namespace matching
 			}
 		}
 
-		inline void handle_cancel(order& o)
+		inline void handle_cancel(order& o, bool trigger = true)
 		{
 			auto it = _odr_map.find(o.order_id);
 			if (_odr_map.end() == it)
@@ -1271,11 +1295,35 @@ namespace matching
 			callback(ori_odr);
 			if (order::order_side::BUY == ori_odr.side)
 			{
+				if (trigger)
+				{
+					auto it = _bid_book.begin();
+					if ((1 != it->second.size()) || (ori_odr.price != it->first))
+					{
+						trigger = false;
+					}
+				}
 				erase_from_normal_book(_bid_book, ori_odr);
+				if (trigger)
+				{
+					trigger_sell_stop();
+				}
 			}
 			else if (order::order_side::SELL == ori_odr.side)
 			{
+				if (trigger)
+				{
+					auto it = _ask_book.begin();
+					if ((1 != it->second.size()) || (ori_odr.price != it->first))
+					{
+						trigger = false;
+					}
+				}
 				erase_from_normal_book(_ask_book, ori_odr);
+				if (trigger)
+				{
+					trigger_buy_stop();
+				}
 			}
 			else if (order::order_side::BUY_STOP == ori_odr.side)
 			{
@@ -1285,7 +1333,19 @@ namespace matching
 				}
 				else
 				{
+					if (trigger)
+					{
+						auto it = _bid_book.begin();
+						if ((1 != it->second.size()) || (ori_odr.price != it->first))
+						{
+							trigger = false;
+						}
+					}
 					erase_from_normal_book(_bid_book, ori_odr);
+					if (trigger)
+					{
+						trigger_sell_stop();
+					}
 				}
 			}
 			else if (order::order_side::SELL_STOP == ori_odr.side)
@@ -1296,7 +1356,19 @@ namespace matching
 				}
 				else
 				{
+					if (trigger)
+					{
+						auto it = _ask_book.begin();
+						if ((1 != it->second.size()) || (ori_odr.price != it->first))
+						{
+							trigger = false;
+						}
+					}
 					erase_from_normal_book(_ask_book, ori_odr);
+					if (trigger)
+					{
+						trigger_buy_stop();
+					}
 				}
 			}
 			else
@@ -1308,11 +1380,35 @@ namespace matching
 				}
 				else if (ori_odr.price == ori_odr.buy_stop_limited_price)
 				{
+					if (trigger)
+					{
+						auto it = _bid_book.begin();
+						if ((1 != it->second.size()) || (ori_odr.price != it->first))
+						{
+							trigger = false;
+						}
+					}
 					erase_from_normal_book(_bid_book, ori_odr);
+					if (trigger)
+					{
+						trigger_sell_stop();
+					}
 				}
 				else
 				{
+					if (trigger)
+					{
+						auto it = _ask_book.begin();
+						if ((1 != it->second.size()) || (ori_odr.price != it->first))
+						{
+							trigger = false;
+						}
+					}
 					erase_from_normal_book(_ask_book, ori_odr);
+					if (trigger)
+					{
+						trigger_buy_stop();
+					}
 				}
 			}
 			_odr_map.erase(it);
