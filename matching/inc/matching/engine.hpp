@@ -717,6 +717,12 @@ namespace matching
 				}
 				if (0 != o.remain_quantity)
 				{
+					if (order::order_time_condition::IOC == o.time_condition)
+					{
+						o.order_state = order::order_status_type::CANCELED_ALL_BY_IOC;
+						_local._e->callback(o);
+						return;
+					}
 					if (order::MARKET_PRICE == o.price)
 					{
 						if (order::order_side::BUY == _local._side)
