@@ -38,7 +38,7 @@ namespace matching
 		virtual ~implied_spread_in_bid() = default;
 		virtual long long matchd_price(long long leg1_price, long long leg2_price, unsigned long long mini_tick)
 		{
-			return engine::round_down(leg1_price - leg2_price + 2 * _pips, mini_tick);
+			return engine::round_down(leg1_price - leg2_price - 2 * _pips, mini_tick);
 		}
 	};
 }
