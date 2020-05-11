@@ -14,3 +14,4 @@ target_include_directories(proxy_lws PUBLIC
 target_link_directories(proxy_lws PUBLIC $ENV{HOME}/usr/local/lib64 $ENV{HOME}/usr/local/lib)
 target_link_libraries(proxy_lws common tcmalloc_minimal pthread gmp websockets ssl
                       crypto glog folly dl double-conversion)
+install(TARGETS proxy_lws DESTINATION ${CMAKE_INSTALL_PREFIX})
