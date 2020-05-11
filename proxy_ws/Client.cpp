@@ -746,17 +746,24 @@ namespace proxy {
         }
       }
     } else if (request_method == "PlaceOrder") {
+      auto request_price_ptr = request.find("price");
+      auto qty = narrow_check<decltype(OrderParams::quantity)>(*request.get("quantity").as_integer());
+      auto request_tonce_ptr = request.find("tonce");
+      uint64_t tonce = 0;
+      if (request_tonce_ptr && (tonce = narrow_check<uint64_t>(*request_tonce_ptr->as_integer())) == 0) {
+        this->send_error(tag, 8, "Tonce must not be zero.");
+      }
+
       matching::order o;
-      o.side = matching::order::order_side::SELL;
-      o.client_order_id = 1;
-      o.quantity = 1000;
-      o.display_quantity = 1000;
-      o.price = 100;
+      o.side = qty < 0 ? matching::order::order_side::SELL : matching::order::order_side::BUY;
+      o.client_order_id = tonce;
+      o.quantity = abs(qty);
+      o.display_quantity = abs(qty);
+      o.price = narrow_check<decltype(OrderParams::price)>(*request_price_ptr->as_integer());
 
       bool transient = false;
       auto callback = [this, tag, transient](const void *buf, size_t n) -> size_t {
         auto &reply = (*static_cast<const matching::order *>(buf));
-
         json::Object response = handle_order(reply);
         if (tag)
           response.insert("tag", json::Integer(tag));
