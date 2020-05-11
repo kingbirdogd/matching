@@ -114,7 +114,10 @@ namespace proxy {
         elog.debug() << "accepted connection from " << ip_address << std::endl;
       }
       //auto client_ptr = new Client(std::move(socket), peer_addr, request_headers.request_uri == "/v1" ? 1 : 0);
-      auto client_ptr = new Client(std::move(socket), peer_addr, request_headers.request_uri == "/v1" ? 1 : 0, num_queue, ip_address, _client_connections_map, _client_connections_map_mutex);
+      //auto client_ptr = new Client(std::move(socket), peer_addr, request_headers.request_uri == "/v1" ? 1 : 0, num_queue, ip_address, _client_connections_map, _client_connections_map_mutex);
+      struct lws                     *wsi_dummy;
+      struct per_vhost_data__minimal *vhd_dummy;
+      auto client_ptr = new Client(std::move(socket), wsi_dummy, vhd_dummy, "", request_headers.request_uri == "/v1" ? 1 : 0, num_queue, ip_address, _client_connections_map, _client_connections_map_mutex);
       selector.modify(client_ptr->socket, client_ptr, Selector::Flags::READABLE);
     }
 

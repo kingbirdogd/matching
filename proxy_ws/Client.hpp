@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ENGINE_CLIENT_HPP
 #define ENGINE_CLIENT_HPP
 
@@ -16,13 +17,19 @@
 #include "User.hpp"
 #include "Uplink.hpp"
 #include "proxy_lws_utils.hpp"
+#include "libwebsockets.h"
+#include "proxy_lws_struct.hpp"
+//#include "contrib/concurrentqueue/concurrentqueue.h"
 #include <shared_mutex>
 #include <list>
 #include <set>
 #include <thread>
 #include <sys/ioctl.h>
+#include "folly/concurrency/UnboundedQueue.h"
 
 extern Log elog;
+//using namespace moodycamel;
+//using namespace folly;
 
 namespace proxy {
   using namespace core;
@@ -46,6 +53,11 @@ namespace proxy {
     static std::multimap<id_t, Client *> users_clients;
 
   public:
+    folly::UMPSCQueue<json::Object, true, 10>  reply_queue;
+    //ConcurrentQueue<                json::Object>  reply_queue;
+    //ConcurrentQueue<std::shared_ptr<std::string_view>> broadcast_queue;
+    struct per_vhost_data__minimal *vhd;
+
     static void disconnect_user(id_t user_id) {
       std::shared_lock<std::shared_mutex> clients_rdlock(clients_rwlock);
       auto range = users_clients.equal_range(user_id);
@@ -71,34 +83,87 @@ namespace proxy {
       multicast(all_clients, formatter);
     }
 
-    static void broadcast(const json::Value &msg) {
-      broadcast(CachingFormatter<json::Value>(msg));
+//    static void broadcast(const json::Value &msg) {
+//      broadcast(CachingFormatter<json::Value>(msg));
+//    }
+
+    static void broadcast(const json::Object &msg) {
+      if (elog.debug_enabled()) {
+        std::stringstream ss;
+        ss << msg;
+        elog.debug() << "!! << " << ss.str() << std::endl;
+      }
+
+      std::shared_lock<std::shared_mutex> clients_rdlock(clients_rwlock);
+      multicast(all_clients, msg);
     }
 
-    template<typename Formatter>
-    static std::enable_if_t<!std::is_convertible_v<Formatter, const json::Value &>> multicast(id_t user_id, const Formatter &formatter) {
-      if (elog.trace_enabled()) {
-        std::thread::id this_id = std::this_thread::get_id();
-        auto msg = formatter(user_id, ~uint8_t());
-        if (!msg.empty()) {
-          elog.trace() << "Thread(" << this_id << ") " << user_id << " << " << msg << std::endl;
-        }
-      } else if (elog.debug_enabled()) {
-        auto msg = formatter(user_id, ~uint8_t());
-        if (!msg.empty()) {
-          elog.debug() << user_id << " << " << msg << std::endl;
-        }
+
+//    template<typename Formatter>
+//    static std::enable_if_t<!std::is_convertible_v<Formatter, const json::Value &>> multicast(id_t user_id, const Formatter &formatter) {
+//      if (elog.trace_enabled()) {
+//        std::thread::id this_id = std::this_thread::get_id();
+//        auto msg = formatter(user_id, ~uint8_t());
+//        if (!msg.empty()) {
+//          elog.trace() << "Thread(" << this_id << ") " << user_id << " << " << msg << std::endl;
+//        }
+//      } else if (elog.debug_enabled()) {
+//        auto msg = formatter(user_id, ~uint8_t());
+//        if (!msg.empty()) {
+//          elog.debug() << user_id << " << " << msg << std::endl;
+//        }
+//      }
+//
+//      std::shared_lock<std::shared_mutex> clients_rdlock(clients_rwlock);
+//      auto range = users_clients.equal_range(user_id);
+//      for (auto itr = range.first; itr != range.second; ++itr) {
+//        try {
+//          auto msg = formatter(itr->second->user_id, itr->second->api_version);
+//          if (!msg.empty()) {
+//            if (elog.debug_enabled()) {
+//              elog.debug() << "Before send: " << user_id << " << " << msg << std::endl;
+//            }
+//            itr->second->reply_queue.enqueue(msg);
+//            lws_callback_on_writable(itr->second->wsi);
+//            //std::lock_guard<std::mutex> send_lock(itr->second->send_mutex);
+//            //itr->second->send(Text, msg.data(), msg.size());
+//          }
+//        }
+//        catch (...) {
+//          continue;
+//        }
+//      }
+//    }
+
+//    static void multicast(id_t user_id, const json::Value &msg) {
+//      if (elog.debug_enabled()) {
+//        std::stringstream ss;
+//        ss << msg;
+//        elog.debug() << "Multicast original msg: " << user_id << " << " << ss.str() << std::endl;
+//      }
+//      multicast(user_id, CachingFormatter<json::Value>(msg));
+//    }
+
+    static void multicast(id_t user_id, const json::Object &msg) {
+      if (elog.debug_enabled()) {
+        std::stringstream ss;
+        ss << msg;
+        elog.debug() << user_id << " << " << ss.str() << std::endl;
       }
 
       std::shared_lock<std::shared_mutex> clients_rdlock(clients_rwlock);
       auto range = users_clients.equal_range(user_id);
       for (auto itr = range.first; itr != range.second; ++itr) {
         try {
-          auto msg = formatter(itr->second->user_id, itr->second->api_version);
-          if (!msg.empty()) {
-            std::lock_guard<std::mutex> send_lock(itr->second->send_mutex);
-            itr->second->send(Text, msg.data(), msg.size());
-          }
+          if (!itr->second->wsi) continue;
+          if (elog.debug()) elog.debug() << std::hex << "enqueuing wsi " <<  itr->second->wsi << std::endl;
+          //itr->second->reply_queue.enqueue(itr->second->ptok,msg);
+          //itr->second->vhd->wsi_queue.enqueue(itr->second->ptok,itr->second->wsi);
+          itr->second->reply_queue.enqueue(msg);
+          itr->second->vhd->wsi_queue->enqueue(itr->second->wsi);
+          lws_cancel_service(lws_get_context(itr->second->wsi));
+          //lws_cancel_service(itr->second->vhd->context);
+          //lws_callback_on_writable(itr->second->wsi);
         }
         catch (...) {
           continue;
@@ -106,24 +171,72 @@ namespace proxy {
       }
     }
 
-    static void multicast(id_t user_id, const json::Value &msg) {
-      multicast(user_id, CachingFormatter<json::Value>(msg));
-    }
+//    template<typename Formatter>
+//    static std::enable_if_t<!std::is_convertible_v<Formatter, const json::Value &>> multicast(const std::list<Client *> &clients, const Formatter &formatter) {
+//      if (elog.debug_enabled()) {
+//        auto msg = formatter(~id_t(), ~uint8_t());
+//        if (!msg.empty()) {
+//          elog.debug() << "!! " << msg << std::endl;
+//        }
+//      }
+//      for (Client *client_ptr : clients) {
+//        try {
+//          auto msg = formatter(client_ptr->user_id, client_ptr->api_version);
+//          if (!msg.empty()) {
+//            client_ptr->reply_queue.enqueue(msg);
+//            lws_callback_on_writable(client_ptr->wsi);
+//            //std::lock_guard<std::mutex> send_lock(client_ptr->send_mutex);
+//            //client_ptr->send(Text, msg.data(), msg.size());
+//          }
+//        }
+//        catch (...) {
+//          continue;
+//        }
+//      }
+//    }
 
-    template<typename Formatter>
-    static std::enable_if_t<!std::is_convertible_v<Formatter, const json::Value &>> multicast(const std::list<Client *> &clients, const Formatter &formatter) {
-      if (elog.debug_enabled()) {
-        auto msg = formatter(~id_t(), ~uint8_t());
-        if (!msg.empty()) {
-          elog.debug() << "!! " << msg << std::endl;
-        }
-      }
+//    static void multicast(const std::list<Client *> &clients, const json::Value &msg) {
+//      multicast(clients, CachingFormatter<json::Value>(msg));
+//    }
+//    static void multicast(const std::list<Client *> &clients, const json::Value &msg, id_t exclude_user_id) {
+//      multicast(clients, CachingFormatter<json::Value, ExcludeUser>(msg, exclude_user_id));
+//    }
+//    static void multicast(const std::list<Client *> &clients, const json::Value &msg, id_t exclude_user_id1, id_t exclude_user_id2) {
+//      multicast(clients, CachingFormatter<json::Value, ExcludeUsers>(msg, ExcludeUsers({exclude_user_id1, exclude_user_id2})));
+//    }
+
+    static void multicast(const std::list<Client *> &clients, const json::Object &msg) {
       for (Client *client_ptr : clients) {
         try {
-          auto msg = formatter(client_ptr->user_id, client_ptr->api_version);
-          if (!msg.empty()) {
-            std::lock_guard<std::mutex> send_lock(client_ptr->send_mutex);
-            client_ptr->send(Text, msg.data(), msg.size());
+            if (!client_ptr->wsi) continue;
+            if (elog.debug()) elog.debug() << std::hex << "enqueuing wsi " <<  client_ptr->wsi << std::endl;
+//            client_ptr->reply_queue.enqueue(client_ptr->ptok,msg);
+//            client_ptr->vhd->wsi_queue.enqueue(client_ptr->ptok,client_ptr->wsi);
+            client_ptr->reply_queue.enqueue(msg);
+            client_ptr->vhd->wsi_queue->enqueue(client_ptr->wsi);
+            lws_cancel_service(lws_get_context(client_ptr->wsi));
+            //lws_cancel_service(client_ptr->vhd->context);
+            //lws_callback_on_writable(client_ptr->wsi);
+        }
+        catch (...) {
+          continue;
+        }
+      }
+    }
+
+    static void multicast(const std::list<Client *> &clients, const json::Object &msg, id_t exclude_user_id) {
+      for (Client *client_ptr : clients) {
+        try {
+          if (client_ptr->get_client_user_id() != exclude_user_id) {
+            if (!client_ptr->wsi) continue;
+            if (elog.debug()) elog.debug() << std::hex << "enqueuing wsi " <<  client_ptr->wsi << std::endl;
+//            client_ptr->reply_queue.enqueue(client_ptr->ptok,msg);
+//            client_ptr->vhd->wsi_queue.enqueue(client_ptr->ptok,client_ptr->wsi);
+            client_ptr->reply_queue.enqueue(msg);
+            client_ptr->vhd->wsi_queue->enqueue(client_ptr->wsi);
+            lws_cancel_service(lws_get_context(client_ptr->wsi));
+            //lws_cancel_service(client_ptr->vhd->context);
+            //lws_callback_on_writable(client_ptr->wsi);
           }
         }
         catch (...) {
@@ -132,16 +245,25 @@ namespace proxy {
       }
     }
 
-    static void multicast(const std::list<Client *> &clients, const json::Value &msg) {
-      multicast(clients, CachingFormatter<json::Value>(msg));
-    }
-
-    static void multicast(const std::list<Client *> &clients, const json::Value &msg, id_t exclude_user_id) {
-      multicast(clients, CachingFormatter<json::Value, ExcludeUser>(msg, exclude_user_id));
-    }
-
-    static void multicast(const std::list<Client *> &clients, const json::Value &msg, id_t exclude_user_id1, id_t exclude_user_id2) {
-      multicast(clients, CachingFormatter<json::Value, ExcludeUsers>(msg, ExcludeUsers({exclude_user_id1, exclude_user_id2})));
+    static void multicast(const std::list<Client *> &clients, const json::Object &msg, id_t exclude_user_id1, id_t exclude_user_id2) {
+      for (Client *client_ptr : clients) {
+        try {
+          if ((client_ptr->get_client_user_id() != exclude_user_id1) && (client_ptr->get_client_user_id() != exclude_user_id2)) {
+            if (!client_ptr->wsi) continue;
+            if (elog.debug()) elog.debug() << std::hex << "enqueuing wsi " <<  client_ptr->wsi << std::endl;
+//            client_ptr->reply_queue.enqueue(client_ptr->ptok,msg);
+//            client_ptr->vhd->wsi_queue.enqueue(client_ptr->ptok,client_ptr->wsi);
+            client_ptr->reply_queue.enqueue(msg);
+            client_ptr->vhd->wsi_queue->enqueue(client_ptr->wsi);
+            lws_cancel_service(lws_get_context(client_ptr->wsi));
+            //lws_cancel_service(client_ptr->vhd->context);
+            //lws_callback_on_writable(client_ptr->wsi);
+          }
+        }
+        catch (...) {
+          continue;
+        }
+      }
     }
 
     static void clear_order(id_t user_id, id_t order_id) {
@@ -168,7 +290,8 @@ namespace proxy {
 
   private:
     std::mutex send_mutex;
-    sockaddr_in6 peer_addr;
+    //sockaddr_in6 peer_addr;
+    std::string peer_addr;
     std::chrono::steady_clock::time_point next_ping_time;
     std::list<Client *>::iterator all_clients_itr;
     id_t user_id;
@@ -200,12 +323,22 @@ namespace proxy {
     /** Reference to the mutex to protect the connections map
     */
     std::mutex &_client_connections_map_mutex;
-
+    struct lws *wsi;
+    id_t client_user_id;
+    //ProducerToken ptok;
 
   public:
-    Client(Socket &&socket, const sockaddr_in6 &peer_addr, uint8_t api_version, uint8_t num_queue, const std::string &ip_address, std::unordered_map<std::string, int> &client_connections_map, std::mutex &client_connections_map_mutex)
-        : WebSocket(std::move(socket), false), api_version(api_version), peer_addr(peer_addr), user_id(~id_t()),
-          num_queue(num_queue), _ip_address(ip_address), _client_connections_map(client_connections_map), _client_connections_map_mutex(client_connections_map_mutex) {
+    void        set_wsi(struct lws *_wsi) { wsi = _wsi; }
+    struct lws* get_wsi()                 { return wsi; }
+
+    //Client(Socket &&socket, const sockaddr_in6 &peer_addr, uint8_t api_version, uint8_t num_queue, const std::string &ip_address, std::unordered_map<std::string, int> &client_connections_map, std::mutex &client_connections_map_mutex)
+    Client(Socket &&socket, struct lws *_wsi, struct per_vhost_data__minimal *_vhd, const char *peer_addr, uint8_t api_version, uint8_t num_queue, const std::string &ip_address, std::unordered_map<std::string, int> &client_connections_map, std::mutex &client_connections_map_mutex)
+        : WebSocket(std::move(socket), false),
+          wsi(_wsi), vhd(_vhd), //ptok(vhd->wsi_queue),
+          api_version(api_version), peer_addr(peer_addr), user_id(~id_t()),
+          num_queue(num_queue), _ip_address(ip_address),
+          _client_connections_map(client_connections_map), _client_connections_map_mutex(client_connections_map_mutex)
+          {
       random_fill(nonce);
       {
         json::Object notice;
@@ -221,7 +354,7 @@ namespace proxy {
         all_clients_itr = all_clients.insert(all_clients.end(), this);
       }
       shared_this.reset(this);
-      this->schedule_ping();
+      //this->schedule_ping();
     }
 
     ~Client() {
@@ -275,6 +408,9 @@ namespace proxy {
     }
 
     size_t receive_response(const void *buf, size_t n) ;
+
+    id_t get_client_user_id()        { return client_user_id; }
+    void set_client_user_id(id_t id) { client_user_id = id;   }
 
   protected:
     void selected(Selector &selector, Selector::Flags flags) noexcept override {
@@ -345,10 +481,11 @@ namespace proxy {
       }
     }
 
+  public:
     void received(const char text[], size_t n) {
-      this->reschedule_ping();
-      if (elog.trace_enabled()) {
-        (elog.trace() << peer_addr << " >> ").write(text, n) << std::endl;
+      //this->reschedule_ping();
+      if (elog.debug_enabled()) {
+        (elog.debug() << peer_addr << " >> ").write(text, n) << std::endl;
       }
       json::ValuePtr value;
       MemoryBuf mb(text, n);
@@ -371,7 +508,7 @@ namespace proxy {
     }
 
   private:
-    void send(Opcode opcode, const void *buf, size_t n) {
+    void Msend(Opcode opcode, const void *buf, size_t n) {
       if (this->WebSocket::send(opcode, buf, n, false)) {
         this->reschedule_ping();
       } else {
@@ -384,17 +521,47 @@ namespace proxy {
       }
     }
 
-    void send_message(const json::Value &msg) {
-      if (elog.debug_enabled()) {
-        elog.debug() << peer_addr << " << " << msg << std::endl;
-      }
-      std::lock_guard<std::mutex> send_lock(send_mutex);
-      WebSocketBuf wsb(this);
-      std::ostream os(&wsb);
-      os.exceptions(std::ios_base::badbit | std::ios_base::failbit);
-      os << msg << std::flush;
-      this->reschedule_ping();
+    void send_message(const json::Object &msg) {
+      if (!wsi) return;
+      if (elog.debug()) elog.debug() << std::hex << "enqueuing wsi " << wsi << std::endl;
+      reply_queue.enqueue(msg);
+      vhd->wsi_queue->enqueue(wsi);
+//      if (elog.debug_enabled()) {
+//        elog.debug() << "Calling lws_cancel_service" << std::endl;
+//      }
+      lws_cancel_service(lws_get_context(wsi));
+      //lws_cancel_service(vhd->context);
+      //lws_callback_on_writable(wsi);
     }
+
+//    void send_message(const json::Value &msg) {
+//      const int N = 128;
+//      char buf[LWS_PRE + N];
+//      //char PRE_PAD[LWS_PRE];
+//      memset(&buf[LWS_PRE], 0, N);
+//      std::stringstream ss;
+//      ss << msg;
+//      int n = lws_snprintf(buf + LWS_PRE, N,"%s", ss.str().c_str());
+//
+//      if (elog.debug_enabled()) {
+//        elog.debug() << peer_addr << " << " << &buf[LWS_PRE] << " len=" << n << std::endl;
+//      }
+//      lws_callback_on_writable(wsi);
+//
+//
+//      /* notice we allowed for LWS_PRE in the payload already */
+//      int m = lws_write(wsi, (unsigned char *)&buf[LWS_PRE],
+//      //int m = lws_write(wsi, ((buf) + LWS_PRE),
+//                        n, LWS_WRITE_TEXT);
+//      //if (m < n) { lwsl_err("ERROR %d writing to ws socket\n", m); }
+//
+////      std::lock_guard<std::mutex> send_lock(send_mutex);
+////      WebSocketBuf wsb(this);
+////      std::ostream os(&wsb);
+////      os.exceptions(std::ios_base::badbit | std::ios_base::failbit);
+////      os << msg << std::flush;
+////      this->reschedule_ping();
+//    }
 
     void send_error(intmax_t tag, int code, const std::string &msg) {
       json::Object response;

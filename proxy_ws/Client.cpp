@@ -1,8 +1,5 @@
 #include "Client.hpp"
 #include "common/narrow.h"
-#include "matching/order.hpp"
-
-using namespace matching;
 
 namespace proxy {
   std::shared_mutex Client::clients_rwlock;
@@ -108,6 +105,7 @@ namespace proxy {
       } else if (skip_auth_allowed) {
         id_t request_user_id = narrow_check<id_t>(*request.get("user_id").as_integer());
         this->switch_user(request_user_id);
+        this->set_client_user_id(request_user_id);
         json::Object response;
         response.insert("error_code", json::Integer(0));
         this->send_message(response);
@@ -143,6 +141,7 @@ namespace proxy {
           sha224.write(client_nonce, sizeof client_nonce);
           if (ecp_verify(secp224k1_p, secp224k1_a, *secp224k1_G, secp224k1_n, pubkey[0].data(), bytes_to_mpn224(*reinterpret_cast<const uint8_t (*)[SHA224::digest_size]>(sha224.digest().data())).data(), signature_r.data(), signature_s.data(), 4)) {
             this->switch_user(request_user_id);
+            this->set_client_user_id(request_user_id);
             json::Object response;
             if (tag) {
               response.insert("tag", json::Integer(tag));
@@ -367,16 +366,6 @@ namespace proxy {
         }
       }
     } else if (request_method == "PlaceOrder") {
-      struct order o;
-      o.price = narrow_check<decltype(OrderParams::price)>(*request.find("price")->as_integer());
-      o.quantity = narrow_check<decltype(OrderParams::quantity)>(*request.get("quantity").as_integer());
-      o.side = o.quantity > 0 ? matching::order::order_side::BUY : matching::order::order_side::SELL;
-      o.display_quantity = o.quantity;
-
-      auto dummy_cb = [](const void *buf, size_t n)-> size_t{};
-      this->do_request(tag, &o, std::move(dummy_cb));
-
-/*
       if (order_bucket.take(1) == 0) {
         this->send_error(tag, 6, "You are sending orders too rapidly.");
       } else if (~user_id == 0) {
@@ -569,7 +558,7 @@ namespace proxy {
             });
           }
         }
-      } */
+      }
     } else if (request_method == "ModifyOrder" && api_version >= 1) {
       if (uplink->protocol_version() < 6) {
         this->send_error(tag, 8, "unknown method");

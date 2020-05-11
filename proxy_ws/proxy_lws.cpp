@@ -1,7 +1,12 @@
 #include "common/cli.h"
 #include "common/codec.h"
+//#include "common/base64.h"
+//#include "common/scheduler.h"
 #include "Uplink.hpp"
 
+//extern "C" {
+//#include <libwebsockets.h>
+//}
 #include <string.h>
 #include <signal.h>
 #include <chrono>
@@ -16,13 +21,21 @@
 #define LWS_PLUGIN_STATIC
 #include "proxy_lws_protocol.hpp"
 
+//using njson = nlohmann::json;
+
 Log elog(Log::INFO);
+
+std::unordered_map<std::string, int> _client_connections_map;
+std::mutex _client_connections_map_mutex;
 
 namespace proxy {
 
   using namespace core;
   using core::id_t;
 
+  //  static bool fee_control_allowed = false;
+//  static bool skip_auth_allowed = false;
+//  static Scheduler<std::chrono::steady_clock> scheduler;
   std::shared_mutex books_rwlock;
   std::map<asset_pair_t, Book> books;
 
@@ -32,17 +45,45 @@ namespace proxy {
 
   class Uplink;
 
+//  static Uplink *uplink;
+//  static Selector *selector;
   Uplink *uplink;
   Selector *selector;
 
+  //static uint8_t cookie_secret[16];
   uint8_t cookie_secret[16];
+
+
+
 }
 
+
 static struct lws_protocols protocols[] = {
-    { "http", lws_callback_http_dummy, 0, 0 },
+    //{NULL, NULL, "default", "1"},
+    //{ "http", callback_http_test, sizeof(struct per_session_data__minimal), 256, 0, NULL,0 },
     LWS_PLUGIN_PROTOCOL_MINIMAL,
+    //{ "http", callback_minimal, 0, 0 },
     { NULL, NULL, 0, 0 } /* terminator */
 };
+
+static const struct lws_protocol_vhost_options pvo_opt = {
+    NULL,
+    NULL,
+    "default",
+    "1"
+};
+
+static const struct lws_protocol_vhost_options pvo = {
+    NULL,
+    &pvo_opt,
+    "callback_minimal",
+    ""
+};
+
+//static const lws_retry_bo_t retry = {
+//    .secs_since_valid_ping = 3,
+//    .secs_since_valid_hangup = 10,
+//};
 
 static const lws_retry_bo_t retry = []{
     lws_retry_bo_t tmp{};
@@ -77,6 +118,8 @@ void sigint_handler(int sig)
 {
   interrupted = 1;
 }
+
+
 
 int main(int argc, const char **argv)
 {
@@ -148,16 +191,18 @@ int main(int argc, const char **argv)
   proxy::Uplink uplink(argv[1], selector_in, selector_out, num_queue);
   std::shared_ptr<proxy::Uplink> shared_uplink(proxy::uplink = &uplink);
 
-  const uint16_t max_connections = max_connections_option.value_or(4);
+  uint16_t default_n_max_connections = 4;
+  const uint16_t max_connections = max_connections_option.value_or(default_n_max_connections);
   const std::string ip_address_identifier = ip_address_header_option.value_or("X-Forwarded-For");
 
   std::clog << "Maximum concurrent connections allowed per IP Address: " << max_connections << ". To change that value, set maxConnections command line argument" << std::endl;
   std::clog << "HTTP Header to identify IP Address: " << ip_address_identifier << ". To change that value, set ipAddressHeader command line argument" << std::endl;
 
-  proxy::Server server(ip_address_identifier, max_connections, port_option.value_or(proxy::Server::DEFAULT_PORT), num_queue);
-  uplink.connect([&selector_in, &server]() {
-    selector_in.add(server, &server, Selector::Flags::READABLE);
-  });
+//  proxy::Server server(ip_address_identifier, max_connections, port_option.value_or(proxy::Server::DEFAULT_PORT), num_queue);
+//  uplink.connect([&selector_in, &server]() {
+//    selector_in.add(server, &server, Selector::Flags::READABLE);
+//  });
+  uplink.connect([&selector_in]() {} );
   for (size_t n = std::max(num_queue, 1U); n > 0; --n) {
     std::thread(&Selectable::pump, std::ref(selector_in)).detach();
   }
@@ -168,37 +213,39 @@ int main(int argc, const char **argv)
       std::thread(&WorkQueue::pump).detach();
   }
   std::thread(&Selectable::pump, std::ref(selector_out)).detach();
-  proxy::scheduler.run();
+  std::thread(&decltype(proxy::scheduler)::run, std::ref(proxy::scheduler)).detach();
 
-//  // ==== libwebsocket setup ====
-//  struct lws_context_creation_info info;
-//  struct lws_context *context;
-//  const char *p;
-//  int n = 0, logs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE
-//  /* for LLL_ verbosity above NOTICE to be built into lws,
-//   * lws must have been configured and built with
-//   * -DCMAKE_BUILD_TYPE=DEBUG instead of =RELEASE */
-//  /* | LLL_INFO */ /* | LLL_PARSER */ /* | LLL_HEADER */
-//  /* | LLL_EXT */ /* | LLL_CLIENT */ /* | LLL_LATENCY */
-//  /* | LLL_DEBUG */;
-//
-//  signal(SIGINT, sigint_handler);
-//
-//  if ((p = lws_cmdline_option(argc, argv, "-d")))
-//    logs = atoi(p);
-//
-//  lws_set_log_level(logs, NULL);
-//  lwsl_user("LWS minimal ws server | visit http://localhost:7681 (-s = use TLS / https)\n");
-//
-//  memset(&info, 0, sizeof info); /* otherwise uninitialized garbage */
-//  info.port = 7681;
-//  info.mounts = &mount;
-//  info.protocols = protocols;
-//  info.vhost_name = "localhost";
-//  info.ws_ping_pong_interval = 10;
-//  info.options =
-//      LWS_SERVER_OPTION_HTTP_HEADERS_SECURITY_BEST_PRACTICES_ENFORCE;
-//
+  // ==== libwebsocket setup ====
+  struct lws_context_creation_info info;
+  struct lws_context *context;
+  const char *p;
+  int n = 0, logs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_INFO | LLL_PARSER | LLL_HEADER | LLL_EXT | LLL_CLIENT | LLL_DEBUG
+  /* for LLL_ verbosity above NOTICE to be built into lws,
+   * lws must have been configured and built with
+   * -DCMAKE_BUILD_TYPE=DEBUG instead of =RELEASE */
+  /* | LLL_INFO */ /* | LLL_PARSER */ /* | LLL_HEADER */
+  /* | LLL_EXT */ /* | LLL_CLIENT */ /* | LLL_LATENCY */
+  /* | LLL_DEBUG */;
+
+  signal(SIGINT, sigint_handler);
+
+  if ((p = lws_cmdline_option(argc, argv, "-d")))
+    logs = atoi(p);
+
+  lws_set_log_level(logs, NULL);
+  lwsl_user("LWS minimal ws server | visit http://localhost:7681 (-s = use TLS / https)\n");
+
+  memset(&info, 0, sizeof info); /* otherwise uninitialized garbage */
+  info.port = port_option.value_or(8080);
+  info.mounts = &mount;
+  info.protocols = protocols;
+  //info.pvo = &pvo;
+  info.vhost_name = "localhost";
+  info.ws_ping_pong_interval = 5;
+  info.timeout_secs = 1;
+  info.options =
+      LWS_SERVER_OPTION_HTTP_HEADERS_SECURITY_BEST_PRACTICES_ENFORCE;
+
 //  if (lws_cmdline_option(argc, argv, "-s")) {
 //    lwsl_user("Server using TLS\n");
 //    info.options |= LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
@@ -211,19 +258,19 @@ int main(int argc, const char **argv)
 //
 //  if (lws_cmdline_option(argc, argv, "-v"))
 //    info.retry_and_idle_policy = &retry;
-//
-//  context = lws_create_context(&info);
-//  if (!context) {
-//    lwsl_err("lws init failed\n");
-//    return 1;
-//  }
-//
-//  while (n >= 0 && !interrupted)
-//    n = lws_service(context, 0);
-//
-//  lws_context_destroy(context);
-//
-//  return 0;
+
+  context = lws_create_context(&info);
+  if (!context) {
+    lwsl_err("lws init failed\n");
+    return 1;
+  }
+
+  while (n >= 0 && !interrupted)
+    n = lws_service(context, 1000);
+
+  lws_context_destroy(context);
+
+  return 0;
 }
 
 

@@ -32,12 +32,14 @@ namespace proxy {
     json::Object notice = order_to_json(msg.order, true, &notice_tonce_itr);
     notice.insert("notice", json::String("OrderModified"));
     auto user_predicate = [](id_t, uint8_t api_version) { return api_version >= 1; };
-    Client::multicast(msg.user_id, CachingFormatter<json::Value, decltype(user_predicate)>(notice, user_predicate));
+    //Client::multicast(msg.user_id, CachingFormatter<json::Value, decltype(user_predicate)>(notice, user_predicate));
+    Client::multicast(msg.user_id, notice);
     notice->erase(notice_tonce_itr);
     auto others_predicate = [&msg](id_t user_id, uint8_t api_version) { return user_id != msg.user_id && api_version >= 1; };
 
     std::lock_guard<std::mutex> lock(mutex);
-    Client::multicast(orders_clients, CachingFormatter<json::Value, decltype(others_predicate)>(notice, others_predicate));
+    //Client::multicast(orders_clients, CachingFormatter<json::Value, decltype(others_predicate)>(notice, others_predicate));
+    Client::multicast(orders_clients, notice, msg.user_id);
     auto orders_itr = orders.find(msg.order.order_id);
     if (orders_itr != orders.end()) {
       auto order_itr = orders_itr->second.second;
@@ -48,17 +50,17 @@ namespace proxy {
           json::Object::map_t::iterator notice_tonce_itr;
           json::Object notice = order_to_json(*order_itr, false, &notice_tonce_itr);
           notice.insert("notice", json::String("OrderClosed"));
-          Client::multicast(msg.user_id, CachingFormatter<json::Value, decltype(user_predicate)>(notice, user_predicate));
+          //Client::multicast(msg.user_id, CachingFormatter<json::Value, decltype(user_predicate)>(notice, user_predicate));
           notice->erase(notice_tonce_itr);
-          Client::multicast(orders_clients, CachingFormatter<json::Value, decltype(others_predicate)>(notice, others_predicate));
+          //Client::multicast(orders_clients, CachingFormatter<json::Value, decltype(others_predicate)>(notice, others_predicate));
         }
         {
           json::Object::map_t::iterator notice_tonce_itr;
           json::Object notice = order_to_json(msg.order, true, &notice_tonce_itr);
           notice.insert("notice", json::String("OrderOpened"));
-          Client::multicast(msg.user_id, CachingFormatter<json::Value, decltype(user_predicate)>(notice, user_predicate));
+          //Client::multicast(msg.user_id, CachingFormatter<json::Value, decltype(user_predicate)>(notice, user_predicate));
           notice->erase(notice_tonce_itr);
-          Client::multicast(orders_clients, CachingFormatter<json::Value, decltype(others_predicate)>(notice, others_predicate));
+          //Client::multicast(orders_clients, CachingFormatter<json::Value, decltype(others_predicate)>(notice, others_predicate));
         }
       }
       assert(msg.order.order_info.tonce == order_itr->order_info.tonce);
