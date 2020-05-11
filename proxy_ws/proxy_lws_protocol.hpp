@@ -24,7 +24,10 @@ namespace proxy { class Client; }
 
 extern std::unordered_map<std::string, int> _client_connections_map;
 extern std::mutex _client_connections_map_mutex;
+extern int _max_concurrent_connection;
 extern Log elog;
+
+const char EXCEEDED_CONCURRENT_CONNECTIONS_LIMIT_CUSTOM_ERR_MSG[] = "Exceeded concurrent connections limit\n";
 
 /* destroys the message when everyone has had a copy of it */
 static void __minimal_destroy_message(void *_msg)
@@ -59,7 +62,7 @@ static int callback_http_test(struct lws *wsi, enum lws_callback_reasons reason,
   return 0;
 }
 
-static void get_headers_helper(struct lws *wsi) {
+static void get_headers_helper(struct lws *wsi, char *buf, size_t buf_sz) {
   int res = 0;
 // Try to get the X-Forwarded-For header
 //memset(&pss->x_forwarded_for, 0, sizeof(pss->x_forwarded_for));
@@ -67,7 +70,8 @@ static void get_headers_helper(struct lws *wsi) {
   res = lws_hdr_copy(wsi, forwarded_ip, sizeof(forwarded_ip), WSI_TOKEN_X_FORWARDED_FOR);
   if (res > 0) {
     lwsl_notice("Connection accepted from (X-Forwarded-For): %s\n", forwarded_ip);
-//strncpy(pss->x_forwarded_for, forwarded_ip, sizeof(forwarded_ip));
+    strncpy(buf, forwarded_ip, buf_sz);
+    return;
   }
 
 // Try to get the CF-Connecting-IP header
@@ -76,7 +80,8 @@ static void get_headers_helper(struct lws *wsi) {
   res = lws_hdr_copy(wsi, connecting_ip, sizeof(connecting_ip), WSI_TOKEN_CF_CONNECTING_IP);
   if (res > 0) {
     lwsl_notice("Connection accepted from (CF-Connecting-IP): %s\n", connecting_ip);
-//strncpy(pss->cf_connecting_ip, connecting_ip, sizeof(connecting_ip));
+    strncpy(buf, connecting_ip, buf_sz);
+    return;
   }
 }
 
@@ -102,22 +107,22 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
     break;
 
     case LWS_CALLBACK_FILTER_NETWORK_CONNECTION:
-      get_headers_helper(wsi);
+      //get_headers_helper(wsi);
       break; // 1st callback after client's connection
     case LWS_CALLBACK_WSI_CREATE: {
-      char hd[1024], *p = &hd[0];
-      lws_add_http_header_status(wsi, 200, (unsigned char **) &p, (unsigned char *) &hd[1023]);
-      lwsl_notice("hd %s\n", hd);
+      //char hd[1024], *p = &hd[0];
+      //lws_add_http_header_status(wsi, 200, (unsigned char **) &p, (unsigned char *) &hd[1023]);
+      //lwsl_notice("hd %s\n", hd);
 
-      get_headers_helper(wsi);
+      //get_headers_helper(wsi);
     }
       break; // 2nd callback after client's connection
     case LWS_CALLBACK_SERVER_NEW_CLIENT_INSTANTIATED: {
-      char hd[1024], *p = &hd[0];
-      lws_add_http_header_status(wsi, 200, (unsigned char **) &p, (unsigned char *) &hd[1023]);
-      lwsl_notice("hd %s\n", hd);
+      //char hd[1024], *p = &hd[0];
+      //lws_add_http_header_status(wsi, 200, (unsigned char **) &p, (unsigned char *) &hd[1023]);
+      //lwsl_notice("hd %s\n", hd);
 
-      get_headers_helper(wsi);
+      //get_headers_helper(wsi);
     }
       break; // 3rd callback after client's connection
     case LWS_CALLBACK_HTTP_CONFIRM_UPGRADE: {                 // 4th callback after client's connection
@@ -130,34 +135,71 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
       lws_add_http_header_status(wsi, 200, (unsigned char **) &p, (unsigned char *) &hd[1023]);
       lwsl_notice("hd %s\n", hd);
 
-      get_headers_helper(wsi);
-      lws_return_http_status(wsi, HTTP_STATUS_BAD_REQUEST, "Too many concurrent connections\n");
-      return 1;
+      char ip_char_array[16];
+      get_headers_helper(wsi, ip_char_array, 16);
+      elog.debug() << "ip char array=[" << ip_char_array << "]" << std::endl;
+      std::string ip_str(ip_char_array);
+      elog.debug() << "ip=[" << ip_str << "]" << std::endl;
+      auto pos = ip_str.find(',');
+      if (pos != std::string::npos) {  //no comma, return as is
+        ip_str = ip_str.substr(0, pos);
+      }
+      //char *pos = std::find(ip_str, ip_str + 16, ',');      *pos = '\0';
+
+      std::lock_guard<std::mutex> _guard(_client_connections_map_mutex);
+
+      auto connections_map_itr = _client_connections_map.find(ip_str);
+      if (connections_map_itr != std::end(_client_connections_map)) {
+        //map contains already that ip address - check against the limit
+        const int current_connections = connections_map_itr->second;
+        if (current_connections < _max_concurrent_connection) {
+          //We can still create extra connection
+          connections_map_itr->second += 1;
+
+          if (elog.debug_enabled()) {
+            elog.debug() << "Updating concurrent connections count for IP address: " << ip_str << " to: " << connections_map_itr->second << std::endl;
+          }
+        } else {
+          //No more connections allowed, reject
+          if (elog.debug_enabled()) {
+            elog.debug() << "No more concurrent connections allowed for IP address: " << ip_str << ". Connection denied" << std::endl;
+          }
+          lws_return_http_status(wsi, HTTP_STATUS_FORBIDDEN, EXCEEDED_CONCURRENT_CONNECTIONS_LIMIT_CUSTOM_ERR_MSG);
+          //return {404, EXCEEDED_CONCURRENT_CONNECTIONS_LIMIT_CUSTOM_ERR_MSG};
+          return 1;
+        }
+      } else {
+        //map does not contain the ip address - add it
+        if (elog.debug_enabled()) {
+          elog.debug() << "Updating concurrent connections count for IP address: " << ip_str << " to: 1" << std::endl;
+        }
+        _client_connections_map.insert(std::make_pair(ip_str, 1));
+      }
+    }
 //      if (lws_http_transaction_completed(wsi))
 //        return -1;
       //bytearray(b'HTTP/1.0 400 Bad Request\r\ncontent-security-policy: default-src \'none\'; img-src \'self\' data: ; script-src \'self\'; font-src \'self\'; style-src \'self\'; connect-src \'self\' ws: wss:; frame-ancestors \'none\'; base-uri \'none\';form-action \'self\';\r\nx-content-type-options: nosniff\r\nx-xss-protection: 1; mode=block\r\nx-frame-options: deny\r\nreferrer-policy: no-referrer\r\ncontent-type: text/html\r\ncontent-length: 193\r\n\r\n<html><head><meta charset=utf-8 http-equiv="Content-Language" content="en"/><link rel="stylesheet" type="text/css" href="/error.css"/></head><body><h1>400</h1>Rejected connection\n</body></html>')
-    }
       break;
     case LWS_CALLBACK_HTTP_BIND_PROTOCOL: {
-      char hd[1024], *p = &hd[0];
-      lws_add_http_header_status(wsi, 200, (unsigned char **) &p, (unsigned char *) &hd[1023]);
-      lwsl_notice("hd %s\n", hd);
+//      char hd[1024], *p = &hd[0];
+//      lws_add_http_header_status(wsi, 200, (unsigned char **) &p, (unsigned char *) &hd[1023]);
+//      lwsl_notice("hd %s\n", hd);
 
-      char msg[] = "Rejected Connection\n";
-      //lws_close_reason(wsi, LWS_CLOSE_STATUS_POLICY_VIOLATION, (unsigned char *) msg, sizeof msg);
-      lws_return_http_status(wsi, HTTP_STATUS_BAD_REQUEST, "Rejected connection");
-//      if (lws_http_transaction_completed(wsi))
-//        return -1;
-      return 1;
+//      char msg[] = "Rejected Connection\n";
+//      //lws_close_reason(wsi, LWS_CLOSE_STATUS_POLICY_VIOLATION, (unsigned char *) msg, sizeof msg);
+//      lws_return_http_status(wsi, HTTP_STATUS_BAD_REQUEST, "Rejected connection");
+////      if (lws_http_transaction_completed(wsi))
+////        return -1;
+//      return 1;
     }
       break; // 5th callback after client's connection
     case LWS_CALLBACK_FILTER_PROTOCOL_CONNECTION: {
-      char hd[1024], *p = &hd[0];
-      lws_add_http_header_status(wsi, 200, (unsigned char **) &p, (unsigned char *) &hd[1023]);
-      lwsl_notice("hd %s\n", hd);
+//      char hd[1024], *p = &hd[0];
+//      lws_add_http_header_status(wsi, 200, (unsigned char **) &p, (unsigned char *) &hd[1023]);
+//      lwsl_notice("hd %s\n", hd);
 
 
-      get_headers_helper(wsi);
+      //get_headers_helper(wsi);
 //      char msg[] = "Rejected Connection\n";
 //      lws_close_reason(wsi, LWS_CLOSE_STATUS_POLICY_VIOLATION, (unsigned char *) msg, sizeof msg);
 //      lws_return_http_status(wsi, HTTP_STATUS_BAD_REQUEST, "Rejected connection");
@@ -168,20 +210,20 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
       break;
       break; // 6th callback after client's connection
     case LWS_CALLBACK_ADD_HEADERS: {
-      char hd[1024], *p = &hd[0];
-      lws_add_http_header_status(wsi, 200, (unsigned char **) &p, (unsigned char *) &hd[1023]);
-      lwsl_notice("hd %s\n", hd);
+//      char hd[1024], *p = &hd[0];
+//      lws_add_http_header_status(wsi, 200, (unsigned char **) &p, (unsigned char *) &hd[1023]);
+//      lwsl_notice("hd %s\n", hd);
 
-      get_headers_helper(wsi);
+      //get_headers_helper(wsi);
       //return -1;
     }
       break; // 7th callback after client's connection
     case LWS_CALLBACK_ESTABLISHED: {                         // 8th callback after client's connection
-      char hd[1024], *p = &hd[0];
-      lws_add_http_header_status(wsi, 200, (unsigned char **) &p, (unsigned char *) &hd[1023]);
-      lwsl_notice("hd %s\n", hd);
+//      char hd[1024], *p = &hd[0];
+//      lws_add_http_header_status(wsi, 200, (unsigned char **) &p, (unsigned char *) &hd[1023]);
+//      lwsl_notice("hd %s\n", hd);
 
-      get_headers_helper(wsi);
+      //get_headers_helper(wsi);
       if (!vhd) {
         vhd = (struct per_vhost_data__minimal *) lws_protocol_vh_priv_zalloc(lws_get_vhost(wsi),
                                                                              lws_get_protocol(wsi),

@@ -1,10 +1,14 @@
 #ifndef ENGINE_UPLINK_HPP
 #define ENGINE_UPLINK_HPP
 
+#include <matching/order.hpp>
+#include "common/log.h"
 #include "transceiver.h"
 #include "workqueue.h"
 //#include "Client.hpp"
 #include "common/connect.h"
+
+extern Log elog;
 
 namespace proxy {
   using core::Transceiver;

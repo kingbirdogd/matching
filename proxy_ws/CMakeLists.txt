@@ -6,6 +6,7 @@ add_executable(proxy_lws proxy_lws.cpp ./transceiver.cpp ./workqueue.cpp
                Book.cpp proxy_lws_utils.cpp proxy_lws_protocol.cpp)
 target_compile_definitions(proxy_lws PRIVATE VERSION="${VERSION}")
 target_include_directories(proxy_lws PUBLIC
+        ${CMAKE_SOURCE_DIR}/matching/order/inc/
         ${CMAKE_SOURCE_DIR}/include
         ${CMAKE_SOURCE_DIR}
         $ENV{HOME}/usr/local/include

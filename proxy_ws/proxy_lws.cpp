@@ -16,7 +16,7 @@
 #include "common/log.h"
 #include "common/scheduler.h"
 #include "proxy_lws_utils.hpp"
-#include "Server.hpp"
+//#include "Server.hpp"
 
 #define LWS_PLUGIN_STATIC
 #include "proxy_lws_protocol.hpp"
@@ -27,6 +27,7 @@ Log elog(Log::INFO);
 
 std::unordered_map<std::string, int> _client_connections_map;
 std::mutex _client_connections_map_mutex;
+int _max_concurrent_connection;
 
 namespace proxy {
 
@@ -171,6 +172,7 @@ int main(int argc, const char **argv)
     proxy::skip_auth_allowed = true;
     std::clog << "Skip authentication for testing" << std::endl;
   }
+  /*
   {
     const char *secret_base64 = ::getenv("COOKIE_SECRET");
     if (!secret_base64) {
@@ -183,6 +185,7 @@ int main(int argc, const char **argv)
     }
     ::unsetenv("COOKIE_SECRET");
   }
+   */
   ::srand48(std::chrono::high_resolution_clock::now().time_since_epoch().count());
   posix::signal(SIGPIPE, SIG_IGN);
 
@@ -198,6 +201,7 @@ int main(int argc, const char **argv)
   std::clog << "Maximum concurrent connections allowed per IP Address: " << max_connections << ". To change that value, set maxConnections command line argument" << std::endl;
   std::clog << "HTTP Header to identify IP Address: " << ip_address_identifier << ". To change that value, set ipAddressHeader command line argument" << std::endl;
 
+  _max_concurrent_connection = max_connections;
 //  proxy::Server server(ip_address_identifier, max_connections, port_option.value_or(proxy::Server::DEFAULT_PORT), num_queue);
 //  uplink.connect([&selector_in, &server]() {
 //    selector_in.add(server, &server, Selector::Flags::READABLE);
@@ -219,7 +223,8 @@ int main(int argc, const char **argv)
   struct lws_context_creation_info info;
   struct lws_context *context;
   const char *p;
-  int n = 0, logs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE | LLL_INFO | LLL_PARSER | LLL_HEADER | LLL_EXT | LLL_CLIENT | LLL_DEBUG
+  //| LLL_INFO | LLL_PARSER | LLL_HEADER | LLL_EXT | LLL_CLIENT | LLL_DEBUG
+  int n = 0, logs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE
   /* for LLL_ verbosity above NOTICE to be built into lws,
    * lws must have been configured and built with
    * -DCMAKE_BUILD_TYPE=DEBUG instead of =RELEASE */

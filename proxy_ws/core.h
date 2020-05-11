@@ -28,7 +28,7 @@ struct PublicKey {
 	uint8_t y[28];
 };
 
-static constexpr in_port_t CORE_PORT = 24931;
+static constexpr in_port_t CORE_PORT = 9918;
 static constexpr uint8_t PROTOCOL_VERSION = 8;
 
 static constexpr uint64_t PRICE_SCALE = 10000;
