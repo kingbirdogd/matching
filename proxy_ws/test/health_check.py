@@ -163,10 +163,10 @@ async def test(sleep_s):
         user_id_po = USER_IDS[1]
         ws_po = ws_map[user_id_po]
 
-        # # Place Buy
-        # payload_place_buy = {"method": "PlaceOrder", "base": BASE_ID, "counter": COUNTER_ID,
-        #                      "price": 98, 'quantity': 23, "tag": 998, 'tonce': tonce }; tonce += 1
-        # await send_order(user_id_limit, payload_place_buy)
+        # Place Buy
+        payload_place_buy = {"method": "PlaceOrder", "base": BASE_ID, "counter": COUNTER_ID,
+                             "price": 98, 'quantity': 23, "tag": 998, 'tonce': tonce }; tonce += 1
+        await send_order(user_id_limit, payload_place_buy)
         #
         # # Place Sell
         # payload_place_sell = {"method": "PlaceOrder", "base": BASE_ID, "counter": COUNTER_ID,
