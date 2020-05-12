@@ -42,7 +42,8 @@ namespace proxy {
   extern Uplink *uplink;
   extern Scheduler<std::chrono::steady_clock> scheduler;
 
-  class Client : public WebSocket, public Selectable, public WorkQueue {
+  //class Client : public WebSocket, public Selectable, public WorkQueue {
+  class Client : public Selectable, public WorkQueue {
 
   public:
     static constexpr std::chrono::steady_clock::duration ping_interval = std::chrono::seconds(45);
@@ -59,16 +60,16 @@ namespace proxy {
     struct per_vhost_data__minimal *vhd;
 
     static void disconnect_user(id_t user_id) {
-      std::shared_lock<std::shared_mutex> clients_rdlock(clients_rwlock);
-      auto range = users_clients.equal_range(user_id);
-      for (auto itr = range.first; itr != range.second; ++itr) {
-        try {
-          itr->second->socket.shutdown(SHUT_RDWR);
-        }
-        catch (...) {
-          continue;
-        }
-      }
+//      std::shared_lock<std::shared_mutex> clients_rdlock(clients_rwlock);
+//      auto range = users_clients.equal_range(user_id);
+//      for (auto itr = range.first; itr != range.second; ++itr) {
+//        try {
+//          itr->second->socket.shutdown(SHUT_RDWR);
+//        }
+//        catch (...) {
+//          continue;
+//        }
+//      }
     }
 
     template<typename Formatter>
@@ -333,7 +334,7 @@ namespace proxy {
 
     //Client(Socket &&socket, const sockaddr_in6 &peer_addr, uint8_t api_version, uint8_t num_queue, const std::string &ip_address, std::unordered_map<std::string, int> &client_connections_map, std::mutex &client_connections_map_mutex)
     Client(Socket &&socket, struct lws *_wsi, struct per_vhost_data__minimal *_vhd, const char *peer_addr, uint8_t api_version, uint8_t num_queue, const std::string &ip_address, std::unordered_map<std::string, int> &client_connections_map, std::mutex &client_connections_map_mutex)
-        : WebSocket(std::move(socket), false),
+        : //WebSocket(std::move(socket), false),
           wsi(_wsi), vhd(_vhd), //ptok(vhd->wsi_queue),
           api_version(api_version), peer_addr(peer_addr), user_id(~id_t()),
           num_queue(num_queue), _ip_address(ip_address),
@@ -397,7 +398,7 @@ namespace proxy {
           }
         }
       }
-
+      sleep(1);
     }
 
     void enqueue_work(std::function<void(void) /* noexcept */> &&work) {
@@ -414,6 +415,7 @@ namespace proxy {
 
   protected:
     void selected(Selector &selector, Selector::Flags flags) noexcept override {
+      /*
       if ((flags & Selector::Flags::READABLE) != Selector::Flags::NONE) {
         try {
           do {
@@ -479,6 +481,7 @@ namespace proxy {
         }
         shared_this.reset();
       }
+      */
     }
 
   public:
@@ -509,6 +512,7 @@ namespace proxy {
 
   private:
     void Msend(Opcode opcode, const void *buf, size_t n) {
+      /*
       if (this->WebSocket::send(opcode, buf, n, false)) {
         this->reschedule_ping();
       } else {
@@ -518,7 +522,7 @@ namespace proxy {
           elog.warn() << "dropping " << peer_addr << " with " << i << " bytes queued to send" << std::endl;
         }
         socket.shutdown(SHUT_RDWR);
-      }
+      }*/
     }
 
     void send_message(const json::Object &msg) {

@@ -404,7 +404,7 @@ namespace proxy {
         catch (const std::system_error &e) {
           if (elog.warn_enabled() && (e.code().category() != std::system_category() || e.code().value() != EPIPE)) {
             int i;
-            socket.ioctl(TIOCOUTQ, &i);
+            //socket.ioctl(TIOCOUTQ, &i);
             elog.warn() << "dropping " << peer_addr << ": " << e.what() << " [" << i << ']' << std::endl;
           }
           throw;
@@ -412,7 +412,7 @@ namespace proxy {
         catch (const std::exception &e) {
           if (elog.warn_enabled()) {
             int i;
-            socket.ioctl(TIOCOUTQ, &i);
+            //socket.ioctl(TIOCOUTQ, &i);
             elog.warn() << "dropping " << peer_addr << ": " << e.what() << " [" << i << ']' << std::endl;
           }
           throw;
@@ -420,7 +420,7 @@ namespace proxy {
       }
       catch (...) {
         try {
-          socket.shutdown(SHUT_RDWR);
+          //socket.shutdown(SHUT_RDWR);
         }
         catch (...) {
         }
@@ -430,7 +430,7 @@ namespace proxy {
     callback_queue.pop();
     if (throttled) {
       throttled = false;
-      selector->modify(socket, this, Selector::Flags::READABLE);
+      //selector->modify(socket, this, Selector::Flags::READABLE);
     }
     return reply_size;
   }
@@ -1348,6 +1348,7 @@ namespace proxy {
   }
 
   void Client::schedule_ping() noexcept {
+    /*
     scheduler.call_at(next_ping_time, [weak_this = std::weak_ptr<Client>(shared_this)]() noexcept {
       if (auto shared_this = weak_this.lock()) {
         if (shared_this->next_ping_time <= std::chrono::steady_clock::now()) {
@@ -1357,7 +1358,7 @@ namespace proxy {
               std::lock_guard<std::mutex> send_lock(shared_this->send_mutex);
               if (shared_this->next_ping_time <= std::chrono::steady_clock::now()) {
                 try {
-                  shared_this->send(Ping, nullptr, 0);
+                  //shared_this->send(Ping, nullptr, 0);
                 }
                 catch (...) {
                 }
@@ -1370,6 +1371,7 @@ namespace proxy {
         }
       }
     });
+     */
   }
 
   void Client::reschedule_ping() noexcept {

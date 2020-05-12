@@ -5,7 +5,7 @@
 #include "compiler.h"
 #include "http.h"
 #include "socket.h"
-
+#include <iostream>
 
 class WebSocket {
 
@@ -15,6 +15,9 @@ public:
 		Close = 0x8, Ping = 0x9, Pong = 0xA,
 		End = -1
 	};
+  ~WebSocket() {
+    std::cout << "Destruct WebSocket" << std::endl;
+  }
 
 public:
 	Socket socket;

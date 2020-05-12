@@ -289,7 +289,7 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
       if (pss->client_ptr) {
         lwsl_notice("setting to NULL for wsi %x\n", wsi);
         pss->client_ptr->set_wsi(NULL);
-        pss->client_ptr.reset();
+        //pss->client_ptr.reset();
       }
       lws_cancel_service(lws_get_context(wsi));
       return -1;
