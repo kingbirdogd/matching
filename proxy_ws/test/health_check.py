@@ -24,6 +24,9 @@ USER_IDS = [1, 2]
 #USER_IDS = range(1)
 nUsers   = len(USER_IDS)
 
+BASE_ID    = 0xFFFE # 65534
+COUNTER_ID = 0xFFFF # 65535
+
 def or_bytes(abytes, bbytes):
     return bytes([a | b for a, b in zip(abytes[::-1], bbytes[::-1])][::-1])
 
