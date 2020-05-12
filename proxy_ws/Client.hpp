@@ -369,7 +369,7 @@ namespace proxy {
       }
       this->switch_user();
       std::lock_guard<std::shared_mutex> clients_wrlock(clients_rwlock);
-      all_clients.erase(all_clients_itr);
+      //all_clients.erase(all_clients_itr);
 
       {
         std::lock_guard<std::mutex> _guard(_client_connections_map_mutex);
