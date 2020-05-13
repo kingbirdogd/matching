@@ -147,7 +147,7 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
       //char *pos = std::find(ip_str, ip_str + 16, ',');      *pos = '\0';
 
       std::lock_guard<std::mutex> _guard(_client_connections_map_mutex);
-
+      /*
       auto connections_map_itr = _client_connections_map.find(ip_str);
       if (connections_map_itr != std::end(_client_connections_map)) {
         //map contains already that ip address - check against the limit
@@ -175,6 +175,7 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
         }
         _client_connections_map.insert(std::make_pair(ip_str, 1));
       }
+       */
     }
 //      if (lws_http_transaction_completed(wsi))
 //        return -1;
