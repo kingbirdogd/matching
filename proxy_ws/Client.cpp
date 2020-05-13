@@ -746,20 +746,56 @@ namespace proxy {
         }
       }
     } else if (request_method == "PlaceOrder") {
-      auto request_price_ptr = request.find("price");
-      auto qty = narrow_check<decltype(OrderParams::quantity)>(*request.get("quantity").as_integer());
-      auto request_tonce_ptr = request.find("tonce");
-      uint64_t tonce = 0;
-      if (request_tonce_ptr && (tonce = narrow_check<uint64_t>(*request_tonce_ptr->as_integer())) == 0) {
-        this->send_error(tag, 8, "Tonce must not be zero.");
-      }
+//      if (request_tonce_ptr && (tonce = narrow_check<uint64_t>(*request_tonce_ptr->as_integer())) == 0) {
+//        this->send_error(tag, 8, "Tonce must not be zero.");
+//      }
+      auto px_ptr                   = request.find("price");
+      auto qty_ptr                  = request.find("quantity");
+      auto client_order_id_ptr      = request.find("client_order_id");
+      auto display_qty_ptr          = request.find("display_quantity");
+      auto buy_stop_trigger_px_ptr  = request.find("buy_stop_trigger_price");
+      auto buy_stop_limited_px_ptr  = request.find("buy_stop_limited_price");
+      auto sell_stop_trigger_px_ptr = request.find("sell_stop_trigger_price");
+      auto sell_stop_limited_px_ptr = request.find("sell_stop_limited_price");
+
+      auto side_ptr           = request.find("side");
+      auto order_action_ptr   = request.find("order_action");
+      auto time_condition_ptr = request.find("time_condition");
+
+      auto px   = px_ptr  ? narrow_check<decltype(OrderParams::price     )>(*px_ptr->as_integer()) : 0;
+      auto qty  = qty_ptr ? narrow_check<decltype(OrderParams::quantity)>(*qty_ptr->as_integer()) : 0;
+      auto client_order_id      = client_order_id_ptr      ? narrow_check<uint64_t>(*client_order_id_ptr->as_integer()) :0;
+      auto display_qty          = display_qty_ptr          ? narrow_check<uint64_t>(*display_qty_ptr->as_integer()):0;
+      auto buy_stop_trigger_px  = buy_stop_trigger_px_ptr  ? narrow_check<uint64_t>(*buy_stop_trigger_px_ptr->as_integer()):0;
+      auto buy_stop_limited_px  = buy_stop_limited_px_ptr  ? narrow_check<uint64_t>(*buy_stop_limited_px_ptr->as_integer()):0;
+      auto sell_stop_trigger_px = sell_stop_trigger_px_ptr ? narrow_check<uint64_t>(*sell_stop_trigger_px_ptr->as_integer()):0;
+      auto sell_stop_limited_px = sell_stop_limited_px_ptr ? narrow_check<uint64_t>(*sell_stop_limited_px_ptr->as_integer()):0;
+
+      auto side           = side_ptr           ? *dynamic_cast<const json::String *>(side_ptr          )->as_string() : "";
+      auto order_action   = order_action_ptr   ? *dynamic_cast<const json::String *>(order_action_ptr  )->as_string() : "";
+      auto time_condition = time_condition_ptr ? *dynamic_cast<const json::String *>(time_condition_ptr)->as_string() : "";
 
       matching::order o;
-      o.side = qty < 0 ? matching::order::order_side::SELL : matching::order::order_side::BUY;
-      o.client_order_id = tonce;
-      o.quantity = abs(qty);
-      o.display_quantity = abs(qty);
-      o.price = narrow_check<decltype(OrderParams::price)>(*request_price_ptr->as_integer());
+      o.order_action =  order_action.compare("NEW")    == 0 ? matching::order::NEW    :
+                       (order_action.compare("CANCEL") == 0 ? matching::order::CANCEL :
+                                                                 matching::order::AMEND  );
+      o.side =  side.compare("SELL"     ) == 0 ? matching::order::order_side::SELL     :
+               (side.compare("BUY"      ) == 0 ? matching::order::order_side::BUY      :
+               (side.compare("BUY_STOP" ) == 0 ? matching::order::order_side::BUY_STOP :
+                                                    matching::order::order_side::SELL_STOP ));
+      o.time_condition =  time_condition.compare("FOK"               ) == 0 ? matching::order::FOK :
+                         (time_condition.compare("IOC"               ) == 0 ? matching::order::IOC :
+                         (time_condition.compare("MAKER_ONLY_REPRICE") == 0 ? matching::order::MAKER_ONLY_REPRICE :
+                         (time_condition.compare("MAKER_ONLY"        ) == 0 ? matching::order::MAKER_ONLY :
+                                                                                  matching::order::GTC)));
+      o.price                   = px;
+      o.quantity                = qty;
+      o.client_order_id         = client_order_id;
+      o.display_quantity        = qty;   // TODO: use display_qty
+      o.buy_stop_trigger_price  = buy_stop_trigger_px;
+      o.buy_stop_limited_price  = buy_stop_limited_px;
+      o.sell_stop_trigger_price = sell_stop_trigger_px;
+      o.sell_stop_limited_price = sell_stop_limited_px;
 
       bool transient = false;
       auto callback = [this, tag, transient](const void *buf, size_t n) -> size_t {
@@ -767,7 +803,7 @@ namespace proxy {
         json::Object response = handle_order(reply);
         if (tag)
           response.insert("tag", json::Integer(tag));
-        this->send_message(response);
+        //this->send_message(response);
       };
       this->do_request(tag, o, std::move(callback));
 
@@ -1379,7 +1415,8 @@ namespace proxy {
   }
 
 
-  void Client::do_request(intmax_t tag, const void *msg, size_t n, std::function<size_t(const void *, size_t)> &&callback) {
+  void Client::
+  do_request(intmax_t tag, const void *msg, size_t n, std::function<size_t(const void *, size_t)> &&callback) {
     std::lock_guard<std::mutex> callback_queue_lock(callback_queue_mutex);
     //if (uplink->do_request(msg, n, shared_this)) {
     if (uplink->do_request(msg, n, shared_this)) {

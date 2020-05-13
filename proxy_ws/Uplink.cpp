@@ -328,7 +328,7 @@ namespace proxy {
 //        callback_queue_lock.lock();
 //        callback_queue.pop();
 //      }
-      return n;
+      return msg_size;
     }
 
     size_t msg_size = sizeof(matching::order);
