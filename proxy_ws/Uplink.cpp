@@ -314,16 +314,20 @@ namespace proxy {
       size_t msg_size = sizeof(matching::order);
       if (n < msg_size) return 0;
 
-      std::unique_lock<std::mutex> callback_queue_lock(callback_queue_mutex);
-      if (callback_queue.empty()) {
-        throw std::ios_base::failure("received spurious response from core");
-      }
-      auto &client_ptr = callback_queue.front();
-      callback_queue_lock.unlock();
-      if ((n = client_ptr->receive_response(buf, n)) != 0) {
-        callback_queue_lock.lock();
-        callback_queue.pop();
-      }
+      auto &reply = (*static_cast<const matching::order *>(buf));
+      json::Object response = handle_order(reply);
+      Client::multicast(Client::all_clients, response);
+
+//      std::unique_lock<std::mutex> callback_queue_lock(callback_queue_mutex);
+//      if (callback_queue.empty()) {
+//        throw std::ios_base::failure("received spurious response from core");
+//      }
+//      auto &client_ptr = callback_queue.front();
+//      callback_queue_lock.unlock();
+//      if ((n = client_ptr->receive_response(buf, n)) != 0) {
+//        callback_queue_lock.lock();
+//        callback_queue.pop();
+//      }
       return n;
     }
 

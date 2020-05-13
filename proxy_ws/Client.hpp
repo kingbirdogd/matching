@@ -47,10 +47,9 @@ class Client : public Selectable, public WorkQueue { //, public std::enable_shar
 
   public:
     static constexpr std::chrono::steady_clock::duration ping_interval = std::chrono::seconds(45);
-
+    static std::list<Client *> all_clients;
   private:
     static std::shared_mutex clients_rwlock;
-    static std::list<Client *> all_clients;
     static std::multimap<id_t, Client *> users_clients;
 
   public:
