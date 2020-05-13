@@ -36,9 +36,6 @@ public:
 	 */
 	_noreturn static void pump();
     _noreturn static void pump_1_queue();
-  ~WorkQueue() {
-    std::cout << "Destruct WorkQueue" << std::endl;
-  }
 
 private:
 	std::mutex work_queue_mutex;

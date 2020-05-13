@@ -1381,6 +1381,7 @@ namespace proxy {
 
   void Client::do_request(intmax_t tag, const void *msg, size_t n, std::function<size_t(const void *, size_t)> &&callback) {
     std::lock_guard<std::mutex> callback_queue_lock(callback_queue_mutex);
+    //if (uplink->do_request(msg, n, shared_this)) {
     if (uplink->do_request(msg, n, shared_this)) {
       callback_queue.push(std::move(callback));
     } else {

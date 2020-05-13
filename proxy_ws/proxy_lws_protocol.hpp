@@ -147,7 +147,7 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
       //char *pos = std::find(ip_str, ip_str + 16, ',');      *pos = '\0';
 
       std::lock_guard<std::mutex> _guard(_client_connections_map_mutex);
-      /*
+
       auto connections_map_itr = _client_connections_map.find(ip_str);
       if (connections_map_itr != std::end(_client_connections_map)) {
         //map contains already that ip address - check against the limit
@@ -175,7 +175,7 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
         }
         _client_connections_map.insert(std::make_pair(ip_str, 1));
       }
-       */
+
     }
 //      if (lws_http_transaction_completed(wsi))
 //        return -1;
@@ -290,7 +290,7 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
       if (pss->client_ptr) {
         lwsl_notice("setting to NULL for wsi %x\n", wsi);
         pss->client_ptr->set_wsi(NULL);
-        //pss->client_ptr.reset();
+        pss->client_ptr.reset();
       }
       lws_cancel_service(lws_get_context(wsi));
       return -1;
@@ -361,7 +361,10 @@ static int callback_minimal(struct lws *wsi, enum lws_callback_reasons reason,
           //in = (void *)client->GetMessage();
           //len = client->GetMessageLength();
           //}
+          pss->client_ptr->shared_this = pss->client_ptr;
+          lwsl_notice("Client shared_ptr count=%d\n", pss->client_ptr.use_count());
           pss->client_ptr->received((const char *) pss->msg_buf, pss->msg_sz);
+          pss->client_ptr->shared_this = nullptr;
           pss->msg_sz = 0;
           //client->ProcessMessage((char *)in, len, wsi);
           //client->ResetMessage()

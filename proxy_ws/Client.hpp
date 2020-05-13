@@ -43,7 +43,7 @@ namespace proxy {
   extern Scheduler<std::chrono::steady_clock> scheduler;
 
   //class Client : public WebSocket, public Selectable, public WorkQueue {
-  class Client : public Selectable, public WorkQueue {
+class Client : public Selectable, public WorkQueue { //, public std::enable_shared_from_this<Client>
 
   public:
     static constexpr std::chrono::steady_clock::duration ping_interval = std::chrono::seconds(45);
@@ -58,6 +58,12 @@ namespace proxy {
     //ConcurrentQueue<                json::Object>  reply_queue;
     //ConcurrentQueue<std::shared_ptr<std::string_view>> broadcast_queue;
     struct per_vhost_data__minimal *vhd;
+
+//    std::shared_ptr<Client> get_shared_from_this() {
+//
+//      return this->std::enable_shared_from_this<Client>::shared_from_this();
+//      //return Client::shared_from_this();
+//    }
 
     static void disconnect_user(id_t user_id) {
 //      std::shared_lock<std::shared_mutex> clients_rdlock(clients_rwlock);
@@ -279,8 +285,6 @@ namespace proxy {
     }
 
   private:
-    std::shared_ptr<Client> shared_this;
-
     std::array<uint8_t, 1024> recv_buf;
     unsigned recv_mark = 0, recv_pos = 0;
     Opcode recv_opcode;
@@ -288,6 +292,7 @@ namespace proxy {
 
   public:
     const uint8_t api_version;
+    std::shared_ptr<Client> shared_this;
 
   private:
     std::mutex send_mutex;
@@ -354,7 +359,7 @@ namespace proxy {
         std::lock_guard<std::shared_mutex> clients_wrlock(clients_rwlock);
         all_clients_itr = all_clients.insert(all_clients.end(), this);
       }
-      shared_this.reset(this);
+      //shared_this.reset(this);
       //this->schedule_ping();
     }
 
@@ -362,6 +367,7 @@ namespace proxy {
       if (elog.debug_enabled()) {
         elog.debug() << "closing connection with ip address: " << _ip_address << std::endl;
       }
+
       for (auto &orders_watch : orders_watches) {
         get_book(orders_watch.first)->remove_orders_client(orders_watch.second);
       }
@@ -370,7 +376,7 @@ namespace proxy {
       }
       this->switch_user();
       std::lock_guard<std::shared_mutex> clients_wrlock(clients_rwlock);
-      //all_clients.erase(all_clients_itr);
+      all_clients.erase(all_clients_itr);
 
       {
         std::lock_guard<std::mutex> _guard(_client_connections_map_mutex);
@@ -398,7 +404,6 @@ namespace proxy {
           }
         }
       }
-      sleep(1);
     }
 
     void enqueue_work(std::function<void(void) /* noexcept */> &&work) {

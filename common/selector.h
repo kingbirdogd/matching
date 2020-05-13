@@ -50,9 +50,6 @@ class Selectable {
 
 public:
 	_noreturn static void pump(Selector &selector);
-	~Selectable() {
-	  std::cout << "Destruct Selectable" << std::endl;
-	}
 
 public:
 	//virtual ~Selectable() = default;
