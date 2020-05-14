@@ -82,8 +82,9 @@ namespace matching
 		long long sell_stop_limited_price;
 		order_side side;
 		order_type type;
-		order_action_type order_action;
 		order_time_condition time_condition;
+		unsigned char filler;
+		order_action_type order_action;
 		order_status_type order_state;
 		order_matched_type matched_type;
 	private:
@@ -110,8 +111,9 @@ namespace matching
 			sell_stop_limited_price(MARKET_PRICE),
 			side(order_side::BUY),
 			type(order_type::LIMITED),
-			order_action(order_action_type::NEW),
 			time_condition(order_time_condition::GTC),
+			filler(0),
+			order_action(order_action_type::NEW),
 			order_state(order_status_type::OPEN),
 			matched_type(order_matched_type::MAKER)
 		{

@@ -53,7 +53,7 @@ DO_LINK.cpp = mkdir -p $(@D) && $(LINK.cpp) -o $@ $^ $(LOADLIBES) $(LDLIBS)
 
 default : all
 
-include Makefile.inc
+#include Makefile.inc
 
 all : $(ALL)
 
