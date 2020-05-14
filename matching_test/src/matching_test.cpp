@@ -63,6 +63,10 @@ void handle_order(const matching::order& o)
 	{
 		status = "FILLED";
 	}
+	else if (o.order_state == matching::order::order_status_type::CANCELED_BY_USER)
+	{
+		status = "CANCELED_BY_USER";
+	}
 	else if (o.order_state == matching::order::order_status_type::CANCELED_BY_MARKET_ORDER_NOT_FULL_MATCHED)
 	{
 		status = "CANCELED_BY_MARKET_ORDER_NOT_FULL_MATCHED";

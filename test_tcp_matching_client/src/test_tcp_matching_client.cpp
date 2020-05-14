@@ -66,6 +66,10 @@ void handle_order(const matching::order& o)
 	{
 		status = "CANCELED_BY_MARKET_ORDER_NOTHING_MATCH";
 	}
+	else if (o.order_state == matching::order::order_status_type::CANCELED_BY_USER)
+	{
+		status = "CANCELED_BY_USER";
+	}
 	else if (o.order_state == matching::order::order_status_type::CANCELED_ALL_BY_IOC)
 	{
 		status = "CANCELED_ALL_BY_IOC";
