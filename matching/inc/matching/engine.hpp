@@ -634,7 +634,7 @@ namespace matching
 						rt.matched_price = order::MARKET_PRICE;
 						return rt;
 					}
-					if (rt.matched_quantity < quantity)
+					if (rt.matched_quantity > quantity)
 						rt.matched_quantity = quantity;
 					if (_impliers.end() == it)
 					{
