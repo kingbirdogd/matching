@@ -7,7 +7,7 @@
 #include <queue>
 
 #include "common/compiler.h"
-
+#include <iostream>
 
 /**
  * @brief Holds a queue of work items and arranges for serial execution of those work items.

@@ -5,7 +5,7 @@
 #include "enumflags.h"
 #include "fd.h"
 #include "signal.h"
-
+#include <iostream>
 
 class Selectable;
 
@@ -52,7 +52,7 @@ public:
 	_noreturn static void pump(Selector &selector);
 
 public:
-	virtual ~Selectable() = default;
+	//virtual ~Selectable() = default;
 
 protected:
 	virtual void selected(Selector &selector, Selector::Flags flags) noexcept = 0;

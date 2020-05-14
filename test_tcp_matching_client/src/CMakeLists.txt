@@ -1,2 +1,3 @@
 add_executable(test_tcp_matching_client test_tcp_matching_client.cpp)
 target_link_libraries(test_tcp_matching_client matching_tcp_client tcp_client pthread)
+install(TARGETS test_tcp_matching_client DESTINATION ${CMAKE_INSTALL_PREFIX})

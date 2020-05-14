@@ -4,3 +4,4 @@ target_include_directories(test_tcp_matching_server PUBLIC ${CMAKE_SOURCE_DIR}/m
 target_include_directories(test_tcp_matching_server PUBLIC ${CMAKE_SOURCE_DIR}/matching/order/inc)
 target_include_directories(test_tcp_matching_server PUBLIC ${CMAKE_SOURCE_DIR}/net/tcp_client/inc)
 target_link_libraries(test_tcp_matching_server matching_tcp_service tcp_service tcp_client engine pthread)
+install(TARGETS test_tcp_matching_server DESTINATION ${CMAKE_INSTALL_PREFIX})

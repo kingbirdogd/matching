@@ -1,8 +1,384 @@
+#include <matching/order.hpp>
 #include "Client.hpp"
 #include "common/narrow.h"
-#include "matching/order.hpp"
 
-using namespace matching;
+extern std::unordered_map<unsigned long long, unsigned long long> client_to_engine_id_map;
+
+std::ostream & operator << (std::ostream &os, const matching::order &o) {
+  std::string type = "";
+  std::string side = "";
+  std::string status = "";
+  std::string time_condition = "";
+  std::string action = "";
+  std::string matched_type = "";
+  if (matching::order::order_type::LIMITED == o.type)
+  {
+    type = "LIMITED";
+  }
+  else
+  {
+    type = "MARKET";
+  }
+  if (matching::order::order_side::BUY == o.side)
+  {
+    side = "BUY";
+  }
+  else if (matching::order::order_side::SELL == o.side)
+  {
+    side = "SELL";
+  }
+  else if (matching::order::order_side::BUY_STOP == o.side)
+  {
+    side = "BUY_STOP";
+  }
+  else if (matching::order::order_side::SELL_STOP == o.side)
+  {
+    side = "SELL_STOP";
+  }
+  else if (matching::order::order_side::BUY_SELL_STOP == o.side)
+  {
+    side = "BUY_SELL_STOP";
+  }
+  else
+  {
+    side = "SELL_BUY_STOP";
+  }
+  if (o.order_state == matching::order::order_status_type::OPEN)
+  {
+    status = "OPEN";
+  }
+  else if (o.order_state == matching::order::order_status_type::PARTIAL_FILL)
+  {
+    status = "PARTIAL_FILL";
+  }
+  else if (o.order_state == matching::order::order_status_type::FILLED)
+  {
+    status = "FILLED";
+  }
+  else if (o.order_state == matching::order::order_status_type::CANCELED_BY_MARKET_ORDER_NOT_FULL_MATCHED)
+  {
+    status = "CANCELED_BY_MARKET_ORDER_NOT_FULL_MATCHED";
+  }
+  else if (o.order_state == matching::order::order_status_type::CANCELED_BY_MARKET_ORDER_NOTHING_MATCH)
+  {
+    status = "CANCELED_BY_MARKET_ORDER_NOTHING_MATCH";
+  }
+  else if (o.order_state == matching::order::order_status_type::CANCELED_ALL_BY_IOC)
+  {
+    status = "CANCELED_ALL_BY_IOC";
+  }
+  else if (o.order_state == matching::order::order_status_type::CANCELED_PARTIAL_BY_IOC)
+  {
+    status = "CANCELED_PARTIAL_BY_IOC";
+  }
+  else if (o.order_state == matching::order::order_status_type::CANCELED_BY_FOK)
+  {
+    status = "CANCELED_BY_FOK";
+  }
+  else if (o.order_state == matching::order::order_status_type::CANCELED_BY_MAKER_ONLY)
+  {
+    status = "CANCELED_BY_MAKER_ONLY";
+  }
+  else if (o.order_state == matching::order::order_status_type::REJECT_CANCEL_ORDER_ID_NOT_FOUND)
+  {
+    status = "REJECT_CANCEL_ORDER_ID_NOT_FOUND";
+  }
+  else if (o.order_state == matching::order::order_status_type::REJECT_AMEND_ORDER_ID_NOT_FOUND)
+  {
+    status = "REJECT_AMEND_ORDER_ID_NOT_FOUND";
+  }
+  else if (o.order_state == matching::order::order_status_type::REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY)
+  {
+    status = "REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY";
+  }
+  else if (o.order_state == matching::order::order_status_type::REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMITED)
+  {
+    status = "REJECT_BUY_STOP_TRIGGER_LESS_THAN_STOP_LIMITED";
+  }
+  else if (o.order_state == matching::order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED)
+  {
+    status = "REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED";
+  }
+  else if (o.order_state == matching::order::order_status_type::REJECT_UNKNOW_ORDER_ACTION)
+  {
+    status = "REJECT_UNKNOW_ORDER_ACTION";
+  }
+  else if (o.order_state == matching::order::order_status_type::REJECT_QUANTITY_ZERO)
+  {
+    status = "REJECT_QUANTITY_ZERO";
+  }
+  else
+  {
+    status = "REJECT_LIMITE_ORDER_WITH_MARKET_PRICE";
+  }
+  if (matching::order::order_time_condition::GTC == o.time_condition)
+  {
+    time_condition = "GTC";
+  }
+  else if (matching::order::order_time_condition::IOC == o.time_condition)
+  {
+    time_condition = "IOC";
+  }
+  else if (matching::order::order_time_condition::FOK == o.time_condition)
+  {
+    time_condition = "FOK";
+  }
+  else if (matching::order::order_time_condition::MAKER_ONLY == o.time_condition)
+  {
+    time_condition = "MAKER_ONLY";
+  }
+  else
+  {
+    time_condition = "MAKER_ONLY_REPRICE";
+  }
+  if (matching::order::order_action_type::NEW == o.order_action)
+  {
+    action = "NEW";
+  }
+  else if (matching::order::order_action_type::CANCEL == o.order_action)
+  {
+    action = "CANCEL";
+  }
+  else
+  {
+    action = "AMEND";
+  }
+  if (matching::order::order_matched_type::TAKER == o.matched_type)
+  {
+    matched_type = "TAKER";
+  }
+  else
+  {
+    matched_type = "MAKER";
+  }
+  os
+      << "action:" << action
+      << ",side:" << side
+      << ",time_condition:" << time_condition
+      << ",order_id:" << o.order_id
+      << ",client_order_id:" << o.client_order_id
+      << ",quantity:" << o.quantity
+      << ",display_quantity:" << o.display_quantity
+      << ",remain_quantity:" << o.remain_quantity
+      << ",price:" << o.price
+      << ",buy_stop_trigger_price:" << o.buy_stop_trigger_price
+      << ",buy_stop_limited_price:" << o.buy_stop_limited_price
+      << ",sell_stop_trigger_price:" << o.sell_stop_trigger_price
+      << ",sell_stop_limited_price:" << o.sell_stop_limited_price
+      << ",last_match_price:" << o.last_match_price
+      << ",last_match_quantity:" << o.last_match_quantity
+      << ",last_matched_order_id:" << o.last_matched_order_id
+      << ",last_matched_order_id2:" << o.last_matched_order_id2
+      << ",matched_id:" << o.matched_id
+      << ",status:" << status
+      << ",matched_type:" << matched_type
+      << std::endl;
+  return os;
+}
+/*
+json::Object handle_order(const matching::order& o)
+{
+  std::string type = "";
+  std::string side = "";
+  std::string status = "";
+  std::string time_condition = "";
+  std::string action = "";
+  std::string matched_type = "";
+  if (matching::order::order_type::LIMITED == o.type)
+  {
+    type = "LIMITED";
+  }
+  else
+  {
+    type = "MARKET";
+  }
+  if (matching::order::order_side::BUY == o.side)
+  {
+    side = "BUY";
+  }
+  else if (matching::order::order_side::SELL == o.side)
+  {
+    side = "SELL";
+  }
+  else if (matching::order::order_side::BUY_STOP == o.side)
+  {
+    side = "BUY_STOP";
+  }
+  else if (matching::order::order_side::SELL_STOP == o.side)
+  {
+    side = "SELL_STOP";
+  }
+  else if (matching::order::order_side::BUY_SELL_STOP == o.side)
+  {
+    side = "BUY_SELL_STOP";
+  }
+  else
+  {
+    side = "SELL_BUY_STOP";
+  }
+  if (o.order_state == matching::order::order_status_type::OPEN)
+  {
+    status = "OPEN";
+  }
+  else if (o.order_state == matching::order::order_status_type::PARTIAL_FILL)
+  {
+    status = "PARTIAL_FILL";
+  }
+  else if (o.order_state == matching::order::order_status_type::FILLED)
+  {
+    status = "FILLED";
+  }
+  else if (o.order_state == matching::order::order_status_type::CANCELED_BY_MARKET_ORDER_NOT_FULL_MATCHED)
+  {
+    status = "CANCELED_BY_MARKET_ORDER_NOT_FULL_MATCHED";
+  }
+  else if (o.order_state == matching::order::order_status_type::CANCELED_BY_MARKET_ORDER_NOTHING_MATCH)
+  {
+    status = "CANCELED_BY_MARKET_ORDER_NOTHING_MATCH";
+  }
+  else if (o.order_state == matching::order::order_status_type::CANCELED_ALL_BY_IOC)
+  {
+    status = "CANCELED_ALL_BY_IOC";
+  }
+  else if (o.order_state == matching::order::order_status_type::CANCELED_PARTIAL_BY_IOC)
+  {
+    status = "CANCELED_PARTIAL_BY_IOC";
+  }
+  else if (o.order_state == matching::order::order_status_type::CANCELED_BY_FOK)
+  {
+    status = "CANCELED_BY_FOK";
+  }
+  else if (o.order_state == matching::order::order_status_type::CANCELED_BY_MAKER_ONLY)
+  {
+    status = "CANCELED_BY_MAKER_ONLY";
+  }
+  else if (o.order_state == matching::order::order_status_type::REJECT_CANCEL_ORDER_ID_NOT_FOUND)
+  {
+    status = "REJECT_CANCEL_ORDER_ID_NOT_FOUND";
+  }
+  else if (o.order_state == matching::order::order_status_type::REJECT_AMEND_ORDER_ID_NOT_FOUND)
+  {
+    status = "REJECT_AMEND_ORDER_ID_NOT_FOUND";
+  }
+  else if (o.order_state == matching::order::order_status_type::REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY)
+  {
+    status = "REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY";
+  }
+  else if (o.order_state == matching::order::order_status_type::REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMITED)
+  {
+    status = "REJECT_BUY_STOP_TRIGGER_LESS_THAN_STOP_LIMITED";
+  }
+  else if (o.order_state == matching::order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED)
+  {
+    status = "REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED";
+  }
+  else if (o.order_state == matching::order::order_status_type::REJECT_UNKNOW_ORDER_ACTION)
+  {
+    status = "REJECT_UNKNOW_ORDER_ACTION";
+  }
+  else if (o.order_state == matching::order::order_status_type::REJECT_QUANTITY_ZERO)
+  {
+    status = "REJECT_QUANTITY_ZERO";
+  }
+  else
+  {
+    status = "REJECT_LIMITE_ORDER_WITH_MARKET_PRICE";
+  }
+  if (matching::order::order_time_condition::GTC == o.time_condition)
+  {
+    time_condition = "GTC";
+  }
+  else if (matching::order::order_time_condition::IOC == o.time_condition)
+  {
+    time_condition = "IOC";
+  }
+  else if (matching::order::order_time_condition::FOK == o.time_condition)
+  {
+    time_condition = "FOK";
+  }
+  else if (matching::order::order_time_condition::MAKER_ONLY == o.time_condition)
+  {
+    time_condition = "MAKER_ONLY";
+  }
+  else
+  {
+    time_condition = "MAKER_ONLY_REPRICE";
+  }
+  if (matching::order::order_action_type::NEW == o.order_action)
+  {
+    action = "NEW";
+  }
+  else if (matching::order::order_action_type::CANCEL == o.order_action)
+  {
+    action = "CANCEL";
+  }
+  else
+  {
+    action = "AMEND";
+  }
+  if (matching::order::order_matched_type::TAKER == o.matched_type)
+  {
+    matched_type = "TAKER";
+  }
+  else
+  {
+    matched_type = "MAKER";
+  }
+  client_to_engine_id_map[o.client_order_id] = o.order_id;
+  elog.debug()
+      << "action:" << action
+      << ",side:" << side
+      << ",time_condition:" << time_condition
+      << ",order_id:" << o.order_id
+      << ",client_order_id:" << o.client_order_id
+      << ",quantity:" << o.quantity
+      << ",display_quantity:" << o.display_quantity
+      << ",remain_quantity:" << o.remain_quantity
+      << ",price:" << o.price
+      << ",buy_stop_trigger_price:" << o.buy_stop_trigger_price
+      << ",buy_stop_limited_price:" << o.buy_stop_limited_price
+      << ",sell_stop_trigger_price:" << o.sell_stop_trigger_price
+      << ",sell_stop_limited_price:" << o.sell_stop_limited_price
+      << ",last_match_price:" << o.last_match_price
+      << ",last_match_quantity:" << o.last_match_quantity
+      << ",last_matched_order_id:" << o.last_matched_order_id
+      << ",last_matched_order_id2:" << o.last_matched_order_id2
+      << ",matched_id:" << o.matched_id
+      << ",status:" << status
+      << ",matched_type:" << matched_type
+      << std::endl;
+
+  json::Object response;
+  response.insert("action", json::String(action));
+  response.insert("side", json::String(side));
+  response.insert("time_condition", json::String(time_condition));
+  response.insert("order_id", json::Integer(o.order_id));
+  response.insert("client_order_id", json::Integer(o.client_order_id));
+  response.insert("quantity", json::Integer(o.quantity));
+  response.insert("display_quantity", json::Integer(o.display_quantity));
+  response.insert("remain_quantity", json::Integer(o.remain_quantity));
+  response.insert("price", json::Integer(o.price));
+  response.insert("buy_stop_trigger_price", json::Integer(o.buy_stop_trigger_price));
+
+  response.insert("buy_stop_limited_price", json::Integer(o.buy_stop_limited_price));
+  response.insert("sell_stop_trigger_price", json::Integer(o.sell_stop_trigger_price));
+  response.insert("sell_stop_limited_price", json::Integer(o.sell_stop_limited_price));
+  response.insert("last_match_price", json::Integer(o.last_match_price));
+  response.insert("last_match_quantity", json::Integer(o.last_match_quantity));
+  response.insert("last_matched_order_id", json::Integer(o.last_matched_order_id));
+  response.insert("last_matched_order_id2", json::Integer(o.last_matched_order_id2));
+  response.insert("matched_id", json::Integer(o.matched_id));
+  response.insert("status", json::String(status));
+  response.insert("matched_type", json::String(matched_type));
+
+  //response.insert("time",
+  //    json::Integer(std::chrono::duration_cast<std::chrono::microseconds>(reply.time.time_since_epoch()).count()));
+
+  return response;
+}
+*/
+
+json::Object handle_order(const matching::order& o);
 
 namespace proxy {
   std::shared_mutex Client::clients_rwlock;
@@ -12,9 +388,10 @@ namespace proxy {
   size_t Client::receive_response(const void *buf, size_t n) {
     std::lock_guard<std::mutex> callback_queue_lock(callback_queue_mutex);
     if (callback_queue.empty()) {
-      throw std::ios_base::failure("received spurious response from core");
+      throw std::ios_base::failure("received spurious response from core in Client::receive_response");
     }
-    auto reply_size = *static_cast<const core::Opcode *>(buf) == Success ? callback_queue.front()(buf, n) : sizeof(core::Opcode);
+    size_t reply_size = sizeof(matching::order);
+    //auto reply_size = *static_cast<const core::Opcode *>(buf) == Success ? callback_queue.front()(buf, n) : sizeof(core::Opcode);
     if (n < reply_size) {
       return 0;
     }
@@ -27,7 +404,7 @@ namespace proxy {
         catch (const std::system_error &e) {
           if (elog.warn_enabled() && (e.code().category() != std::system_category() || e.code().value() != EPIPE)) {
             int i;
-            socket.ioctl(TIOCOUTQ, &i);
+            //socket.ioctl(TIOCOUTQ, &i);
             elog.warn() << "dropping " << peer_addr << ": " << e.what() << " [" << i << ']' << std::endl;
           }
           throw;
@@ -35,7 +412,7 @@ namespace proxy {
         catch (const std::exception &e) {
           if (elog.warn_enabled()) {
             int i;
-            socket.ioctl(TIOCOUTQ, &i);
+            //socket.ioctl(TIOCOUTQ, &i);
             elog.warn() << "dropping " << peer_addr << ": " << e.what() << " [" << i << ']' << std::endl;
           }
           throw;
@@ -43,7 +420,7 @@ namespace proxy {
       }
       catch (...) {
         try {
-          socket.shutdown(SHUT_RDWR);
+          //socket.shutdown(SHUT_RDWR);
         }
         catch (...) {
         }
@@ -53,7 +430,7 @@ namespace proxy {
     callback_queue.pop();
     if (throttled) {
       throttled = false;
-      selector->modify(socket, this, Selector::Flags::READABLE);
+      //selector->modify(socket, this, Selector::Flags::READABLE);
     }
     return reply_size;
   }
@@ -108,6 +485,7 @@ namespace proxy {
       } else if (skip_auth_allowed) {
         id_t request_user_id = narrow_check<id_t>(*request.get("user_id").as_integer());
         this->switch_user(request_user_id);
+        this->set_client_user_id(request_user_id);
         json::Object response;
         response.insert("error_code", json::Integer(0));
         this->send_message(response);
@@ -143,6 +521,7 @@ namespace proxy {
           sha224.write(client_nonce, sizeof client_nonce);
           if (ecp_verify(secp224k1_p, secp224k1_a, *secp224k1_G, secp224k1_n, pubkey[0].data(), bytes_to_mpn224(*reinterpret_cast<const uint8_t (*)[SHA224::digest_size]>(sha224.digest().data())).data(), signature_r.data(), signature_s.data(), 4)) {
             this->switch_user(request_user_id);
+            this->set_client_user_id(request_user_id);
             json::Object response;
             if (tag) {
               response.insert("tag", json::Integer(tag));
@@ -367,14 +746,69 @@ namespace proxy {
         }
       }
     } else if (request_method == "PlaceOrder") {
-      struct order o;
-      o.price = narrow_check<decltype(OrderParams::price)>(*request.find("price")->as_integer());
-      o.quantity = narrow_check<decltype(OrderParams::quantity)>(*request.get("quantity").as_integer());
-      o.side = o.quantity > 0 ? matching::order::order_side::BUY : matching::order::order_side::SELL;
-      o.display_quantity = o.quantity;
+//      if (request_tonce_ptr && (tonce = narrow_check<uint64_t>(*request_tonce_ptr->as_integer())) == 0) {
+//        this->send_error(tag, 8, "Tonce must not be zero.");
+//      }
+      auto px_ptr                   = request.find("price");
+      auto qty_ptr                  = request.find("quantity");
+      auto client_order_id_ptr      = request.find("client_order_id");
+      auto order_id_ptr             = request.find("order_id");
+      auto display_qty_ptr          = request.find("display_quantity");
+      auto buy_stop_trigger_px_ptr  = request.find("buy_stop_trigger_price");
+      auto buy_stop_limited_px_ptr  = request.find("buy_stop_limited_price");
+      auto sell_stop_trigger_px_ptr = request.find("sell_stop_trigger_price");
+      auto sell_stop_limited_px_ptr = request.find("sell_stop_limited_price");
 
-      auto dummy_cb = [](const void *buf, size_t n)-> size_t{};
-      this->do_request(tag, &o, std::move(dummy_cb));
+      auto side_ptr           = request.find("side");
+      auto order_action_ptr   = request.find("order_action");
+      auto time_condition_ptr = request.find("time_condition");
+
+      auto px   = px_ptr  ? narrow_check<decltype(OrderParams::price     )>(*px_ptr->as_integer()) : 0;
+      auto qty  = qty_ptr ? narrow_check<decltype(OrderParams::quantity)>(*qty_ptr->as_integer()) : 0;
+      auto client_order_id      = client_order_id_ptr      ? narrow_check<uint64_t>(*client_order_id_ptr->as_integer()) :0;
+      auto order_id             = order_id_ptr             ? narrow_check<uint64_t>(*order_id_ptr->as_integer()) :0;
+      auto display_qty          = display_qty_ptr          ? narrow_check<uint64_t>(*display_qty_ptr->as_integer()):0;
+      auto buy_stop_trigger_px  = buy_stop_trigger_px_ptr  ? narrow_check<uint64_t>(*buy_stop_trigger_px_ptr->as_integer()):0;
+      auto buy_stop_limited_px  = buy_stop_limited_px_ptr  ? narrow_check<uint64_t>(*buy_stop_limited_px_ptr->as_integer()):0;
+      auto sell_stop_trigger_px = sell_stop_trigger_px_ptr ? narrow_check<uint64_t>(*sell_stop_trigger_px_ptr->as_integer()):0;
+      auto sell_stop_limited_px = sell_stop_limited_px_ptr ? narrow_check<uint64_t>(*sell_stop_limited_px_ptr->as_integer()):0;
+
+      auto side           = side_ptr           ? *dynamic_cast<const json::String *>(side_ptr          )->as_string() : "";
+      auto order_action   = order_action_ptr   ? *dynamic_cast<const json::String *>(order_action_ptr  )->as_string() : "";
+      auto time_condition = time_condition_ptr ? *dynamic_cast<const json::String *>(time_condition_ptr)->as_string() : "";
+
+      matching::order o;
+      o.order_action =  order_action.compare("NEW")    == 0 ? matching::order::NEW    :
+                       (order_action.compare("CANCEL") == 0 ? matching::order::CANCEL :
+                                                                 matching::order::AMEND  );
+      o.side =  side.compare("SELL"     ) == 0 ? matching::order::order_side::SELL     :
+               (side.compare("BUY"      ) == 0 ? matching::order::order_side::BUY      :
+               (side.compare("BUY_STOP" ) == 0 ? matching::order::order_side::BUY_STOP :
+                                                    matching::order::order_side::SELL_STOP ));
+      o.time_condition =  time_condition.compare("FOK"               ) == 0 ? matching::order::FOK :
+                         (time_condition.compare("IOC"               ) == 0 ? matching::order::IOC :
+                         (time_condition.compare("MAKER_ONLY_REPRICE") == 0 ? matching::order::MAKER_ONLY_REPRICE :
+                         (time_condition.compare("MAKER_ONLY"        ) == 0 ? matching::order::MAKER_ONLY :
+                                                                                  matching::order::GTC)));
+      o.price                   = px;
+      o.quantity                = qty;
+      o.client_order_id         = client_order_id;
+      o.order_id                = order_id;
+      o.display_quantity        = qty;   // TODO: use display_qty
+      o.buy_stop_trigger_price  = buy_stop_trigger_px;
+      o.buy_stop_limited_price  = buy_stop_limited_px;
+      o.sell_stop_trigger_price = sell_stop_trigger_px;
+      o.sell_stop_limited_price = sell_stop_limited_px;
+
+      bool transient = false;
+      auto callback = [this, tag, transient](const void *buf, size_t n) -> size_t {
+        auto &reply = (*static_cast<const matching::order *>(buf));
+        json::Object response = handle_order(reply);
+        if (tag)
+          response.insert("tag", json::Integer(tag));
+        //this->send_message(response);
+      };
+      this->do_request(tag, o, std::move(callback));
 
 /*
       if (order_bucket.take(1) == 0) {
@@ -953,6 +1387,7 @@ namespace proxy {
   }
 
   void Client::schedule_ping() noexcept {
+    /*
     scheduler.call_at(next_ping_time, [weak_this = std::weak_ptr<Client>(shared_this)]() noexcept {
       if (auto shared_this = weak_this.lock()) {
         if (shared_this->next_ping_time <= std::chrono::steady_clock::now()) {
@@ -962,7 +1397,7 @@ namespace proxy {
               std::lock_guard<std::mutex> send_lock(shared_this->send_mutex);
               if (shared_this->next_ping_time <= std::chrono::steady_clock::now()) {
                 try {
-                  shared_this->send(Ping, nullptr, 0);
+                  //shared_this->send(Ping, nullptr, 0);
                 }
                 catch (...) {
                 }
@@ -975,6 +1410,7 @@ namespace proxy {
         }
       }
     });
+     */
   }
 
   void Client::reschedule_ping() noexcept {
@@ -982,8 +1418,10 @@ namespace proxy {
   }
 
 
-  void Client::do_request(intmax_t tag, const void *msg, size_t n, std::function<size_t(const void *, size_t)> &&callback) {
+  void Client::
+  do_request(intmax_t tag, const void *msg, size_t n, std::function<size_t(const void *, size_t)> &&callback) {
     std::lock_guard<std::mutex> callback_queue_lock(callback_queue_mutex);
+    //if (uplink->do_request(msg, n, shared_this)) {
     if (uplink->do_request(msg, n, shared_this)) {
       callback_queue.push(std::move(callback));
     } else {
