@@ -752,6 +752,7 @@ namespace proxy {
       auto px_ptr                   = request.find("price");
       auto qty_ptr                  = request.find("quantity");
       auto client_order_id_ptr      = request.find("client_order_id");
+      auto order_id_ptr             = request.find("order_id");
       auto display_qty_ptr          = request.find("display_quantity");
       auto buy_stop_trigger_px_ptr  = request.find("buy_stop_trigger_price");
       auto buy_stop_limited_px_ptr  = request.find("buy_stop_limited_price");
@@ -765,6 +766,7 @@ namespace proxy {
       auto px   = px_ptr  ? narrow_check<decltype(OrderParams::price     )>(*px_ptr->as_integer()) : 0;
       auto qty  = qty_ptr ? narrow_check<decltype(OrderParams::quantity)>(*qty_ptr->as_integer()) : 0;
       auto client_order_id      = client_order_id_ptr      ? narrow_check<uint64_t>(*client_order_id_ptr->as_integer()) :0;
+      auto order_id             = order_id_ptr             ? narrow_check<uint64_t>(*order_id_ptr->as_integer()) :0;
       auto display_qty          = display_qty_ptr          ? narrow_check<uint64_t>(*display_qty_ptr->as_integer()):0;
       auto buy_stop_trigger_px  = buy_stop_trigger_px_ptr  ? narrow_check<uint64_t>(*buy_stop_trigger_px_ptr->as_integer()):0;
       auto buy_stop_limited_px  = buy_stop_limited_px_ptr  ? narrow_check<uint64_t>(*buy_stop_limited_px_ptr->as_integer()):0;
@@ -791,6 +793,7 @@ namespace proxy {
       o.price                   = px;
       o.quantity                = qty;
       o.client_order_id         = client_order_id;
+      o.order_id                = order_id;
       o.display_quantity        = qty;   // TODO: use display_qty
       o.buy_stop_trigger_price  = buy_stop_trigger_px;
       o.buy_stop_limited_price  = buy_stop_limited_px;
