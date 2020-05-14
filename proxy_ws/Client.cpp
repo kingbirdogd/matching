@@ -763,8 +763,8 @@ namespace proxy {
       auto order_action_ptr   = request.find("order_action");
       auto time_condition_ptr = request.find("time_condition");
 
-      auto px   = px_ptr  ? narrow_check<decltype(OrderParams::price     )>(*px_ptr->as_integer()) : 0;
-      auto qty  = qty_ptr ? narrow_check<decltype(OrderParams::quantity)>(*qty_ptr->as_integer()) : 0;
+      auto px                   = px_ptr                   ? narrow_check<decltype(OrderParams::price   )>(*px_ptr->as_integer()) : 0;
+      auto qty                  = qty_ptr                  ? narrow_check<decltype(OrderParams::quantity)>(*qty_ptr->as_integer()) : 0;
       auto client_order_id      = client_order_id_ptr      ? narrow_check<uint64_t>(*client_order_id_ptr->as_integer()) :0;
       auto order_id             = order_id_ptr             ? narrow_check<uint64_t>(*order_id_ptr->as_integer()) :0;
       auto display_qty          = display_qty_ptr          ? narrow_check<uint64_t>(*display_qty_ptr->as_integer()):0;
