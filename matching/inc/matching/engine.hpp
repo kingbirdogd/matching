@@ -873,10 +873,12 @@ namespace matching
 	private:
 		long long best_bid()
 		{
+			_bid_book_matcher.reset();
 			return _bid_book_matcher.top_price(_bid_book.key_comp());
 		}
 		long long best_ask()
 		{
+			_bid_book_matcher.reset();
 			return _ask_book_matcher.top_price(_ask_book.key_comp());
 		}
 	private:
@@ -1187,7 +1189,7 @@ namespace matching
 				}
 				else
 				{
-					_ask_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+					_ask_stop_book[o.sell_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
 					callback(o);
 				}
 				return;
@@ -1280,7 +1282,7 @@ namespace matching
 				else
 				{
 					_bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
-					_ask_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+					_ask_stop_book[o.sell_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
 					callback(o);
 				}
 				return;

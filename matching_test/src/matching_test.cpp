@@ -331,13 +331,60 @@ void implied_test()
 	Spread.handle(o);
 }
 
+void test_case_1()
+{
+	matching::engine e(handle_order);
+	matching::order o;
+
+
+	o.side = matching::order::order_side::SELL;
+	o.client_order_id = 30010;
+	o.price = 100;
+	o.quantity = 2000;
+	o.display_quantity = 2000;
+	e.handle(o);
+
+	o.side = matching::order::order_side::BUY;
+	o.client_order_id = 30011;
+	o.price = 99;
+	o.quantity = 2000;
+	o.display_quantity = 2000;
+	e.handle(o);
+
+	o.side = matching::order::order_side::BUY;
+	o.client_order_id = 30012;
+	o.price = 98;
+	o.quantity = 2000;
+	o.display_quantity = 2000;
+	e.handle(o);
+
+	o.side = matching::order::order_side::SELL_STOP;
+	o.client_order_id = 30013;
+	o.sell_stop_trigger_price = 98;
+	o.sell_stop_limited_price = 96;
+	o.quantity = 300;
+	o.display_quantity = 300;
+	e.handle(o);
+
+	o.side = matching::order::order_side::SELL;
+	o.client_order_id = 30014;
+	o.price = 99;
+	o.quantity = 2500;
+	o.display_quantity = 2500;
+	e.handle(o);
+	return;
+}
+
 int main()
 {
+	test_case_1();
 	implied_test();
 	stop_test();
 	stop_test_by_cancel();
 	matching::engine e(handle_order);
 	matching::order o;
+
+
 	o.side = matching::order::order_side::BUY;
 	o.client_order_id = 1;
 	o.price = 100;
