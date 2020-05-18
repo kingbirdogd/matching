@@ -36,6 +36,8 @@ namespace proxy {
     void enqueue_work(std::function<void(void) /* noexcept */> &&work);
 
     void connect(std::function<void(void)> synchronized = nullptr);
+    void disconnect();
+    void reconnect();
 
     uint8_t protocol_version() const ;
 

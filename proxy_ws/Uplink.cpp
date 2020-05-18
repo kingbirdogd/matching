@@ -243,9 +243,18 @@ namespace proxy {
       this->send_message(&msg, sizeof msg);
     } */
     this->synchronized = std::move(synchronized);
+  }
 
+  void Uplink::disconnect() {
+    if (elog.debug_enabled()) elog.debug() << "Disconnecting engine..." << std::endl;
+    selector_out.remove(socket);
+    selector_in.remove(socket);
+    socket.close();
+  }
 
-    //std::cout << "done" << std::endl;
+  void Uplink::reconnect() {
+    disconnect();
+    connect(this->synchronized);
   }
 
   uint8_t Uplink::protocol_version() const {

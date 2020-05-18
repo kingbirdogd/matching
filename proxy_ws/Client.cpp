@@ -745,6 +745,8 @@ namespace proxy {
           }
         }
       }
+    } else if (request_method == "ReconnectEngine") {
+      uplink->reconnect();
     } else if (request_method == "PlaceOrder") {
 //      if (request_tonce_ptr && (tonce = narrow_check<uint64_t>(*request_tonce_ptr->as_integer())) == 0) {
 //        this->send_error(tag, 8, "Tonce must not be zero.");
