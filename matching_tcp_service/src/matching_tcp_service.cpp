@@ -49,4 +49,9 @@ void matching_tcp_service::_handle_snd_odr(const matching::order& o)
 	s_.send(o);
 }
 
+matching::engine& matching_tcp_service::get_engine()
+{
+	return e_;
+}
+
 
