@@ -12,7 +12,7 @@
 int main(int iArgc, char** pszArgv)
 {
 
-	if (1 != iArgc)
+	if (2 != iArgc)
 	{
 		std::cout << "usage: test_zmq_matching_server <port1[1,65535]> " << std::endl;
 		return -1;
@@ -42,7 +42,7 @@ int main(int iArgc, char** pszArgv)
 	auto sPort3 = static_cast<unsigned short int>(iPort3);
    */
 	zmq::context_t ctx;
-	matching_zmq_service s1(ctx);
+	matching_zmq_service s1(ctx, sPort1);
 	//matching_tcp_service s2(sPort2);
 	//matching_tcp_service s3(sPort3);
 	auto& March = s1.get_engine(); /*

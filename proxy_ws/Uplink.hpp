@@ -2,6 +2,7 @@
 #define ENGINE_UPLINK_HPP
 
 #include <matching/order.hpp>
+#include <zmq.hpp>
 #include "common/log.h"
 #include "transceiver.h"
 #include "workqueue.h"
@@ -29,11 +30,17 @@ namespace proxy {
 
     uint8_t num_queue;
     uint32_t port;
+    zmq::context_t ctx;
+    zmq::socket_t pub_sock;
 
   public:
     Uplink(const char host[], Selector &selector_in, Selector &selector_out, uint8_t num_queue, uint32_t matching_port)
       : host(host), selector_in(selector_in),
-        selector_out(selector_out), num_queue(num_queue), port(matching_port) {}
+        selector_out(selector_out), num_queue(num_queue), port(matching_port),
+        ctx(1), pub_sock(ctx, ZMQ_PUB) {
+      pub_sock.connect("tcp://localhost:14002"); // hard code for testing
+      std::cout << "Connected to xsub" << std::endl;
+    }
 
     void enqueue_work(std::function<void(void) /* noexcept */> &&work);
 

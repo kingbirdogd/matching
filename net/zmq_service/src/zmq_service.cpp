@@ -8,12 +8,13 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <string.h>
+#include <iostream>
 
 using namespace net;
 
 
 //zmq_service::zmq_service(unsigned short int bind_port, const std::string& bind_addr):
-zmq_service::zmq_service(zmq::context_t &ctx):
+zmq_service::zmq_service(zmq::context_t &ctx, unsigned short int bind_port, const std::string& bind_addr):
 		_on_bind(),
 		_on_unbind(),
 		_on_connected(),
@@ -21,11 +22,14 @@ zmq_service::zmq_service(zmq::context_t &ctx):
 		_on_msg(),
 		_clients(),
 		_sock(0),
-		//_bind_addr(bind_addr),
-		//_bind_port(bind_port),
+		_bind_addr(bind_addr),
+		_bind_port(bind_port),
 		_sta(status::UNBIND),
-		_ctx(ctx)
+		_ctx(ctx),
+    _pub_sock(_ctx, ZMQ_PUB)
 {
+  _pub_sock.connect("tcp://localhost:14002"); // hard code for testing
+  std::cout << "Connected to xsub" << std::endl;
 }
 
 zmq_service::zmq_service(zmq_service&& s):
@@ -36,10 +40,11 @@ zmq_service::zmq_service(zmq_service&& s):
 		_on_msg(std::move(s._on_msg)),
 		_clients(std::move(s._clients)),
 		_sock(s._sock),
-		//_bind_addr(std::move(s._bind_addr)),
-		//_bind_port(s._bind_port),
+		_bind_addr(std::move(s._bind_addr)),
+		_bind_port(s._bind_port),
 		_sta(s._sta),
-		_ctx(s._ctx)
+		_ctx(s._ctx),
+		_pub_sock(_ctx, ZMQ_PUB)
 {
 }
 /*
@@ -82,6 +87,7 @@ void zmq_service::send(const void* ptr, std::size_t size)
 		auto cli = (*it);
 		cli->send(ptr, size);
 	}
+  _pub_sock.send(zmq::const_buffer(ptr,  size), zmq::send_flags::none);
 }
 
 bool zmq_service::close(zmq_client* cli)
@@ -159,8 +165,8 @@ void zmq_service::run()
 
 void zmq_service::_bind()
 {
-  _zmq_sock.connect("inproc://backend");
-/*
+  //_zmq_sock.connect("inproc://backend");
+
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(_bind_port);
@@ -197,9 +203,9 @@ void zmq_service::_bind()
 		::close(fd);
 		return;
 	}
-*/
+
 	_sta = status::BINDED;
-	//_sock = fd;
+	_sock = fd;
 	if (_on_bind)
 	{
 		_on_bind();

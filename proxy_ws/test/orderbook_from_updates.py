@@ -16,10 +16,10 @@ import sys
 from _collections import deque
 from datetime import datetime
 
-#HOST  = 'localhost'
-#PORT  = 8080
-HOST  = 'ironmanapi.coinflex.com'
-PORT  = 0
+HOST  = 'localhost'
+PORT  = 8080
+#HOST  = 'ironmanapi3.coinflex.com'
+#PORT  = 0
 
 USER_IDS = [1]
 nUsers   = len(USER_IDS)

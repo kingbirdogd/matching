@@ -1,13 +1,13 @@
 #include <matching_zmq_service.hpp>
 
 matching_zmq_service::matching_zmq_service(
-    zmq::context_t &ctx
-    //unsigned short int bind_port,
-		//const std::string& bind_addr
+    zmq::context_t &ctx,
+    unsigned short int bind_port,
+		const std::string& bind_addr
 		):
 		e_([&](const matching::order& o){_handle_snd_odr(o);}),
 		h_([&](const matching::order& o){_handle_rcv_odr(o);}),
-		s_(ctx)
+		s_(ctx, bind_port, bind_addr)
 		//s_(bind_port, bind_addr)
 {
 	s_.set_on_connect([&](net::zmq_client* cli)

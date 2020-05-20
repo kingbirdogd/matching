@@ -4,6 +4,8 @@
 #include <matching/engine.hpp>
 #include <matching/order_handler.hpp>
 #include "../../net/zmq_service/inc/net/zmq_service.hpp"
+#include <zmq.hpp>
+//#include "../../net/tcp_service/inc/net/tcp_service.hpp"
 
 
 class matching_zmq_service
@@ -14,7 +16,7 @@ private:
 	net::zmq_service s_;
 public:
 	//matching_zmq_service(unsigned short int bind_port, const std::string& bind_addr = "");
-  matching_zmq_service(zmq::context_t &ctx);
+  matching_zmq_service(zmq::context_t &ctx, unsigned short int bind_port, const std::string& bind_addr = "");
 	matching_zmq_service(matching_zmq_service&& s);
 	//matching_zmq_service& operator=(matching_zmq_service&& s);
 	~matching_zmq_service() = default;

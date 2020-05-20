@@ -27,14 +27,14 @@ namespace net
 		msg_cb _on_msg;
 		client_set _clients;
 		int _sock;
-		//std::string _bind_addr;
-		//unsigned short int _bind_port;
+		std::string _bind_addr;
+		unsigned short int _bind_port;
 		status _sta;
     zmq::context_t &_ctx;
-    zmq::socket_t _zmq_sock;
+    zmq::socket_t _pub_sock;
 	public:
-		//zmq_service(unsigned short int bind_port, const std::string& bind_addr = "");
-    zmq_service(zmq::context_t &ctx);
+		zmq_service(zmq::context_t &ctx, unsigned short int bind_port, const std::string& bind_addr = "");
+    //zmq_service(zmq::context_t &ctx);
 		zmq_service(zmq_service&&);
 		//zmq_service& operator=(zmq_service&&);
 		~zmq_service();

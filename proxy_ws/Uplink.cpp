@@ -330,6 +330,9 @@ namespace proxy {
       auto &reply = (*static_cast<const matching::order *>(buf));
       json::Object response = handle_order(reply);
       Client::multicast(Client::all_clients, response);
+      std::stringstream ss;
+      ss << response;
+      pub_sock.send(zmq::const_buffer(ss.str().c_str(),  ss.str().size()), zmq::send_flags::none);
 
 //      std::unique_lock<std::mutex> callback_queue_lock(callback_queue_mutex);
 //      if (callback_queue.empty()) {
