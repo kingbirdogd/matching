@@ -1,2 +1,4 @@
 add_subdirectory(tcp_client)
 add_subdirectory(tcp_service)
+add_subdirectory(zmq_client)
+add_subdirectory(zmq_service)

@@ -1,0 +1,6 @@
+add_library(matching_zmq_service matching_zmq_service.cpp)
+target_include_directories(matching_zmq_service PUBLIC ../inc)
+target_include_directories(matching_zmq_service PUBLIC ${CMAKE_SOURCE_DIR}/matching/order/inc)
+target_include_directories(matching_zmq_service PUBLIC ${CMAKE_SOURCE_DIR}/matching/inc)
+target_include_directories(matching_zmq_service PUBLIC ${CMAKE_SOURCE_DIR}/core/inc)
+target_include_directories(matching_zmq_service PUBLIC ${CMAKE_SOURCE_DIR}/net/zmq_client/inc)
