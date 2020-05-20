@@ -18,7 +18,7 @@ int main(int iArgc, char** pszArgv)
 	}
 	int iPort1 = std::atoi(pszArgv[1]);
 	int iPort2 = std::atoi(pszArgv[2]);
-	int iPort3 = std::atoi(pszArgv[2]);
+	int iPort3 = std::atoi(pszArgv[3]);
 	if (iPort1 < 1 || iPort1 > 65535)
 	{
 		std::cout << "usage: test_tcp_matching_server <port1[1,65535]> <port2[1,65535]> <port3[1,65535]>" << std::endl;
