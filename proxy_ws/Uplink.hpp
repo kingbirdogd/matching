@@ -28,10 +28,12 @@ namespace proxy {
     std::queue<std::shared_ptr<Client>> callback_queue;
 
     uint8_t num_queue;
+    uint32_t port;
 
   public:
-    Uplink(const char host[], Selector &selector_in, Selector &selector_out, uint8_t num_queue) : host(host), selector_in(selector_in),
-                                                                                                  selector_out(selector_out), num_queue(num_queue) {}
+    Uplink(const char host[], Selector &selector_in, Selector &selector_out, uint8_t num_queue, uint32_t matching_port)
+      : host(host), selector_in(selector_in),
+        selector_out(selector_out), num_queue(num_queue), port(matching_port) {}
 
     void enqueue_work(std::function<void(void) /* noexcept */> &&work);
 

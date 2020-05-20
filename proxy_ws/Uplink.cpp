@@ -224,7 +224,7 @@ namespace proxy {
   }
 
   void Uplink::connect(std::function<void(void)> synchronized) {
-    socket = connect_with_retry(host, CORE_PORT);
+    socket = connect_with_retry(host, port);
     socket.fcntl(F_SETFL, socket.fcntl(F_GETFL) | O_NONBLOCK);
     selector_out.add(socket, this, Selector::Flags::NONE);
     selector_in.add(socket, this, Selector::Flags::READABLE);
