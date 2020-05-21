@@ -28,8 +28,8 @@ zmq_service::zmq_service(zmq::context_t &ctx, unsigned short int bind_port, cons
 		_ctx(ctx),
     _pub_sock(_ctx, ZMQ_PUB)
 {
-  _pub_sock.connect("tcp://localhost:14002"); // hard code for testing
-  std::cout << "Connected to xsub" << std::endl;
+  //_pub_sock.connect("tcp://localhost:14002"); // hard code for testing
+  //std::cout << "Connected to xsub" << std::endl;
 }
 
 zmq_service::zmq_service(zmq_service&& s):

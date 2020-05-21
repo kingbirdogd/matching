@@ -15,6 +15,9 @@ int main (int argc, char *argv[])
 
   //  Socket facing clients
   zmq::socket_t frontend (context, ZMQ_XSUB);
+  frontend.setsockopt(ZMQ_RCVHWM, 1000);
+  frontend.setsockopt(ZMQ_SNDHWM, 1000);
+
   std::stringstream frontend_url;
   frontend_url << "tcp://*:" << argv[2];
   std::cout << "xsub binding to " << frontend_url.str() << std::endl;
@@ -22,6 +25,9 @@ int main (int argc, char *argv[])
 
   //  Socket facing services
   zmq::socket_t backend (context, ZMQ_XPUB);
+  backend.setsockopt(ZMQ_RCVHWM, 1000);
+  backend.setsockopt(ZMQ_SNDHWM, 1000);
+
   std::stringstream backend_url;
   backend_url << "tcp://*:" << argv[1];
   std::cout << "xpub binding to " << backend_url.str() << std::endl;
