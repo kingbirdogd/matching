@@ -87,7 +87,7 @@ void zmq_service::send(const void* ptr, std::size_t size)
 		auto cli = (*it);
 		cli->send(ptr, size);
 	}
-  _pub_sock.send(zmq::const_buffer(ptr,  size), zmq::send_flags::none);
+  //_pub_sock.send(zmq::const_buffer(ptr,  size), zmq::send_flags::none);
 }
 
 bool zmq_service::close(zmq_client* cli)
