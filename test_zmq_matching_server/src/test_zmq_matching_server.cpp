@@ -48,10 +48,10 @@ int main(int iArgc, char** pszArgv)
 	auto& Spread = s3.get_engine();
 	matching::implied_spread_in_bid spread_bid_implier(1, &March, &June);
 	matching::implied_spread_in_ask spread_ask_implier(1, &March, &June);
-	matching::implied_spread_in_bid a_bid_implier(1, &Spread, &June);
-	matching::implied_spread_in_ask a_ask_implier(1, &Spread, &June);
-	matching::implied_spread_in_bid b_bid_implier(1, &March, &Spread);
-	matching::implied_spread_in_ask b_ask_implier(1, &March, &Spread);
+	matching::implied_spread_a_out_bid a_bid_implier(1, &Spread, &June);
+	matching::implied_spread_a_out_ask a_ask_implier(1, &Spread, &June);
+	matching::implied_spread_b_out_bid b_bid_implier(1, &March, &Spread);
+	matching::implied_spread_b_out_ask b_ask_implier(1, &March, &Spread);
 	Spread.set_bid_implier(&spread_bid_implier);
 	Spread.set_ask_implier(&spread_ask_implier);
 	March.set_bid_implier(&a_bid_implier);
