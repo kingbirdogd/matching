@@ -16,9 +16,11 @@ import sys
 from _collections import deque
 from datetime import datetime
 
-HOST  = 'localhost'
-PORT  = 8080
-#HOST  = 'ironmanapi3.coinflex.com'
+HOST   = ''
+PORT   = 0
+#HOST  = 'localhost'
+#PORT  = 8080
+#HOST  = 'ironmanapi1.coinflex.com'
 #PORT  = 0
 
 USER_IDS = [1]
@@ -214,6 +216,7 @@ def get_order_book():
     ask = sorted(ask.items(), key=lambda x:x[0])
     wP = len(str(ask[-1][0])) if len(ask) > 0 else (len(str(bid[0][0])) if len(bid) >0 else 0)
     wP = max(4, wP)
+    wQ = max(4, wQ)
     s = ' '
     print('{dt}  (wQ={wQ} wP={wP})'.format(dt=datetime.now(), wP=wP, wQ=wQ))
     print('{BidQ:>{wQ}s} {BidP:>{wP}s} {AskP:>{wP}s} {AskQ:>{wQ}s}'.format(BidQ='BidQ', BidP='BidP', AskP='AskP', AskQ='AskQ', wP=wP, wQ=wQ))
@@ -241,6 +244,12 @@ def get_order_book():
     return bid, ask
 
 if __name__ == '__main__':
+    if len(sys.argv) != 3:
+      print(f'Usage: {sys.argv[0]} HOST PORT')
+      sys.exit(-1)
+    HOST = sys.argv[1]
+    PORT = int(sys.argv[2])
+
     loop = asyncio.get_event_loop()
 
     global tonce, ws_map, bAuth_map, all_replies_map, args_map, listen_map

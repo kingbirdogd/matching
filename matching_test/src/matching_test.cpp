@@ -331,6 +331,48 @@ void implied_test()
 	Spread.handle(o);
 }
 
+void implied_test_case_5()
+{
+  matching::engine March(handle_order);
+  matching::engine June(handle_order);
+  matching::engine Spread(handle_order);
+  matching::implied_spread_in_bid spread_bid_implier(1, &March, &June);
+  matching::implied_spread_in_ask spread_ask_implier(1, &March, &June);
+  matching::implied_spread_in_bid a_bid_implier(1, &Spread, &June);
+  matching::implied_spread_in_ask a_ask_implier(1, &Spread, &June);
+  matching::implied_spread_in_bid b_bid_implier(1, &March, &Spread);
+  matching::implied_spread_in_ask b_ask_implier(1, &March, &Spread);
+  Spread.set_bid_implier(&spread_bid_implier);
+  Spread.set_ask_implier(&spread_ask_implier);
+  March.set_bid_implier(&a_bid_implier);
+  March.set_ask_implier(&a_ask_implier);
+  June.set_bid_implier(&b_bid_implier);
+  June.set_ask_implier(&b_ask_implier);
+
+  matching::order o;
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 1;
+  o.price = 20;
+  o.quantity = 5;
+  o.display_quantity = 5;
+  June.handle(o);
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 2;
+  o.price = 10;
+  o.quantity = 5;
+  o.display_quantity = 5;
+  Spread.handle(o);
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 3;
+  o.price = 30;
+  o.quantity = 5;
+  o.display_quantity = 5;
+  March.handle(o);
+}
+
 void test_case_1()
 {
 	matching::engine e(handle_order);
@@ -406,8 +448,11 @@ void test_case_2()
   return;
 }
 
+
 int main()
 {
+  implied_test_case_5();
+  /*
   test_case_2();
 	test_case_1();
 	implied_test();
@@ -600,7 +645,7 @@ int main()
 	std::cout << "6th recovery end" << std::endl;
 
 	test_object_pool();
-
+*/
 	return 0;
 }
 
