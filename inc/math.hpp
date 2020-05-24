@@ -14,7 +14,7 @@ inline long long round_up(long long price, unsigned long long mini_tick)
 {
 	long long mod = price % mini_tick;
 	if (mod == 0)
-		return mini_tick;
+		return price;
 	if (mod > 0)
 		return price + mini_tick - mod;
 	else
