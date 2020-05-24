@@ -28,3 +28,5 @@ add_subdirectory(test_tcp_matching_server)
 add_subdirectory(test_zmq_matching_server)
 add_subdirectory(xpubxsub)
 
+add_subdirectory(md)
+

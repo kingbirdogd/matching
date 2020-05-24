@@ -5,6 +5,7 @@ target_include_directories(test_zmq_matching_server PUBLIC ${CMAKE_SOURCE_DIR}/m
 target_include_directories(test_zmq_matching_server PUBLIC ${CMAKE_SOURCE_DIR}/matching/order/inc)
 target_include_directories(test_zmq_matching_server PUBLIC ${CMAKE_SOURCE_DIR}/net/zmq_client/inc)
 target_include_directories(test_zmq_matching_server PUBLIC ${CMAKE_SOURCE_DIR}/net/tcp_client/inc)
+target_include_directories(test_zmq_matching_server PUBLIC ${CMAKE_SOURCE_DIR}/inc)
 target_link_directories(test_zmq_matching_server PUBLIC $ENV{HOME}/usr/local/lib $ENV{HOME}/usr/local/lib64)
 target_link_libraries(test_zmq_matching_server matching_zmq_service zmq_service zmq_client engine pthread zmq)
 install(TARGETS test_zmq_matching_server DESTINATION ${CMAKE_INSTALL_PREFIX})
