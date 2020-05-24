@@ -21,6 +21,8 @@ namespace md
 		};
 	private:
 		basic_book main;
+		basic_book::bid_book implied_bid;
+		basic_book::ask_book implied_ask;
 		basic_book a;
 		basic_book b;
 		implier_type bid_implie_type;
@@ -36,6 +38,8 @@ namespace md
 			implier* ai = nullptr
 		):
 		main(),
+		implied_bid(),
+		implied_ask(),
 		a(),
 		b(),
 		bid_implie_type(bt),

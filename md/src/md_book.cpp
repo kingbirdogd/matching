@@ -1,6 +1,6 @@
-#include <md_book.hpp>
+#include <md/md_book.hpp>
 
-using md;
+using namespace md;
 
 void md_book::recovery(callback&& cb)
 {
