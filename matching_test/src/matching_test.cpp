@@ -1,4 +1,9 @@
 #include <matching/engine.hpp>
+#include <md/md_book.hpp>
+#include <add_bid_implier.hpp>
+#include <add_ask_implier.hpp>
+#include <minus_bid_implier.hpp>
+#include <minus_ask_implier.hpp>
 #include <matching/implied_spread_in_bid.hpp>
 #include <matching/implied_spread_in_ask.hpp>
 #include <matching/implied_spread_a_out_bid.hpp>
@@ -10,6 +15,28 @@
 #include <unordered_map>
 
 std::unordered_map<unsigned long long, unsigned long long> client_to_engine_id_map;
+
+void handle_md(const md::book_item& item)
+{
+	std::string side = "";
+	if (md::book_item::book_side::bid == item.side)
+	{
+		side = "bid";
+	}
+	else if (md::book_item::book_side::ask == item.side)
+	{
+		side = "ask";
+	}
+	else
+	{
+		side = "none";
+	}
+	std::cout
+	<< "book_item, size:" << side
+	<< ",price:" << item.price
+	<< ",quantity:" << item.quantity
+	<< std::endl;
+}
 
 void handle_order(const matching::order& o)
 {
@@ -286,9 +313,78 @@ void test_object_pool()
 
 void implied_test()
 {
-	matching::engine March(handle_order);
-	matching::engine June(handle_order);
-	matching::engine Spread(handle_order);
+	add_bid_implier abi(1);
+	add_ask_implier aai(1);
+	minus_bid_implier mbi(1);
+	minus_ask_implier mai(1);
+
+	//SHORT A(implied OUT, BID_A) <- (BID_PRICE_AB + BID_PRICE_B) @ MIN(BID_QUANTITY_AB, BID_QUANTITY_B)
+	//LONG A(implied OUT, ASK_A) <- (ASK_PRICE_AB + ASK_PRICE_B) @ MIN(ASK_QUANTITY_AB, ASK_QUANTITY_B)
+	md::md_book March_Book
+	(
+			handle_md,
+			1,
+			md::md_book::implier_type::a_bid_b_bid,
+			md::md_book::implier_type::a_ask_b_ask,
+			&abi,
+			&aai
+	);
+
+	//SHORT B(implied OUT, BID_B) <- (BID_PRICE_A - ASK_PRICE_AB) @ MIN(BID_QUANTITY_A, ASK_QUANTITY_AB)
+	//LONG B(implied OUT, ASK_B) <- (ASK_PRICE_A - BID_PRICE_AB) @ MIN(ASK_QUANTITY_A, BID_QUANTITY_AB)
+	md::md_book June_Book
+	(
+			handle_md,
+			1,
+			md::md_book::implier_type::a_bid_b_ask,
+			md::md_book::implier_type::a_ask_b_bid,
+			&mbi,
+			&mai
+	);
+
+	//SHORT AB (implied IN, BID_AB) <- (BID_PRICE_A - ASK_PRICE_B) @ MIN(BID_QUANTITY_A, ASK_QUANTITY_B)
+	//LONG AB (implied IN, ASK_AB) <- (ASK_PRICE_A - BID_PRICE_B) @ MIN(ASK_QUANTITY_A, BID_QUANTITY_B)
+	md::md_book Spread_Book
+	(
+			handle_md,
+			1,
+			md::md_book::implier_type::a_bid_b_ask,
+			md::md_book::implier_type::a_bid_b_ask,
+			&mbi,
+			&mai
+	);
+
+	matching::engine March
+	(
+		[](const matching::order& odr)
+		{
+			handle_order(odr);
+			March_Book.handle_outright(odr);
+			June_Book.handle_a(odr);
+			Spread_Book.handle_a(odr);
+		}
+	);
+	matching::engine June
+	(
+		[](const matching::order& odr)
+		{
+			handle_order(odr);
+			June_Book.handle_outright(odr);
+			March_Book.handle_b(odr);
+			Spread_Book.handle_b(odr);
+
+		}
+	);
+	matching::engine Spread
+	(
+		[](const matching::order& odr)
+		{
+			handle_order(odr);
+			Spread_Book.handle_outright(odr);
+			March_Book.handle_a(odr);
+			June_Book.handle_b(odr);
+		}
+	);
 	matching::implied_spread_in_bid spread_bid_implier(1, &March, &June);
 	matching::implied_spread_in_ask spread_ask_implier(1, &March, &June);
 	matching::implied_spread_a_out_bid a_bid_implier(1, &Spread, &June);

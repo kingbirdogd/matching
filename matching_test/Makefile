@@ -1,3 +1,3 @@
 TYPE:=EXE
-DEPS:=matching memory
+DEPS:=matching md memory
 include $(PROJECT_HOME)/common.mk

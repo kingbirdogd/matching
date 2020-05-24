@@ -173,8 +173,10 @@ void md_book::handle_a(const matching::order& odr)
 			auto leg2 = b.bid;
 			auto& implied_book = implied_bid;
 			implier* ip = bid_implier;
-			auto rt = handle_implied
-			(
+			if (ip)
+			{
+				auto rt = handle_implied
+				(
 					leg1,
 					leg2,
 					implied_book,
@@ -182,8 +184,9 @@ void md_book::handle_a(const matching::order& odr)
 					book_item::book_side::bid,
 					ip,
 					mini_tick);
-			for (const auto& item : rt)
-				cb(item);
+				for (const auto& item : rt)
+					cb(item);
+			}
 		}
 		else if (bid_implie_type == implier_type::a_bid_b_ask)
 		{
@@ -191,8 +194,10 @@ void md_book::handle_a(const matching::order& odr)
 			auto leg2 = b.ask;
 			auto& implied_book = implied_bid;
 			implier* ip = bid_implier;
-			auto rt = handle_implied
-			(
+			if (ip)
+			{
+				auto rt = handle_implied
+				(
 					leg1,
 					leg2,
 					implied_book,
@@ -200,8 +205,9 @@ void md_book::handle_a(const matching::order& odr)
 					book_item::book_side::bid,
 					ip,
 					mini_tick);
-			for (const auto& item : rt)
-				cb(item);
+				for (const auto& item : rt)
+					cb(item);
+			}
 		}
 		if (ask_implie_type == implier_type::a_bid_b_bid)
 		{
@@ -209,8 +215,10 @@ void md_book::handle_a(const matching::order& odr)
 			auto leg2 = b.bid;
 			auto& implied_book = implied_ask;
 			implier* ip = ask_implier;
-			auto rt = handle_implied
-			(
+			if (ip)
+			{
+				auto rt = handle_implied
+				(
 					leg1,
 					leg2,
 					implied_book,
@@ -218,8 +226,9 @@ void md_book::handle_a(const matching::order& odr)
 					book_item::book_side::ask,
 					ip,
 					mini_tick);
-			for (const auto& item : rt)
-				cb(item);
+				for (const auto& item : rt)
+					cb(item);
+			}
 		}
 		else if (ask_implie_type == implier_type::a_bid_b_ask)
 		{
@@ -227,8 +236,10 @@ void md_book::handle_a(const matching::order& odr)
 			auto leg2 = b.ask;
 			auto& implied_book = implied_ask;
 			implier* ip = ask_implier;
-			auto rt = handle_implied
-			(
+			if (ip)
+			{
+				auto rt = handle_implied
+				(
 					leg1,
 					leg2,
 					implied_book,
@@ -236,8 +247,9 @@ void md_book::handle_a(const matching::order& odr)
 					book_item::book_side::ask,
 					ip,
 					mini_tick);
-			for (const auto& item : rt)
-				cb(item);
+				for (const auto& item : rt)
+					cb(item);
+			}
 		}
 	}
 	else if (book_item::book_side::ask == item.side)
@@ -248,8 +260,10 @@ void md_book::handle_a(const matching::order& odr)
 			auto leg2 = b.bid;
 			auto& implied_book = implied_bid;
 			implier* ip = bid_implier;
-			auto rt = handle_implied
-			(
+			if (ip)
+			{
+				auto rt = handle_implied
+				(
 					leg1,
 					leg2,
 					implied_book,
@@ -257,8 +271,9 @@ void md_book::handle_a(const matching::order& odr)
 					book_item::book_side::bid,
 					ip,
 					mini_tick);
-			for (const auto& item : rt)
-				cb(item);
+				for (const auto& item : rt)
+					cb(item);
+			}
 		}
 		else if (bid_implie_type == implier_type::a_ask_b_ask)
 		{
@@ -266,8 +281,10 @@ void md_book::handle_a(const matching::order& odr)
 			auto leg2 = b.ask;
 			auto& implied_book = implied_bid;
 			implier* ip = bid_implier;
-			auto rt = handle_implied
-			(
+			if (ip)
+			{
+				auto rt = handle_implied
+				(
 					leg1,
 					leg2,
 					implied_book,
@@ -275,8 +292,9 @@ void md_book::handle_a(const matching::order& odr)
 					book_item::book_side::bid,
 					ip,
 					mini_tick);
-			for (const auto& item : rt)
-				cb(item);
+				for (const auto& item : rt)
+					cb(item);
+			}
 		}
 		if (ask_implie_type == implier_type::a_ask_b_bid)
 		{
@@ -284,8 +302,10 @@ void md_book::handle_a(const matching::order& odr)
 			auto leg2 = b.bid;
 			auto& implied_book = implied_ask;
 			implier* ip = ask_implier;
-			auto rt = handle_implied
-			(
+			if (ip)
+			{
+				auto rt = handle_implied
+				(
 					leg1,
 					leg2,
 					implied_book,
@@ -293,8 +313,9 @@ void md_book::handle_a(const matching::order& odr)
 					book_item::book_side::ask,
 					ip,
 					mini_tick);
-			for (const auto& item : rt)
-				cb(item);
+				for (const auto& item : rt)
+					cb(item);
+			}
 		}
 		else if (ask_implie_type == implier_type::a_ask_b_ask)
 		{
@@ -302,8 +323,10 @@ void md_book::handle_a(const matching::order& odr)
 			auto leg2 = b.ask;
 			auto& implied_book = implied_ask;
 			implier* ip = ask_implier;
-			auto rt = handle_implied
-			(
+			if (ip)
+			{
+				auto rt = handle_implied
+				(
 					leg1,
 					leg2,
 					implied_book,
@@ -311,8 +334,9 @@ void md_book::handle_a(const matching::order& odr)
 					book_item::book_side::ask,
 					ip,
 					mini_tick);
-			for (const auto& item : rt)
-				cb(item);
+				for (const auto& item : rt)
+					cb(item);
+			}
 		}
 	}
 }
@@ -328,8 +352,10 @@ void md_book::handle_b(const matching::order& odr)
 			auto leg2 = b.bid;
 			auto& implied_book = implied_bid;
 			implier* ip = bid_implier;
-			auto rt = handle_implied
-			(
+			if (ip)
+			{
+				auto rt = handle_implied
+				(
 					leg1,
 					leg2,
 					implied_book,
@@ -337,8 +363,9 @@ void md_book::handle_b(const matching::order& odr)
 					book_item::book_side::bid,
 					ip,
 					mini_tick);
-			for (const auto& item : rt)
-				cb(item);
+				for (const auto& item : rt)
+					cb(item);
+			}
 		}
 		else if (bid_implie_type == implier_type::a_ask_b_bid)
 		{
@@ -346,8 +373,10 @@ void md_book::handle_b(const matching::order& odr)
 			auto leg2 = b.bid;
 			auto& implied_book = implied_bid;
 			implier* ip = bid_implier;
-			auto rt = handle_implied
-			(
+			if (ip)
+			{
+				auto rt = handle_implied
+				(
 					leg1,
 					leg2,
 					implied_book,
@@ -355,8 +384,9 @@ void md_book::handle_b(const matching::order& odr)
 					book_item::book_side::bid,
 					ip,
 					mini_tick);
-			for (const auto& item : rt)
-				cb(item);
+				for (const auto& item : rt)
+					cb(item);
+			}
 		}
 		if (ask_implie_type == implier_type::a_bid_b_bid)
 		{
@@ -364,8 +394,10 @@ void md_book::handle_b(const matching::order& odr)
 			auto leg2 = b.bid;
 			auto& implied_book = implied_ask;
 			implier* ip = ask_implier;
-			auto rt = handle_implied
-			(
+			if (ip)
+			{
+				auto rt = handle_implied
+				(
 					leg1,
 					leg2,
 					implied_book,
@@ -373,8 +405,9 @@ void md_book::handle_b(const matching::order& odr)
 					book_item::book_side::ask,
 					ip,
 					mini_tick);
-			for (const auto& item : rt)
-				cb(item);
+				for (const auto& item : rt)
+					cb(item);
+			}
 		}
 		else if (ask_implie_type == implier_type::a_ask_b_bid)
 		{
@@ -382,8 +415,10 @@ void md_book::handle_b(const matching::order& odr)
 			auto leg2 = b.bid;
 			auto& implied_book = implied_ask;
 			implier* ip = ask_implier;
-			auto rt = handle_implied
-			(
+			if (ip)
+			{
+				auto rt = handle_implied
+				(
 					leg1,
 					leg2,
 					implied_book,
@@ -391,8 +426,9 @@ void md_book::handle_b(const matching::order& odr)
 					book_item::book_side::ask,
 					ip,
 					mini_tick);
-			for (const auto& item : rt)
-				cb(item);
+				for (const auto& item : rt)
+					cb(item);
+			}
 		}
 	}
 	else if (book_item::book_side::ask == item.side)
@@ -403,8 +439,10 @@ void md_book::handle_b(const matching::order& odr)
 			auto leg2 = b.ask;
 			auto& implied_book = implied_bid;
 			implier* ip = bid_implier;
-			auto rt = handle_implied
-			(
+			if (ip)
+			{
+				auto rt = handle_implied
+				(
 					leg1,
 					leg2,
 					implied_book,
@@ -412,8 +450,9 @@ void md_book::handle_b(const matching::order& odr)
 					book_item::book_side::bid,
 					ip,
 					mini_tick);
-			for (const auto& item : rt)
-				cb(item);
+				for (const auto& item : rt)
+					cb(item);
+			}
 		}
 		else if (bid_implie_type == implier_type::a_ask_b_ask)
 		{
@@ -421,8 +460,10 @@ void md_book::handle_b(const matching::order& odr)
 			auto leg2 = b.ask;
 			auto& implied_book = implied_bid;
 			implier* ip = bid_implier;
-			auto rt = handle_implied
-			(
+			if (ip)
+			{
+				auto rt = handle_implied
+				(
 					leg1,
 					leg2,
 					implied_book,
@@ -430,8 +471,9 @@ void md_book::handle_b(const matching::order& odr)
 					book_item::book_side::bid,
 					ip,
 					mini_tick);
-			for (const auto& item : rt)
-				cb(item);
+				for (const auto& item : rt)
+					cb(item);
+			}
 		}
 		if (ask_implie_type == implier_type::a_bid_b_ask)
 		{
@@ -439,8 +481,10 @@ void md_book::handle_b(const matching::order& odr)
 			auto leg2 = b.ask;
 			auto& implied_book = implied_ask;
 			implier* ip = ask_implier;
-			auto rt = handle_implied
-			(
+			if (ip)
+			{
+				auto rt = handle_implied
+				(
 					leg1,
 					leg2,
 					implied_book,
@@ -448,8 +492,9 @@ void md_book::handle_b(const matching::order& odr)
 					book_item::book_side::ask,
 					ip,
 					mini_tick);
-			for (const auto& item : rt)
-				cb(item);
+				for (const auto& item : rt)
+					cb(item);
+			}
 		}
 		else if (ask_implie_type == implier_type::a_ask_b_ask)
 		{
@@ -457,8 +502,10 @@ void md_book::handle_b(const matching::order& odr)
 			auto leg2 = b.ask;
 			auto& implied_book = implied_ask;
 			implier* ip = ask_implier;
-			auto rt = handle_implied
-			(
+			if (ip)
+			{
+				auto rt = handle_implied
+				(
 					leg1,
 					leg2,
 					implied_book,
@@ -466,8 +513,9 @@ void md_book::handle_b(const matching::order& odr)
 					book_item::book_side::ask,
 					ip,
 					mini_tick);
-			for (const auto& item : rt)
-				cb(item);
+				for (const auto& item : rt)
+					cb(item);
+			}
 		}
 	}
 }
