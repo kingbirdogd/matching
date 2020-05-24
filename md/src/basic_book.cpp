@@ -1,4 +1,4 @@
-#include <basic_book.hpp>
+#include <md/basic_book.hpp>
 
 using namespace md;
 
@@ -6,7 +6,7 @@ book_item basic_book::add_bid_quantity(long long price, unsigned long long quant
 {
 	auto& item = bid[price];
 	item.side = book_item::book_side::bid;
-	++item.quantity;
+	item.quantity += quantity;
 	return item;
 }
 
@@ -14,7 +14,7 @@ book_item basic_book::reduce_bid_quantity(long long price, unsigned long long qu
 {
 	auto it = bid.find(price);
 	it->second.side = book_item::book_side::bid;
-	--it->second.quantity;
+	it->second.quantity -= quantity;
 	auto rt = it->second;
 	if (0 == it->second.quantity)
 		bid.erase(it);
@@ -25,7 +25,7 @@ book_item basic_book::add_ask_quantity(long long price, unsigned long long quant
 {
 	auto& item = ask[price];
 	item.side = book_item::book_side::ask;
-	++item.quantity;
+	item.quantity += quantity;
 	return item;
 }
 
@@ -33,7 +33,7 @@ book_item basic_book::reduce_ask_quantity(long long price, unsigned long long qu
 {
 	auto it = ask.find(price);
 	it->second.side = book_item::book_side::ask;
-	--it->second.quantity;
+	it->second.quantity -= quantity;
 	auto rt = it->second;
 	if (0 == it->second.quantity)
 		ask.erase(it);
