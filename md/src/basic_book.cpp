@@ -58,21 +58,37 @@ book_item basic_book::handle_odr(const matching::order& odr)
 			auto it = orders.find(odr.order_id);
 			if (orders.end() == it)
 			{
-				return add_bid_quantity(odr.price, odr.quantity);
+				if (0 != odr.remain_quantity)
+				{
+					orders[odr.order_id] = odr;
+					return add_bid_quantity(odr.price, odr.remain_quantity);
+				}
+				else
+				{
+					return book_item();
+				}
 			}
 			else
 			{
 				if (it->second.remain_quantity < odr.remain_quantity)
 				{
-					return add_bid_quantity(odr.price, odr.quantity - it->second.remain_quantity);
+					auto diff = odr.remain_quantity - it->second.remain_quantity;
+					it->second.remain_quantity = odr.remain_quantity;
+					return add_bid_quantity(odr.price, diff);
 				}
 				else if (it->second.remain_quantity > odr.remain_quantity)
 				{
-					return reduce_bid_quantity(odr.price, it->second.remain_quantity - odr.quantity);
+					auto diff = it->second.remain_quantity - odr.remain_quantity;
+					it->second.remain_quantity = odr.remain_quantity;
+					return reduce_bid_quantity(odr.price, diff);
 				}
 				else
 				{
 					return book_item();
+				}
+				if (0 == it->second.remain_quantity)
+				{
+					orders.erase(it);
 				}
 			}
 		}
@@ -84,21 +100,37 @@ book_item basic_book::handle_odr(const matching::order& odr)
 			auto it = orders.find(odr.order_id);
 			if (orders.end() == it)
 			{
-				return add_ask_quantity(odr.price, odr.quantity);
+				if (0 != odr.remain_quantity)
+				{
+					orders[odr.order_id] = odr;
+					return add_ask_quantity(odr.price, odr.remain_quantity);
+				}
+				else
+				{
+					return book_item();
+				}
 			}
 			else
 			{
 				if (it->second.remain_quantity < odr.remain_quantity)
 				{
-					return add_ask_quantity(odr.price, odr.quantity - it->second.remain_quantity);
+					auto diff = odr.remain_quantity - it->second.remain_quantity;
+					it->second.remain_quantity = odr.remain_quantity;
+					return add_ask_quantity(odr.price, diff);
 				}
 				else if (it->second.remain_quantity > odr.remain_quantity)
 				{
-					return reduce_ask_quantity(odr.price, it->second.remain_quantity - odr.quantity);
+					auto diff = it->second.remain_quantity - odr.remain_quantity;
+					it->second.remain_quantity = odr.remain_quantity;
+					return reduce_ask_quantity(odr.price, diff);
 				}
 				else
 				{
 					return book_item();
+				}
+				if (0 == it->second.remain_quantity)
+				{
+					orders.erase(it);
 				}
 			}
 		}
