@@ -313,10 +313,10 @@ void test_object_pool()
 
 void implied_test()
 {
-	add_bid_implier abi(1);
-	add_ask_implier aai(1);
-	minus_bid_implier mbi(1);
-	minus_ask_implier mai(1);
+	add_bid_implier abi(0);
+	add_ask_implier aai(0);
+	minus_bid_implier mbi(0);
+	minus_ask_implier mai(0);
 
 	//SHORT A(implied OUT, BID_A) <- (BID_PRICE_AB + BID_PRICE_B) @ MIN(BID_QUANTITY_AB, BID_QUANTITY_B)
 	//LONG A(implied OUT, ASK_A) <- (ASK_PRICE_AB + ASK_PRICE_B) @ MIN(ASK_QUANTITY_AB, ASK_QUANTITY_B)
