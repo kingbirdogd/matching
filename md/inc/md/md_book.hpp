@@ -21,6 +21,7 @@ namespace md
 		};
 	private:
 		callback cb;
+		unsigned long long mini_tick;
 		basic_book outright;
 		basic_book::bid_book implied_bid;
 		basic_book::ask_book implied_ask;
@@ -34,12 +35,14 @@ namespace md
 		md_book
 		(
 			callback&& c,
+			unsigned long long mtick,
 			implier_type bt = implier_type::a_bid_b_bid,
 			implier_type at = implier_type::a_bid_b_bid,
 			implier* bi = nullptr,
 			implier* ai = nullptr
 		):
 		cb(std::move(c)),
+		mini_tick(mtick),
 		outright(),
 		implied_bid(),
 		implied_ask(),
