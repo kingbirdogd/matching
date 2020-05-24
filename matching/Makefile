@@ -1,3 +1,3 @@
 TYPE:=STATIC
-DEPS:=core matching/order
+DEPS:=implier core matching/order
 include $(PROJECT_HOME)/common.mk

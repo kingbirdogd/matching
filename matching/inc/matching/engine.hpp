@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <matching/order.hpp>
 #include <core/spin_mutex.hpp>
+#include <implier.hpp>
 
 namespace matching
 {
@@ -453,7 +454,7 @@ namespace matching
 			}
 		};
 	public:
-		class implier_base
+		class implier_base : public virtual implier
 		{
 		private:
 			friend matcher;
@@ -469,8 +470,10 @@ namespace matching
 				engine* leg1_e,
 				engine* leg2_e,
 				order::order_side leg1_side,
-				order::order_side leg2_side
+				order::order_side leg2_side,
+				unsigned long long pips
 			):
+				implier(pips),
 				_priority(priority),
 				_leg1(iterator(leg1_e, leg1_side)),
 				_leg2(iterator(leg2_e, leg2_side))
@@ -481,8 +484,6 @@ namespace matching
 			implier_base& operator= (const implier_base& imp) = default;
 			implier_base& operator= (implier_base&& imp)  = default;
 			virtual ~implier_base() = default;
-			//if nothing match return order::MARKET_PRICE;
-			virtual long long matchd_price(long long leg1_price, long long leg2_price, unsigned long long mini_tick) = 0;
 		private:
 			void reset()
 			{
@@ -806,25 +807,6 @@ namespace matching
 		matcher _ask_book_matcher;
 		callback_type _callback;
 		unsigned long long _mini_tick;
-	public:
-		inline static long long round_down(long long price, unsigned long long mini_tick)
-		{
-			long long mod = price % mini_tick;
-			if (mod >= 0)
-				return price - mod;
-			else
-				return price - mod - mini_tick;
-		}
-		inline static long long round_up(long long price, unsigned long long mini_tick)
-		{
-			long long mod = price % mini_tick;
-			if (mod == 0)
-				return mini_tick;
-			if (mod > 0)
-				return price + mini_tick - mod;
-			else
-				return price - mod;
-		}
 	private:
 		inline static unsigned long long get_id()
 		{
