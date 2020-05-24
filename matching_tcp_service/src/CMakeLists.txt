@@ -4,3 +4,4 @@ target_include_directories(matching_tcp_service PUBLIC ${CMAKE_SOURCE_DIR}/match
 target_include_directories(matching_tcp_service PUBLIC ${CMAKE_SOURCE_DIR}/matching/inc)
 target_include_directories(matching_tcp_service PUBLIC ${CMAKE_SOURCE_DIR}/core/inc)
 target_include_directories(matching_tcp_service PUBLIC ${CMAKE_SOURCE_DIR}/net/tcp_client/inc)
+target_include_directories(matching_tcp_service PUBLIC ${CMAKE_SOURCE_DIR}/implier/inc)

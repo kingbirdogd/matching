@@ -5,3 +5,4 @@ target_include_directories(matching_zmq_service PUBLIC ${CMAKE_SOURCE_DIR}/match
 target_include_directories(matching_zmq_service PUBLIC ${CMAKE_SOURCE_DIR}/core/inc)
 target_include_directories(matching_zmq_service PUBLIC ${CMAKE_SOURCE_DIR}/net/zmq_client/inc)
 target_include_directories(matching_zmq_service PUBLIC ${CMAKE_SOURCE_DIR}/net/tcp_client/inc)
+target_include_directories(matching_zmq_service PUBLIC ${CMAKE_SOURCE_DIR}/implier/inc)
