@@ -20,7 +20,8 @@ namespace md
 			a_ask_b_ask = 3
 		};
 	private:
-		basic_book main;
+		callback cb;
+		basic_book outright;
 		basic_book::bid_book implied_bid;
 		basic_book::ask_book implied_ask;
 		basic_book a;
@@ -32,12 +33,14 @@ namespace md
 	public:
 		md_book
 		(
+			callback&& c,
 			implier_type bt = implier_type::a_bid_b_bid,
 			implier_type at = implier_type::a_bid_b_bid,
 			implier* bi = nullptr,
 			implier* ai = nullptr
 		):
-		main(),
+		cb(std::move(c)),
+		outright(),
 		implied_bid(),
 		implied_ask(),
 		a(),
@@ -55,6 +58,9 @@ namespace md
 		md_book& operator= (md_book&&) = default;
 		~md_book() = default;
 		void recovery(callback&& cb);
+		void handle_outright(const matching::order& odr);
+		void handle_a(const matching::order& odr);
+		void handle_b(const matching::order& odr);
 	};
 };
 
