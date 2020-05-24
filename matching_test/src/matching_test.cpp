@@ -349,14 +349,14 @@ void implied_test()
 			handle_md,
 			1,
 			md::md_book::implier_type::a_bid_b_ask,
-			md::md_book::implier_type::a_bid_b_ask,
+			md::md_book::implier_type::a_ask_b_bid,
 			&mbi,
 			&mai
 	);
 
 	matching::engine March
 	(
-		[](const matching::order& odr)
+		[&](const matching::order& odr)
 		{
 			handle_order(odr);
 			March_Book.handle_outright(odr);
@@ -366,7 +366,7 @@ void implied_test()
 	);
 	matching::engine June
 	(
-		[](const matching::order& odr)
+		[&](const matching::order& odr)
 		{
 			handle_order(odr);
 			June_Book.handle_outright(odr);
@@ -377,7 +377,7 @@ void implied_test()
 	);
 	matching::engine Spread
 	(
-		[](const matching::order& odr)
+		[&](const matching::order& odr)
 		{
 			handle_order(odr);
 			Spread_Book.handle_outright(odr);
@@ -547,7 +547,8 @@ void test_case_2()
 
 int main()
 {
-  implied_test_case_5();
+	implied_test();
+	implied_test_case_5();
   /*
   test_case_2();
 	test_case_1();
