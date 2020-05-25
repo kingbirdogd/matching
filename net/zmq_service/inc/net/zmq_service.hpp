@@ -32,6 +32,7 @@ namespace net
 		status _sta;
     zmq::context_t &_ctx;
     zmq::socket_t _pub_sock;
+		zmq::socket_t _rep_sock;
 	public:
 		zmq_service(zmq::context_t &ctx, unsigned short int bind_port, const std::string& bind_addr = "");
     //zmq_service(zmq::context_t &ctx);

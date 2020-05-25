@@ -16,10 +16,12 @@ namespace md
 		long long price;
 		unsigned long long quantity;
 		book_side side;
+    unsigned long long market_id ;
 		book_item():
 			price(0),
 			quantity(0),
-			side(book_side::none)
+			side(book_side::none),
+			market_id(0)
 		{
 		}
 		~book_item() = default;

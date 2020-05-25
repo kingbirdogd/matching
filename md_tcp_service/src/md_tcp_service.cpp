@@ -1,4 +1,6 @@
 #include <md_tcp_service.hpp>
+#include <iostream>
+
 
 
 md_tcp_service::md_tcp_service
@@ -15,7 +17,8 @@ md_tcp_service::md_tcp_service
 	implier* ask_implier,
 	unsigned short int bind_port,
 	const std::string bind_ip,
-	unsigned long long mtick
+	unsigned long long mtick,
+  unsigned short int xsub_port
 ):
 	_outright(outright_ip, outright_port),
 	_a(a_ip, a_port),
@@ -26,7 +29,10 @@ md_tcp_service::md_tcp_service
 			ask_implie_type,
 			bid_implier,
 			ask_implier),
-	_s(bind_port, bind_ip)
+	_s(bind_port, bind_ip),
+	_ctx(1),
+  _pub_sock(_ctx, ZMQ_PUB),
+  _outright_port(outright_port)
 {
 	_outright.set_on_order([&](const matching::order& o)
 	{
@@ -47,11 +53,19 @@ md_tcp_service::md_tcp_service
 			cli->send(item);
 		});
 	});
+	std::stringstream url;
+	url << "tcp://localhost:" << xsub_port;
+  _pub_sock.connect(url.str().c_str());
+  std::cout << "Connected to xsub on " << url.str() << std::endl;
 }
 
 void md_tcp_service::_handle_item(const md::book_item& item)
 {
+  std::cout << "side=" << item.side << ",px=" << item.price << ",qty=" << item.quantity << std::endl;
 	_s.send(item);
+	md::book_item zmq_book_item = item;
+  zmq_book_item.market_id =_outright_port;
+  _pub_sock.send(zmq::const_buffer(&zmq_book_item,  sizeof(zmq_book_item)), zmq::send_flags::none);
 }
 
 void md_tcp_service::run()

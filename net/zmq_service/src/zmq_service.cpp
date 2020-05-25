@@ -165,8 +165,10 @@ void zmq_service::run()
 
 void zmq_service::_bind()
 {
-  //_zmq_sock.connect("inproc://backend");
-
+  std::stringstream bind_url;
+  bind_url << "tcp://*:" << _bind_port;
+  _rep_sock.bind(bind_url.str().c_str());
+/*
 	struct sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(_bind_port);
@@ -203,9 +205,9 @@ void zmq_service::_bind()
 		::close(fd);
 		return;
 	}
-
+*/
 	_sta = status::BINDED;
-	_sock = fd;
+//_sock = fd;
 	if (_on_bind)
 	{
 		_on_bind();
@@ -214,6 +216,7 @@ void zmq_service::_bind()
 
 void zmq_service::_accept()
 {
+  /*
 	struct sockaddr addr;
 	socklen_t len = sizeof(addr);
 	int fd = ::accept(_sock, &addr, &len);
@@ -259,13 +262,14 @@ void zmq_service::_accept()
 			}
 		}
 	});
-	cli->set_on_msg([&, cli](const char* ptr, std::size_t size)
-	{
-		if (_on_msg)
-		{
-			_on_msg(cli, ptr, size);
-		}
-	});
+ */
+//	cli->set_on_msg([&, cli](const char* ptr, std::size_t size)
+//	{
+//		if (_on_msg)
+//		{
+//			_on_msg(cli, ptr, size);
+//		}
+//	});
 }
 
 void zmq_service::_run_clients()

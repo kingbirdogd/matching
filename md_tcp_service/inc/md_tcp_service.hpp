@@ -4,6 +4,7 @@
 #include <net/tcp_service.hpp>
 #include <md/md_book.hpp>
 #include <matching_tcp_client.hpp>
+#include <zmq.hpp>
 
 class md_tcp_service
 {
@@ -13,6 +14,9 @@ private:
 	matching_tcp_client _b;
 	md::md_book _book;
 	net::tcp_service _s;
+  zmq::context_t _ctx;
+  zmq::socket_t _pub_sock;
+  unsigned short int _outright_port;
 public:
 	md_tcp_service() = delete;
 	md_tcp_service(const md_tcp_service&) = delete;
@@ -33,7 +37,8 @@ public:
 		implier* ask_implier,
 		unsigned short int bind_port,
 		const std::string bind_ip = "",
-		unsigned long long mtick = 1
+		unsigned long long mtick = 1,
+    unsigned short int xsub_port = 36000
 	);
 	~md_tcp_service() = default;
 	void run();
