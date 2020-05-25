@@ -35,7 +35,7 @@ namespace md
 		md_book
 		(
 			callback&& c,
-			unsigned long long mtick = 0,
+			unsigned long long mtick = 1,
 			implier_type bt = implier_type::a_bid_b_bid,
 			implier_type at = implier_type::a_bid_b_bid,
 			implier* bi = nullptr,
