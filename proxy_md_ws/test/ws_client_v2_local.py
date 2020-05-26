@@ -469,11 +469,8 @@ if __name__ == '__main__':
     payload_place_buy2  = {'side':'BUY' , "price": 20, 'quantity': 5, 'order_action':'NEW', 'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
     payload_place_buy3  = {'side':'BUY' , "price": 10, 'quantity': 5, 'order_action':'NEW', 'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
 
-    payload_reconnect = { 'method' : 'ReconnectEngine'}
-
-    #loop.create_task(test(HOST, payload_reconnect))
     loop.create_task(test(HOST, payload_place_sell1))
-    #loop.create_task(test(HOST, payload_place_buy2))
+    #loop.create_task(test(HOST2, payload_place_buy2))
     #loop.create_task(test(HOST3, payload_place_buy3))
     #loop.create_task(test_stress(nUsers, 0.1))
     for uid in USER_IDS:

@@ -26,16 +26,16 @@ from _collections import deque
 # logging.getLogger('websockets.client').setLevel(logging.DEBUG)
 # logging.getLogger('websockets.client').addHandler(logging.StreamHandler())
 
-HOST  = 'localhost'
-PORT  = 8080
-#HOST1 = 'ironmanapi1.coinflex.com'
-#HOST2 = 'ironmanapi2.coinflex.com'
-#HOST3 = 'ironmanapi3.coinflex.com'
+#HOST  = 'localhost'
+#PORT  = 8080
+HOST1 = 'ironmanapi1.coinflex.com'
+HOST2 = 'ironmanapi2.coinflex.com'
+HOST3 = 'ironmanapi3.coinflex.com'
 #HOST  = '18.162.39.80'
 #HOST  = 'chiaapi.coinflex.com'
 #HOST  = 'lycheews.coinflex.com/test'
-#HOST  = ''
-#PORT  = 0
+HOST  = ''
+PORT  = 0
 PORT1 = 8080
 PORT2 = 8081
 PORT3 = 8082
@@ -461,7 +461,7 @@ if __name__ == '__main__':
     tonce = int(time.time()) * 1000
 
     # Setup async tasks for login and listening to messages
-    payload_place_sell1  = {'side':'SELL', "price": 31, 'quantity':    5,'order_action':'NEW',  'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
+    payload_place_sell1  = {'side':'SELL', "price": 30, 'quantity':    5,'order_action':'NEW',  'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
     payload_place_sell2  = {'side':'SELL', "price": 10, 'quantity':   30,'order_action':'NEW',  'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
     payload_place_sell3  = {'side':'SELL', "price": 30, 'quantity':    1,'order_action':'NEW',  'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
 
@@ -469,11 +469,8 @@ if __name__ == '__main__':
     payload_place_buy2  = {'side':'BUY' , "price": 20, 'quantity': 5, 'order_action':'NEW', 'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
     payload_place_buy3  = {'side':'BUY' , "price": 10, 'quantity': 5, 'order_action':'NEW', 'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
 
-    payload_reconnect = { 'method' : 'ReconnectEngine'}
-
-    #loop.create_task(test(HOST, payload_reconnect))
-    loop.create_task(test(HOST, payload_place_sell1))
-    #loop.create_task(test(HOST, payload_place_buy2))
+    loop.create_task(test(HOST1, payload_place_sell1))
+    #loop.create_task(test(HOST2, payload_place_buy2))
     #loop.create_task(test(HOST3, payload_place_buy3))
     #loop.create_task(test_stress(nUsers, 0.1))
     for uid in USER_IDS:

@@ -65,6 +65,8 @@ namespace matching
 			TAKER = 0x01
 		};
 	public:
+    unsigned long account_id;
+    unsigned long market_id;
 		long long price;
 		unsigned long long quantity;
 		unsigned long long display_quantity;
@@ -94,6 +96,8 @@ namespace matching
 		}
 	public:
 		order():
+		  account_id(0),
+		  market_id(0),
 			price(MARKET_PRICE),
 			quantity(0),
 			display_quantity(0),
