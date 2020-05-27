@@ -704,7 +704,8 @@ namespace proxy {
           }
         });
       }
-    } else if (request_method == "EstimateMarketOrder") {
+    } /*
+    else if (request_method == "EstimateMarketOrder") {
       if (order_bucket.take(1) == 0) {
         this->send_error(tag, 6, "You are sending orders too rapidly.");
       } else {
@@ -745,7 +746,8 @@ namespace proxy {
           }
         }
       }
-    } else if (request_method == "ReconnectEngine") {
+    } */
+    else if (request_method == "ReconnectEngine") {
       uplink->reconnect();
     } else if (request_method == "PlaceOrder") {
 //      if (request_tonce_ptr && (tonce = narrow_check<uint64_t>(*request_tonce_ptr->as_integer())) == 0) {

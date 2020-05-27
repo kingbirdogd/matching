@@ -257,7 +257,7 @@ namespace proxy {
     response.insert("orders", std::move(response_orders));
     return {orders_clients.insert(orders_clients.end(), client_ptr), std::move(response)};
   }
-
+/*
   std::pair<uint64_t, uint64_t> Book::estimate_market_order_from_total(int64_t total) {
     std::lock_guard<std::mutex> lock(mutex);
     uint64_t traded_quantity = 0, traded_total = 0, last_quantity = 0;
@@ -297,8 +297,8 @@ namespace proxy {
     }
     end:
     return {traded_quantity, traded_total};
-  }
-
+  } */
+/*
   std::pair<uint64_t, uint64_t> Book::estimate_market_order_from_quantity(int64_t quantity) {
     std::lock_guard<std::mutex> lock(mutex);
     std::uniform_int_distribution<uint64_t> price_dist(0, PRICE_SCALE - 1);
@@ -329,7 +329,7 @@ namespace proxy {
     }
     end:
     return {traded_quantity, traded_total};
-  }
+  }*/
 
   Book *get_book(const asset_pair_t &pair, bool create ) {
     {

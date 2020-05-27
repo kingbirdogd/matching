@@ -131,7 +131,7 @@ struct OrderParams {
 	uint64_t tonce;
 	asset_pair_t asset_pair;
 	int64_t quantity;
-	uint64_t price;
+	int64_t price;
 	OrderFlags flags;
 };
 
@@ -309,7 +309,7 @@ struct ModifyOrder {
 		uint64_t tonce;
 	};
 	int64_t quantity_delta;
-	uint64_t price;
+	int64_t price;
 	PlaceOrderEx::Flags flags;
 };
 
@@ -427,7 +427,7 @@ struct LoadBookTradeHistory {
 	uint16_t trades_count;
 	struct TradeInfo {
 		uint64_t quantity;
-		uint64_t price;
+		int64_t price;
 		timestamp_t time;
 	} trades[];
 
@@ -558,7 +558,7 @@ struct OrdersMatched_v0 {
 	uint64_t ask_tonce;
 	asset_pair_t asset_pair;
 	uint64_t quantity;
-	uint64_t price;
+	int64_t price;
 	uint64_t total;
 	uint64_t bid_base_fee;
 	uint64_t bid_counter_fee;
