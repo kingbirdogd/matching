@@ -221,7 +221,7 @@ json::Object handle_order(const matching::order& o)
 
 namespace proxy {
   using namespace core;
-
+/*
   json::Object Uplink::handle_book_item(const md::book_item& o) {
     if (o.side == md::book_item::book_side::bid) {
       if (o.quantity == 0)
@@ -256,7 +256,7 @@ namespace proxy {
 
     return response;
   }
-
+*/
   void Uplink::enqueue_work(std::function<void(void) /* noexcept */> &&work) {
     if (num_queue == 1)
       this->enqueue_1_queue(std::move(work));
@@ -369,8 +369,9 @@ namespace proxy {
       if (n < msg_size) return 0;
 
       auto &reply = (*static_cast<const md::book_item *>(buf));
-      json::Object response = handle_book_item(reply);
-      Client::multicast(Client::all_clients, response);
+      ob.update(reply);
+      //json::Object response = handle_book_item(reply);
+      //Client::multicast(Client::all_clients, response);
       //std::stringstream ss;
       //ss << response;
       //pub_sock.send(zmq::const_buffer(ss.str().c_str(),  ss.str().size()), zmq::send_flags::none);
@@ -632,19 +633,107 @@ namespace proxy {
     return false;
   }
 
+  struct cmp {
+    bool operator()(const Uplink::book_map_t::value_type &a,
+                    const Uplink::book_map_t::value_type &b) const {
+      return
+          ( (a.first < b.first) ||
+            ((a.first == b.first) && (a.second.quantity < a.second.quantity)) );
+    }
+  };
+
+/*
+  json::Object Uplink::get_orderbook_diff(book_map_t &bids,      book_map_t &asks,
+                                          book_map_t &last_bids, book_map_t &last_asks) {
+
+
+    // need to lock?
+    json::Array bids_pxLevels;
+    json::Array asks_pxLevels;
+    json::Array book;
+    json::Array data;
+    json::Object data_item;
+    json::Object response ;
+    response.insert("table", json::String("futures/depth"));
+    response.insert("action", json::String("partial"));
+
+    unsigned long long last_market_id = 0;
+    int cnt = 0;
+    long long min_bid = std::numeric_limits<long long>::min();
+    long long top_bid = min_bid;
+    for (auto it = bids.rbegin(); it != bids.rend(); it++) {
+      if ((last_market_id != 0) && (last_market_id != it->second.market_id)) {
+        elog.error() << "last_market_id(" << last_market_id << ") != current market_id(" << it->second.market_id << ") Stopping..." << std::endl;
+        break;
+      }
+      last_market_id = it->second.market_id;
+
+      json::Array details;
+      details.insert(json::Integer(it->second.price));
+      details.insert(json::Integer(it->second.quantity));
+      details.insert(json::Integer(0));
+      details.insert(json::Integer(0));
+      bids_pxLevels.insert(std::move(details));
+      if ((top_bid == min_bid) && (it->second.quantity > 0))
+        top_bid = it->second.price;
+      if (++cnt == 400) break;
+    }
+
+    last_market_id = 0;
+    cnt = 0;
+    long long max_ask = std::numeric_limits<long long>::max();
+    long long top_ask = max_ask;
+    for (auto it = asks.begin(); it != asks.end(); it++) {
+      if ((last_market_id != 0) && (last_market_id != it->second.market_id)) {
+        elog.error() << "last_market_id(" << last_market_id << ") != current market_id(" << it->second.market_id << ") Stopping..." << std::endl;
+        break;
+      }
+      last_market_id = it->second.market_id;
+
+      json::Array details;
+      details.insert(json::Integer(it->second.price));
+      details.insert(json::Integer(it->second.quantity));
+      details.insert(json::Integer(0));
+      details.insert(json::Integer(0));
+      asks_pxLevels.insert(std::move(details));
+      if ((top_ask == max_ask) && (it->second.quantity > 0))
+        top_ask = it->second.price;
+      if (++cnt == 400) break;
+    }
+//    json::Array details;; details.insert(json::Integer(0)); details.insert(json::Integer(1)); details.insert(json::Integer(2));
+//    bids_pxLevels.insert(std::move(details)); bids_pxLevels.insert(std::move(details)); bids_pxLevels.insert(std::move(details));
+//    asks_pxLevels.insert(std::move(details)); asks_pxLevels.insert(std::move(details)); asks_pxLevels.insert(std::move(details));
+
+    data_item.insert("instrument_id", json::Integer(last_market_id));
+    data_item.insert("bids", std::move(bids_pxLevels));
+    data_item.insert("asks", std::move(asks_pxLevels));
+    data_item.insert("timestamp", json::String(currentISO8601TimeUTC()));
+    data_item.insert("checksum", json::Integer(0));
+
+    data.insert(std::move(data_item));
+    response.insert("data", std::move(data));
+    if (elog.debug_enabled()) {
+      elog.debug() << "response:  " << response << std::endl;
+    }
+    return response;
+  }
+*/
 
   void Uplink::schedule_broadcast() noexcept {
     scheduler.call_at(next_broadcast_time,
         [this]() noexcept {
       if (elog.debug_enabled()) {
-        //std::chrono::seconds s = std::chrono::duration_cast<std::chrono::seconds>(next_broadcast_time.time_since_epoch());
-        //std::time_t t = s.count();
-        //elog.debug() << "schedule_broadcast at " << std::ctime(&t) << std::endl;
         elog.debug() << "schedule_broadcast  " << std::endl;
       }
+
       json::Object response ;
       response.insert("Testing", json::String("TestValue"));
       Client::multicast(Client::all_clients, response);
+
+      auto ob_snapshot = this->ob.get_orderbook_snapshot();
+      auto ob_diff     = this->ob.get_orderbook_diff();
+      this->ob.clear_unused_bids_asks();
+
       this->next_broadcast_time = std::chrono::steady_clock::now() + ping_interval;
       this->schedule_broadcast();
     });

@@ -11,6 +11,7 @@
 #include <map>
 #include <md/book_item.hpp>
 #include <common/json.h>
+#include "OrderBook.hpp"
 
 extern Log elog;
 
@@ -18,8 +19,15 @@ namespace proxy {
   using core::Transceiver;
   class Client;
 
-  class Uplink : public Transceiver, public WorkQueue {
+  struct UplinkConfig {
+    std::string host;
+    uint8_t num_queue;
+    uint32_t matching_port;
+  };
 
+  class Uplink : public Transceiver, public WorkQueue {
+  public:
+    using book_map_t = std::map<long long, md::book_item>;
   private:
     const char *const host;
     Selector &selector_in, &selector_out;
@@ -38,7 +46,7 @@ namespace proxy {
     std::chrono::steady_clock::time_point next_broadcast_time;
     static constexpr std::chrono::steady_clock::duration ping_interval = std::chrono::seconds(3);
 
-    std::map<long long, md::book_item> bids, asks;
+    OrderBook ob;
 
   public:
     Uplink(const char host[], Selector &selector_in, Selector &selector_out, uint8_t num_queue, uint32_t matching_port)
@@ -66,7 +74,9 @@ namespace proxy {
     void schedule_broadcast() noexcept;
     void reschedule_broadcast() noexcept;
 
-    json::Object handle_book_item(const md::book_item& o);
+    //json::Object handle_book_item(const md::book_item& o);
+    json::Object get_orderbook_snapshot(book_map_t &bids, book_map_t &asks);
+    json::Object get_orderbook_diff(book_map_t &bids, book_map_t &asks, book_map_t &last_bids, book_map_t &last_asks);
 
   protected:
     void selected(Selector &selector, Selector::Flags flags) noexcept override ;

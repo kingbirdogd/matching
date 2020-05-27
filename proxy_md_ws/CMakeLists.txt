@@ -3,7 +3,7 @@ set(ENV{PKG_CONFIG_PATH} "$ENV{HOME}/usr/local/lib64/pkgconfig:$ENV{PKG_CONFIG_P
 
 add_executable(proxy_md_lws proxy_lws.cpp ./transceiver.cpp ./workqueue.cpp
                proxy_lws_protocol.hpp Uplink.cpp Client.cpp ./core.cpp
-               #Book.cpp
+               OrderBook.cpp
                proxy_lws_utils.cpp proxy_lws_protocol.cpp)
 target_compile_definitions(proxy_md_lws PRIVATE VERSION="${VERSION}")
 target_include_directories(proxy_md_lws PUBLIC
