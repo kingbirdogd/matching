@@ -3,8 +3,9 @@
 BASEDIR=/home/docker
 CORE_BASE=${BASEDIR}/targets/coinflex_v2_core
 CORE_LOCATION=${CORE_BASE}
+USR_DIR=$BASEDIR/usr/local
 LOG_LOCATION=${CORE_BASE}/log
-export LD_LIBRARY_PATH=${CORE_BASE}/lib64:${CORE_BASE}/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=${USR_DIR}/lib64:${USR_DIR}/lib:$LD_LIBRARY_PATH
 #source ${BASEDIR}/local/core_v2.properties
 
 mkdir -p ${LOG_LOCATION}
