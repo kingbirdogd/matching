@@ -1,3 +1,3 @@
 TYPE:=EXE
-DEPS:=matching md memory
+DEPS:=md_tcp_service
 include $(PROJECT_HOME)/common.mk

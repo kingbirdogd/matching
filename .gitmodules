@@ -1,0 +1,3 @@
+[submodule "coinflex_v2_common"]
+	path = coinflex_v2_common
+	url = git@bitbucket.org:coinflex/coinflex_v2_common.git

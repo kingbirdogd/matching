@@ -7,34 +7,20 @@ namespace matching
 {
 	class implier_base : public engine::implier_base
 	{
-	protected:
-		long long _pips;
 	public:
+		implier_base() = delete;
 		implier_base(unsigned long long priority,
 				engine* leg1_e,
 				engine* leg2_e,
 				order::order_side leg1_side,
 				order::order_side leg2_side,
-				long long pips):
+				unsigned long long pips):
 			engine::implier_base(priority,
 					leg1_e,
 					leg2_e,
 					leg1_side,
-					leg2_side),
-			_pips(pips)
-		{
-		}
-		implier_base(unsigned long long priority,
-				engine* leg1_e,
-				engine* leg2_e,
-				order::order_side leg1_side,
-				order::order_side leg2_side):
-				engine::implier_base(priority,
-							leg1_e,
-							leg2_e,
-							leg1_side,
-							leg2_side),
-			_pips(0)
+					leg2_side,
+					pips)
 		{
 		}
 		implier_base(const implier_base&) = default;
@@ -42,7 +28,6 @@ namespace matching
 		implier_base& operator= (const implier_base&) = default;
 		implier_base& operator= (implier_base&&) = default;
 		virtual ~implier_base() = default;
-		virtual long long matchd_price(long long leg1_price, long long leg2_price, unsigned long long mini_tick) = 0;
 	};
 }
 

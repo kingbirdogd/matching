@@ -9,12 +9,14 @@ include_directories(SYSTEM $ENV{HOME}/usr/local/include)
 
 project(engine)
 #add_subdirectory(contrib)
+add_subdirectory(coinflex_v2_common)
 add_subdirectory(common)
 
 add_subdirectory(matching)
 add_subdirectory(matching_test)
 add_subdirectory(matching_tcp_client)
 add_subdirectory(matching_tcp_service)
+add_subdirectory(md_tcp_service)
 
 add_subdirectory(matching_zmq_service)
 
@@ -24,7 +26,10 @@ add_subdirectory(proxy_ws)
 
 add_subdirectory(test_tcp_matching_client)
 add_subdirectory(test_tcp_matching_server)
+add_subdirectory(test_md_tcp_server)
 
 add_subdirectory(test_zmq_matching_server)
 add_subdirectory(xpubxsub)
+
+add_subdirectory(md)
 
