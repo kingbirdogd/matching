@@ -1,5 +1,30 @@
 #!/usr/bin/env bash
 
+# Book A
+#   wss port for internal testing               :  8081
+#   wss port for internal MD subscription (OKEx):  9081
+#   zmq PUB port for snapshot                   : 18011
+#   zmq PUB port for diff                       : 18012
+#   zmq PULL port for receving ORDER            : 22011
+#   zmq PUB  port for ORDER STATUS UPDATES      : 22012
+
+# Book B
+#   wss port for internal testing               :  8082
+#   wss port for internal MD subscription (OKEx):  9082
+#   zmq PUB port for snapshot                   : 18021
+#   zmq PUB port for diff                       : 18022
+#   zmq PULL port for receving ORDER            : 22021
+#   zmq PUB  port for ORDER STATUS UPDATES      : 22022
+
+# Book C (Spread A-B)
+#   wss port for internal testing               :  8083
+#   wss port for internal MD subscription (OKEx):  9083
+#   zmq PUB port for snapshot                   : 18031
+#   zmq PUB port for diff                       : 18032
+#   zmq PULL port for receving ORDER            : 22031
+#   zmq PUB  port for ORDER STATUS UPDATES      : 22032
+
+
 BASEDIR=/home/docker
 CORE_BASE=${BASEDIR}/targets/coinflex_v2_core
 CORE_LOCATION=${CORE_BASE}
