@@ -100,8 +100,8 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
   data.insert(std::move(data_item));
   snapshot.insert("data", std::move(data));
   if (elog.debug_enabled()) {
-    elog.debug() << "seq_num=" << seq_num << std::endl;
-    elog.debug() << "snapshot:  " << snapshot << std::endl;
+    //elog.debug() << "seq_num=" << seq_num << std::endl;
+    elog.debug() << "snapshot:" << snapshot << std::endl;
   }
   return snapshot;
 }
@@ -185,7 +185,7 @@ json::Object OrderBook::get_orderbook_diff(//book_map_t &bids,
   data.insert(std::move(data_item));
   delta.insert("data", std::move(data));
   if (elog.debug_enabled()) {
-    elog.debug() << "update:  " << delta << std::endl;
+    elog.debug() << "update  :" << delta << std::endl;
   }
   return delta;
 

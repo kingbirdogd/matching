@@ -56,7 +56,7 @@ md_tcp_service::md_tcp_service
 	std::stringstream url;
 	url << "tcp://localhost:" << xsub_port;
   _pub_sock.connect(url.str().c_str());
-  std::cout << "Connected to xsub on " << url.str() << std::endl;
+  std::cout << "Connecting to xsub on " << url.str() << std::endl;
 }
 
 void md_tcp_service::_handle_item(const md::book_item& item)

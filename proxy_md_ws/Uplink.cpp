@@ -221,6 +221,7 @@ json::Object handle_order(const matching::order& o)
 
 namespace proxy {
   using namespace core;
+  std::chrono::steady_clock::duration Uplink::broadcast_interval;
 /*
   json::Object Uplink::handle_book_item(const md::book_item& o) {
     if (o.side == md::book_item::book_side::bid) {
@@ -722,25 +723,25 @@ namespace proxy {
   void Uplink::schedule_broadcast() noexcept {
     scheduler.call_at(next_broadcast_time,
         [this]() noexcept {
-      if (elog.debug_enabled()) {
-        elog.debug() << "schedule_broadcast  " << std::endl;
-      }
+//      if (elog.debug_enabled()) {
+//        elog.debug() << "schedule_broadcast  " << std::endl;
+//      }
 
-      json::Object response ;
-      response.insert("Testing", json::String("TestValue"));
-      Client::multicast(Client::all_clients, response);
+//      json::Object response ;
+//      response.insert("Testing", json::String("TestValue"));
+//      Client::multicast(Client::all_clients, response);
 
       auto ob_snapshot = this->ob.get_orderbook_snapshot();
       auto ob_diff     = this->ob.get_orderbook_diff();
       this->ob.clear_unused_bids_asks();
       Client::multicast_orderbook(Client::all_clients, ob_snapshot, ob_diff);
 
-      this->next_broadcast_time = std::chrono::steady_clock::now() + ping_interval;
+      this->next_broadcast_time = std::chrono::steady_clock::now() + broadcast_interval;
       this->schedule_broadcast();
     });
   }
 
   void Uplink::reschedule_broadcast() noexcept {
-    next_broadcast_time = std::chrono::steady_clock::now() + ping_interval;
+    next_broadcast_time = std::chrono::steady_clock::now() + broadcast_interval;
   }
 }

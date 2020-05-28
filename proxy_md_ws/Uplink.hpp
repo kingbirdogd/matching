@@ -45,17 +45,19 @@ namespace proxy {
     zmq::socket_t zmq_ob_snapshot_sock;
     zmq::socket_t zmq_ob_diff_sock;
     std::chrono::steady_clock::time_point next_broadcast_time;
-    static constexpr std::chrono::steady_clock::duration ping_interval = std::chrono::seconds(3);
+    uint32_t broadcast_ms;
+    static std::chrono::steady_clock::duration broadcast_interval; // = std::chrono::milliseconds (broadcast_ms);
 
     OrderBook ob;
 
   public:
     Uplink(const char host[], Selector &selector_in, Selector &selector_out, uint8_t num_queue,
-        uint32_t matching_port, uint32_t zmq_ob_snapshot_port, uint32_t zmq_ob_diff_port)
+        uint32_t matching_port, uint32_t zmq_ob_snapshot_port, uint32_t zmq_ob_diff_port, uint32_t broadcast_ms)
       : host(host), selector_in(selector_in),
         selector_out(selector_out), num_queue(num_queue), port(matching_port),
-        ctx(1), zmq_ob_snapshot_sock(ctx, ZMQ_PUB), zmq_ob_diff_sock(ctx, ZMQ_PUB){
-
+        ctx(1), zmq_ob_snapshot_sock(ctx, ZMQ_PUB), zmq_ob_diff_sock(ctx, ZMQ_PUB),
+        broadcast_ms(broadcast_ms)  {
+      Uplink::broadcast_interval = std::chrono::milliseconds (broadcast_ms);
       std::string zmq_ob_snapshot_url(std::string("tcp://*:") + std::to_string(zmq_ob_snapshot_port));
       zmq_ob_snapshot_sock.bind(zmq_ob_snapshot_url);
       elog.debug() << "zmq orderbook snapshot pub socket bind to " << zmq_ob_snapshot_url << std::endl;

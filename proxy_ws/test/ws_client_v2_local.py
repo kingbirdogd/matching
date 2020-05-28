@@ -472,9 +472,9 @@ if __name__ == '__main__':
     payload_reconnect = { 'method' : 'ReconnectEngine'}
 
     #loop.create_task(test(HOST, payload_reconnect))
-    loop.create_task(test(HOST, payload_place_sell1))
+    #loop.create_task(test(HOST, payload_place_sell1))
     #loop.create_task(test(HOST, payload_place_buy2))
-    #loop.create_task(test(HOST3, payload_place_buy3))
+    loop.create_task(test(HOST, payload_place_buy3))
     #loop.create_task(test_stress(nUsers, 0.1))
     for uid in USER_IDS:
         order_map[uid] = deque(maxlen=10)

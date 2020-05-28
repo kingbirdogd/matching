@@ -18,3 +18,11 @@ target_link_libraries(proxy_md_lws common pthread gmp websockets ssl
                       crypto glog folly dl double-conversion zmq)
 # tcmalloc_minimal
 install(TARGETS proxy_md_lws DESTINATION ${CMAKE_INSTALL_PREFIX})
+
+install(FILES ${CMAKE_SOURCE_DIR}/coinflex_v2_common/md.fbs DESTINATION ${CMAKE_INSTALL_PREFIX})
+
+#add_custom_command(TARGET proxy_md_lws POST_BUILD
+#        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#          ${CMAKE_SOURCE_DIR}/coinflex_v2_common/md.fbs
+#          $<TARGET_FILE_DIR:proxy_md_lws>
+#        )
