@@ -10,7 +10,8 @@ std::string currentISO8601TimeUTC() {
   auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() % 1000;
   std::ostringstream ss;
   //ss << std::put_time(gmtime(&itt), "%FT%TZ");
-  ss << std::put_time(gmtime(&itt), "%FT%T.") << ms << "Z";
+  ss << std::put_time(gmtime(&itt), "%FT%T.")
+     << std::setfill('0') << std::setw(3) << ms << "Z";
   return ss.str();
 }
 

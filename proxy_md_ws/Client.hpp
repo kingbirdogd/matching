@@ -230,6 +230,25 @@ class Client : public Selectable, public WorkQueue { //, public std::enable_shar
       }
     }
 
+    static void multicast_orderbook(const std::list<Client *> &clients, const json::Object &snapshot, const json::Object &delta) {
+      for (Client *client_ptr : clients) {
+        try {
+          if (!client_ptr->wsi) continue;
+          if (elog.debug()) elog.debug() << std::hex << "enqueuing wsi " <<  client_ptr->wsi << std::endl;
+          if (client_ptr->snapshot_sent)
+            client_ptr->reply_queue.enqueue(delta);
+          else
+            client_ptr->reply_queue.enqueue(snapshot);
+          client_ptr->vhd->wsi_queue->enqueue(client_ptr->wsi);
+          lws_cancel_service(lws_get_context(client_ptr->wsi));
+          client_ptr->snapshot_sent = true;
+        }
+        catch (...) {
+          continue;
+        }
+      }
+    }
+
     static void multicast(const std::list<Client *> &clients, const json::Object &msg, id_t exclude_user_id) {
       for (Client *client_ptr : clients) {
         try {
@@ -288,6 +307,7 @@ class Client : public Selectable, public WorkQueue { //, public std::enable_shar
     unsigned recv_mark = 0, recv_pos = 0;
     Opcode recv_opcode;
     bool fragmented = false, throttled = false;
+    bool snapshot_sent = false;
 
   public:
     const uint8_t api_version;

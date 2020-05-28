@@ -733,6 +733,7 @@ namespace proxy {
       auto ob_snapshot = this->ob.get_orderbook_snapshot();
       auto ob_diff     = this->ob.get_orderbook_diff();
       this->ob.clear_unused_bids_asks();
+      Client::multicast_orderbook(Client::all_clients, ob_snapshot, ob_diff);
 
       this->next_broadcast_time = std::chrono::steady_clock::now() + ping_interval;
       this->schedule_broadcast();

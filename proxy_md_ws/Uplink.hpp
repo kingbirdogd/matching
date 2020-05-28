@@ -40,21 +40,32 @@ namespace proxy {
     std::queue<std::shared_ptr<Client>> callback_queue;
 
     uint8_t num_queue;
-    uint32_t port;
+    uint32_t port, zmq_ob_snapshot_port, zmq_ob_diff_port;
     zmq::context_t ctx;
-    zmq::socket_t pub_sock;
+    zmq::socket_t zmq_ob_snapshot_sock;
+    zmq::socket_t zmq_ob_diff_sock;
     std::chrono::steady_clock::time_point next_broadcast_time;
     static constexpr std::chrono::steady_clock::duration ping_interval = std::chrono::seconds(3);
 
     OrderBook ob;
 
   public:
-    Uplink(const char host[], Selector &selector_in, Selector &selector_out, uint8_t num_queue, uint32_t matching_port)
+    Uplink(const char host[], Selector &selector_in, Selector &selector_out, uint8_t num_queue,
+        uint32_t matching_port, uint32_t zmq_ob_snapshot_port, uint32_t zmq_ob_diff_port)
       : host(host), selector_in(selector_in),
         selector_out(selector_out), num_queue(num_queue), port(matching_port),
-        ctx(1), pub_sock(ctx, ZMQ_PUB) {
-      pub_sock.connect("tcp://localhost:14002"); // hard code for testing
-      std::cout << "Connected to xsub" << std::endl;
+        ctx(1), zmq_ob_snapshot_sock(ctx, ZMQ_PUB), zmq_ob_diff_sock(ctx, ZMQ_PUB){
+
+      std::string zmq_ob_snapshot_url(std::string("tcp://*:") + std::to_string(zmq_ob_snapshot_port));
+      zmq_ob_snapshot_sock.bind(zmq_ob_snapshot_url);
+      elog.debug() << "zmq orderbook snapshot pub socket bind to " << zmq_ob_snapshot_url << std::endl;
+
+      std::string zmq_ob_diff_url(std::string("tcp://*:") + std::to_string(zmq_ob_diff_port));
+      zmq_ob_diff_sock.bind(zmq_ob_diff_url);
+      elog.debug() << "zmq orderbook diff pub socket bind to " << zmq_ob_diff_url << std::endl;
+
+//      zmq_pub_sock.connect("tcp://localhost:14002"); // hard code for testing
+//      std::cout << "Connected to xsub" << std::endl;
 
       reschedule_broadcast();
       schedule_broadcast();

@@ -125,8 +125,10 @@ void sigint_handler(int sig)
 int main(int argc, const char **argv)
 {
   // Uplink to matching engine
-  cli::Option<in_port_t> matching_port_option("matching_port", 'M');
-  cli::Option<in_port_t> wss_port_option("wss_port", 'P');
+  cli::Option<in_port_t> matching_port_option("matching_port", 'X');
+  cli::Option<in_port_t> wss_port_option("wss_port", 'G');
+  cli::Option<in_port_t> zmq_ob_snapshot_port_option("zmq_ob_snapshot_port", 'E');
+  cli::Option<in_port_t> zmq_ob_diff_port_option("zmq_ob_diff_port", 'F');
   cli::Option<> verbose_option("verbose", 'v');
   cli::Option<> version_option("version");
   cli::Option<> fee_control("allowFeeControl");
@@ -137,7 +139,7 @@ int main(int argc, const char **argv)
   cli::Option<uint16_t> max_connections_option("maxConnections");
   cli::Option<std::string> ip_address_header_option("ipAddressHeader");
 
-  argc = cli::parse(argc, (char **)argv, { &matching_port_option, &wss_port_option, &verbose_option, &version_option, &fee_control, &inst_config_option, &skip_auth_option,
+  argc = cli::parse(argc, (char **)argv, { &zmq_ob_diff_port_option, &zmq_ob_snapshot_port_option, &matching_port_option, &wss_port_option, &verbose_option, &version_option, &fee_control, &inst_config_option, &skip_auth_option,
                                   &num_queue_option, &trace_option, &max_connections_option, &ip_address_header_option });
   if (version_option) {
     std::clog << "proxy" << ' ' << VERSION << std::endl;
@@ -192,7 +194,11 @@ int main(int argc, const char **argv)
 
   Selector selector_in, selector_out;
   proxy::selector = &selector_in;
-  proxy::Uplink uplink(argv[1], selector_in, selector_out, num_queue, matching_port_option.value_or(CORE_PORT));
+  proxy::Uplink uplink(argv[1], selector_in, selector_out, num_queue,
+      matching_port_option.value_or(CORE_PORT),
+      zmq_ob_snapshot_port_option.value_or(0),
+      zmq_ob_diff_port_option.value_or(0)
+      );
   std::shared_ptr<proxy::Uplink> shared_uplink(proxy::uplink = &uplink);
 
   uint16_t default_n_max_connections = 4;
