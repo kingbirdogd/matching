@@ -440,6 +440,7 @@ namespace proxy {
     auto &request_method = *request.get("method").as_string();
     auto request_tag_ptr = request.find("tag");
     intmax_t tag = request_tag_ptr ? *request_tag_ptr->as_integer() : 0;
+/*
     if (request_method == "SetUserPublicKey") {
       if (user_id != 0) {
         this->send_error(tag, 7, "You are not authenticated.");
@@ -704,8 +705,7 @@ namespace proxy {
           }
         });
       }
-    } /*
-    else if (request_method == "EstimateMarketOrder") {
+    } else if (request_method == "EstimateMarketOrder") {
       if (order_bucket.take(1) == 0) {
         this->send_error(tag, 6, "You are sending orders too rapidly.");
       } else {
@@ -746,10 +746,12 @@ namespace proxy {
           }
         }
       }
-    } */
-    else if (request_method == "ReconnectEngine") {
+    } else */
+    if (request_method == "ReconnectEngine") {
       uplink->reconnect();
-    } else if (request_method == "PlaceOrder") {
+    }
+    /*
+    else if (request_method == "PlaceOrder") {
 //      if (request_tonce_ptr && (tonce = narrow_check<uint64_t>(*request_tonce_ptr->as_integer())) == 0) {
 //        this->send_error(tag, 8, "Tonce must not be zero.");
 //      }
@@ -1007,7 +1009,7 @@ namespace proxy {
             });
           }
         }
-      } */
+      }
     } else if (request_method == "ModifyOrder" && api_version >= 1) {
       if (uplink->protocol_version() < 6) {
         this->send_error(tag, 8, "unknown method");
@@ -1388,6 +1390,7 @@ namespace proxy {
     } else {
       this->send_error(tag, 8, "unknown method");
     }
+     */
   }
 
   void Client::schedule_ping() noexcept {

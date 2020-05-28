@@ -2,11 +2,17 @@
 #include "core.h"
 #include "common/json.h"
 #include <thread>
+#include <ctime>
 #include "proxy_lws_utils.hpp"
 #include "Client.hpp"
 #include <matching/order.hpp>
+#include <md/book_item.hpp>
 
 std::unordered_map<unsigned long long, unsigned long long> client_to_engine_id_map;
+
+
+
+
 
 json::Object handle_order(const matching::order& o)
 {
@@ -215,7 +221,43 @@ json::Object handle_order(const matching::order& o)
 
 namespace proxy {
   using namespace core;
+  std::chrono::steady_clock::duration Uplink::broadcast_interval;
+/*
+  json::Object Uplink::handle_book_item(const md::book_item& o) {
+    if (o.side == md::book_item::book_side::bid) {
+      if (o.quantity == 0)
+        bids.erase(o.price);
+      else
+        bids[o.price] = o;
+    }
+    else if (o.side == md::book_item::book_side::ask) {
+      if (o.quantity == 0)
+        asks.erase(o.price);
+      else
+        asks[o.price] = o;
+    }
 
+
+    std::string side = "";
+    if (o.side == md::book_item::book_side::bid)
+      side = "BID";
+    else if (o.side == md::book_item::book_side::bid)
+      side = "ASK";
+    elog.debug()
+        << "px:" << o.price
+        << ",qty:" << o.quantity
+        << ",side:" << o.side
+        << ",market_id:" << o.market_id
+        << std::endl;
+    json::Object response;
+    response.insert("px", json::Integer(o.price));
+    response.insert("qty", json::Integer(o.quantity));
+    response.insert("side", json::String(side));
+    response.insert("market_id", json::Integer(o.market_id));
+
+    return response;
+  }
+*/
   void Uplink::enqueue_work(std::function<void(void) /* noexcept */> &&work) {
     if (num_queue == 1)
       this->enqueue_1_queue(std::move(work));
@@ -324,14 +366,15 @@ namespace proxy {
 
   size_t Uplink::receive_message(const void *buf, size_t n) {
     {
-      size_t msg_size = sizeof(matching::order);
+      size_t msg_size = sizeof(md::book_item);
       if (n < msg_size) return 0;
 
-      auto &reply = (*static_cast<const matching::order *>(buf));
-      json::Object response = handle_order(reply);
-      Client::multicast(Client::all_clients, response);
-      std::stringstream ss;
-      ss << response;
+      auto &reply = (*static_cast<const md::book_item *>(buf));
+      ob.update(reply);
+      //json::Object response = handle_book_item(reply);
+      //Client::multicast(Client::all_clients, response);
+      //std::stringstream ss;
+      //ss << response;
       //pub_sock.send(zmq::const_buffer(ss.str().c_str(),  ss.str().size()), zmq::send_flags::none);
 
 //      std::unique_lock<std::mutex> callback_queue_lock(callback_queue_mutex);
@@ -589,5 +632,132 @@ namespace proxy {
       return true;
     }
     return false;
+  }
+
+  struct cmp {
+    bool operator()(const Uplink::book_map_t::value_type &a,
+                    const Uplink::book_map_t::value_type &b) const {
+      return
+          ( (a.first < b.first) ||
+            ((a.first == b.first) && (a.second.quantity < a.second.quantity)) );
+    }
+  };
+
+/*
+  json::Object Uplink::get_orderbook_diff(book_map_t &bids,      book_map_t &asks,
+                                          book_map_t &last_bids, book_map_t &last_asks) {
+
+
+    // need to lock?
+    json::Array bids_pxLevels;
+    json::Array asks_pxLevels;
+    json::Array book;
+    json::Array data;
+    json::Object data_item;
+    json::Object response ;
+    response.insert("table", json::String("futures/depth"));
+    response.insert("action", json::String("partial"));
+
+    unsigned long long last_market_id = 0;
+    int cnt = 0;
+    long long min_bid = std::numeric_limits<long long>::min();
+    long long top_bid = min_bid;
+    for (auto it = bids.rbegin(); it != bids.rend(); it++) {
+      if ((last_market_id != 0) && (last_market_id != it->second.market_id)) {
+        elog.error() << "last_market_id(" << last_market_id << ") != current market_id(" << it->second.market_id << ") Stopping..." << std::endl;
+        break;
+      }
+      last_market_id = it->second.market_id;
+
+      json::Array details;
+      details.insert(json::Integer(it->second.price));
+      details.insert(json::Integer(it->second.quantity));
+      details.insert(json::Integer(0));
+      details.insert(json::Integer(0));
+      bids_pxLevels.insert(std::move(details));
+      if ((top_bid == min_bid) && (it->second.quantity > 0))
+        top_bid = it->second.price;
+      if (++cnt == 400) break;
+    }
+
+    last_market_id = 0;
+    cnt = 0;
+    long long max_ask = std::numeric_limits<long long>::max();
+    long long top_ask = max_ask;
+    for (auto it = asks.begin(); it != asks.end(); it++) {
+      if ((last_market_id != 0) && (last_market_id != it->second.market_id)) {
+        elog.error() << "last_market_id(" << last_market_id << ") != current market_id(" << it->second.market_id << ") Stopping..." << std::endl;
+        break;
+      }
+      last_market_id = it->second.market_id;
+
+      json::Array details;
+      details.insert(json::Integer(it->second.price));
+      details.insert(json::Integer(it->second.quantity));
+      details.insert(json::Integer(0));
+      details.insert(json::Integer(0));
+      asks_pxLevels.insert(std::move(details));
+      if ((top_ask == max_ask) && (it->second.quantity > 0))
+        top_ask = it->second.price;
+      if (++cnt == 400) break;
+    }
+//    json::Array details;; details.insert(json::Integer(0)); details.insert(json::Integer(1)); details.insert(json::Integer(2));
+//    bids_pxLevels.insert(std::move(details)); bids_pxLevels.insert(std::move(details)); bids_pxLevels.insert(std::move(details));
+//    asks_pxLevels.insert(std::move(details)); asks_pxLevels.insert(std::move(details)); asks_pxLevels.insert(std::move(details));
+
+    data_item.insert("instrument_id", json::Integer(last_market_id));
+    data_item.insert("bids", std::move(bids_pxLevels));
+    data_item.insert("asks", std::move(asks_pxLevels));
+    data_item.insert("timestamp", json::String(currentISO8601TimeUTC()));
+    data_item.insert("checksum", json::Integer(0));
+
+    data.insert(std::move(data_item));
+    response.insert("data", std::move(data));
+    if (elog.debug_enabled()) {
+      elog.debug() << "response:  " << response << std::endl;
+    }
+    return response;
+  }
+*/
+
+  void Uplink::schedule_broadcast() noexcept {
+    scheduler.call_at(next_broadcast_time,
+        [this]() noexcept {
+//      if (elog.debug_enabled()) {
+//        elog.debug() << "schedule_broadcast  " << std::endl;
+//      }
+
+//      json::Object response ;
+//      response.insert("Testing", json::String("TestValue"));
+//      Client::multicast(Client::all_clients, response);
+
+      auto ob_snapshot = this->ob.get_orderbook_snapshot();
+      auto ob_diff     = this->ob.get_orderbook_diff();
+      this->ob.clear_unused_bids_asks();
+      Client::multicast_orderbook(Client::all_clients, ob_snapshot, ob_diff);
+      zmq_broadcast(ob_snapshot, zmq_ob_snapshot_sock);
+      zmq_broadcast(ob_diff    , zmq_ob_diff_sock);
+
+      this->next_broadcast_time = std::chrono::steady_clock::now() + broadcast_interval;
+      this->schedule_broadcast();
+
+    });
+  }
+
+  void Uplink::zmq_broadcast(const json::Object &jo, zmq::socket_t &zmq_sock) {
+    std::stringstream ss;
+    ss << jo;
+    parser.builder_.Clear();
+    if (!parser.Parse(ss.str().c_str())) {
+      elog.debug() << "flatbuffers parser failed with error : " << parser.error_ << std::endl;
+      return;
+    }
+    uint8_t *buf = parser.builder_.GetBufferPointer();
+    uint32_t sz  = parser.builder_.GetSize();
+    zmq_sock.send(zmq::const_buffer(buf, sz), zmq::send_flags::none);
+  }
+
+  void Uplink::reschedule_broadcast() noexcept {
+    next_broadcast_time = std::chrono::steady_clock::now() + broadcast_interval;
   }
 }

@@ -39,7 +39,7 @@ namespace proxy {
         selector_out(selector_out), num_queue(num_queue), port(matching_port),
         ctx(1), pub_sock(ctx, ZMQ_PUB) {
       pub_sock.connect("tcp://localhost:14002"); // hard code for testing
-      std::cout << "Connected to xsub" << std::endl;
+      std::cout << "Connecting to xsub on tcp://localhost:14002" << std::endl;
     }
 
     void enqueue_work(std::function<void(void) /* noexcept */> &&work);

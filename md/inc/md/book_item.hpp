@@ -25,6 +25,15 @@ namespace md
 		{
 		}
 		~book_item() = default;
+		bool operator==(const book_item &rhs) {
+		  return ((    price == rhs.price)
+		      &&  (quantity  == rhs.quantity)
+		      &&  (     side == rhs.side)
+		      &&  (market_id == rhs.market_id));
+		}
+    bool operator!=(const book_item &rhs) {
+      return !(operator==(rhs));
+    }
 	};
 }
 

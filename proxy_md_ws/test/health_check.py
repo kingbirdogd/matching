@@ -11,44 +11,21 @@ from ecdsa import SigningKey
 from hashlib import sha224
 from hashlib import sha1
 import base64
-#import utils as ut
 import logging
 import sys
 from _collections import deque
 
-# import logging
-# logger = logging.getLogger('websockets')
-# logger.setLevel(logging.DEBUG)
-# logger.addHandler(logging.StreamHandler())
-#
-# logging.getLogger('websockets.server').setLevel(logging.DEBUG)
-# logging.getLogger('websockets.server').addHandler(logging.StreamHandler())
-# logging.getLogger('websockets.client').setLevel(logging.DEBUG)
-# logging.getLogger('websockets.client').addHandler(logging.StreamHandler())
-
 HOST  = 'localhost'
 PORT  = 8080
-#HOST1 = 'ironmanapi1.coinflex.com'
-#HOST2 = 'ironmanapi2.coinflex.com'
-#HOST3 = 'ironmanapi3.coinflex.com'
-#HOST  = '18.162.39.80'
-#HOST  = 'chiaapi.coinflex.com'
-#HOST  = 'lycheews.coinflex.com/test'
-#HOST  = ''
-#PORT  = 0
-PORT1 = 8080
-PORT2 = 8081
-PORT3 = 8082
-PROTOCOL = 'lws-minimal'
-
-BASE_ID    = 0xFFFE # 65534
-COUNTER_ID = 0xFFFF # 65535
 
 nProxies = 1
 nTimes   = 100
-#USER_IDS = [1, 2]
-USER_IDS = range(1,2)
+USER_IDS = [1, 2]
+#USER_IDS = range(1)
 nUsers   = len(USER_IDS)
+
+BASE_ID    = 0xFFFE # 65534
+COUNTER_ID = 0xFFFF # 65535
 
 def or_bytes(abytes, bbytes):
     return bytes([a | b for a, b in zip(abytes[::-1], bbytes[::-1])][::-1])
@@ -169,10 +146,8 @@ async def get_reply_notice(user_id, sleep_s, bPrint):
             sys.stdout.flush()
         #await asyncio.sleep(sleep_s)
 
-async def test(host, payload):
-    global ws_map, listen_map, tonce, HOST
-    sleep_s = 0.5
-    HOST = host
+async def test(sleep_s):
+    global ws_map, listen_map, tonce
 
     # Login and authentication...
     for uid in USER_IDS:
@@ -186,34 +161,21 @@ async def test(host, payload):
     print(f'Listening to {nUsers} users reply/notice messages...')
 
     try:
-        user_id_limit = USER_IDS[0]; ws_limit = ws_map[user_id_limit]
-        #user_id_po = USER_IDS[1];  ws_po = ws_map[user_id_po]
+        user_id_limit = USER_IDS[0]
+        ws_limit = ws_map[user_id_limit]
+        user_id_po = USER_IDS[1]
+        ws_po = ws_map[user_id_po]
 
-        # ========================= Clear ==========================
-        #payload_place_cxl  = {'order_action':"CANCEL",             'method':'PlaceOrder',  'order_id': 1589463760000000708, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_cxl )
-        #payload_place_buy  = {'order_action':'NEW', 'side':'BUY' , 'method':'PlaceOrder', "price":4000, 'quantity': 200000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_buy )
-        #payload_place_sell = {'order_action':'NEW', 'side':'SELL', 'method':'PlaceOrder', "price":   1, 'quantity': 200000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_sell)
-        #payload_place_buy  = {'order_action':'NEW', 'side':'BUY' , 'method':'PlaceOrder', "price":   2, 'quantity': 200000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_buy )
-        # END ===================== Clear ==========================
-        await send_order(user_id_limit, payload)
-
-        # payload_place_sell = {'order_action':'NEW', 'side':'SELL'     , 'method':'PlaceOrder', "price":100, 'quantity': 20000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_sell)
-        # payload_place_sell = {'order_action':'NEW', 'side':'SELL'     , 'method':'PlaceOrder', "price":100, 'quantity': 2000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_sell)
-        # payload_place_buy  = {'order_action':'NEW', 'side':'BUY'      , 'method':'PlaceOrder', "price": 95, 'quantity': 2000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_buy )
-        # payload_place_buy  = {'order_action':'NEW', 'side':'BUY'      , 'method':'PlaceOrder', "price": 99, 'quantity': 12000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_buy )
-        # #payload_place_buy  = {'order_action':'NEW', 'side':'BUY'      , 'method':'PlaceOrder', "price":2000098, 'quantity': 20000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_buy )
-        # payload_place_sell = {'order_action':'NEW', 'side':'SELL_STOP', 'method':'PlaceOrder',              'quantity':  2300, 'client_order_id': tonce,
-        #                       'sell_stop_trigger_price': 98,
-        #                       'sell_stop_limited_price': 97                                            }; tonce += 1; await send_order(user_id_limit, payload_place_sell)
-        # payload_place_sell = {'order_action':'NEW', 'side':'SELL_STOP', 'method':'PlaceOrder',              'quantity':  2100, 'client_order_id': tonce,
-        #                       'sell_stop_trigger_price': 80,
-        #                       'sell_stop_limited_price': 78                                            }; tonce += 1; await send_order(user_id_limit, payload_place_sell)
-        # payload_place_sell = {'order_action':'NEW', 'side':'SELL'     , 'method':'PlaceOrder', "price": 98, 'quantity': 2500, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_sell)
-
-        # payload_place_buy = {'method': 'PlaceOrder', "order_action": "NEW", "price": 101, 'quantity': 100, "client_order_id": tonce, 'side': 'BUY'}; tonce += 1
-        # await send_order(user_id_limit, payload_place_buy)
-
-        await asyncio.sleep(0.5)
+        # Place Buy
+        payload_place_buy = {"method": "PlaceOrder", "base": BASE_ID, "counter": COUNTER_ID,
+                             "price": 98, 'quantity': 23, "tag": 998, 'tonce': tonce }; tonce += 1
+        await send_order(user_id_limit, payload_place_buy)
+        #
+        # # Place Sell
+        # payload_place_sell = {"method": "PlaceOrder", "base": BASE_ID, "counter": COUNTER_ID,
+        #                       "price": 100, 'quantity': -30, "tag": 999, 'tonce': tonce }; tonce += 1
+        # await send_order(user_id_limit, payload_place_sell)
+        # await asyncio.sleep(0.5)
 
         # payload_ticker_mod = {"method": "ModifyOrder", 'tonce': tonce-2, "quantity_delta" : 2}
         # await send_order(user_id_limit, payload_ticker_mod)
@@ -461,24 +423,10 @@ if __name__ == '__main__':
     tonce = int(time.time()) * 1000
 
     # Setup async tasks for login and listening to messages
-    payload_place_sell1  = {'side':'SELL', "price": 31, 'quantity':    5,'order_action':'NEW',  'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
-    payload_place_sell2  = {'side':'SELL', "price": 10, 'quantity':   30,'order_action':'NEW',  'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
-    payload_place_sell3  = {'side':'SELL', "price": 30, 'quantity':    1,'order_action':'NEW',  'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
-
-    payload_place_buy1  = {'side':'BUY' , "price": 95, 'quantity': 2000, 'order_action':'NEW', 'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
-    payload_place_buy2  = {'side':'BUY' , "price": 20, 'quantity': 5, 'order_action':'NEW', 'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
-    payload_place_buy3  = {'side':'BUY' , "price": 10, 'quantity': 5, 'order_action':'NEW', 'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
-
-    payload_reconnect = { 'method' : 'ReconnectEngine'}
-
-    #loop.create_task(test(HOST, payload_reconnect))
-    #loop.create_task(test(HOST, payload_place_sell1))
-    #loop.create_task(test(HOST, payload_place_buy2))
-    loop.create_task(test(HOST, payload_place_buy3))
+    loop.create_task(test(0.01))
     #loop.create_task(test_stress(nUsers, 0.1))
     for uid in USER_IDS:
         order_map[uid] = deque(maxlen=10)
         loop.create_task(get_reply_notice(user_id=uid, sleep_s=0.001, bPrint=True))
-        #break   # listen to 1 user for testing
 
     loop.run_forever()
