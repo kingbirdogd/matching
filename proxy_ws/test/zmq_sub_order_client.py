@@ -21,28 +21,6 @@ sink = context.socket(zmq.SUB)
 sink.setsockopt(zmq.SUBSCRIBE, b"")
 sink.connect("tcp://localhost:22012")
 
-builder = flatbuffers.Builder(1024)
-
-co.OrderStart(builder)
-co.OrderAddAccountId(builder, 123456)
-co.OrderAddMarketId(builder, 333)
-co.OrderAddPrice(builder, 101)
-co.OrderAddQuantity(builder, 2000)
-co.OrderAddDisplayQuantity(builder, 2000)
-co.OrderAddClientOrderId(builder, 1)
-co.OrderAddSide(builder, CoinflexV2.order_side.order_side.BUY)
-co.OrderAddOrderAction(builder, CoinflexV2.order_action_type.order_action_type.NEW)
-co.OrderAddType(builder, CoinflexV2.order_type.order_type.LIMITED)
-
-order = co.OrderEnd(builder)
-
-cm.MsgStart(builder)
-cm.MsgAddPayloadType(builder, cp.Payload.Order)
-cm.MsgAddPayload(builder, order)
-msg = cm.MsgEnd(builder)
-builder.Finish(msg)
-buf = builder.Output()
-
 def print_order(o) :
   print(f"version={o.Version()},"
         f"account_id={o.AccountId()},"

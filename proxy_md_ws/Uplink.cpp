@@ -735,10 +735,26 @@ namespace proxy {
       auto ob_diff     = this->ob.get_orderbook_diff();
       this->ob.clear_unused_bids_asks();
       Client::multicast_orderbook(Client::all_clients, ob_snapshot, ob_diff);
+      zmq_broadcast(ob_snapshot, zmq_ob_snapshot_sock);
+      zmq_broadcast(ob_diff    , zmq_ob_diff_sock);
 
       this->next_broadcast_time = std::chrono::steady_clock::now() + broadcast_interval;
       this->schedule_broadcast();
+
     });
+  }
+
+  void Uplink::zmq_broadcast(const json::Object &jo, zmq::socket_t &zmq_sock) {
+    std::stringstream ss;
+    ss << jo;
+    parser.builder_.Clear();
+    if (!parser.Parse(ss.str().c_str())) {
+      elog.debug() << "flatbuffers parser failed with error : " << parser.error_ << std::endl;
+      return;
+    }
+    uint8_t *buf = parser.builder_.GetBufferPointer();
+    uint32_t sz  = parser.builder_.GetSize();
+    zmq_sock.send(zmq::const_buffer(buf, sz), zmq::send_flags::none);
   }
 
   void Uplink::reschedule_broadcast() noexcept {

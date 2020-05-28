@@ -12,6 +12,8 @@
 #include <md/book_item.hpp>
 #include <common/json.h>
 #include "OrderBook.hpp"
+#include <flatbuffers/flatbuffers.h>
+#include <flatbuffers/idl.h>
 
 extern Log elog;
 
@@ -49,10 +51,13 @@ namespace proxy {
     static std::chrono::steady_clock::duration broadcast_interval; // = std::chrono::milliseconds (broadcast_ms);
 
     OrderBook ob;
+    flatbuffers::Parser parser;
+
 
   public:
     Uplink(const char host[], Selector &selector_in, Selector &selector_out, uint8_t num_queue,
-        uint32_t matching_port, uint32_t zmq_ob_snapshot_port, uint32_t zmq_ob_diff_port, uint32_t broadcast_ms)
+        uint32_t matching_port, uint32_t zmq_ob_snapshot_port, uint32_t zmq_ob_diff_port,
+        uint32_t broadcast_ms, std::string md_schema_file)
       : host(host), selector_in(selector_in),
         selector_out(selector_out), num_queue(num_queue), port(matching_port),
         ctx(1), zmq_ob_snapshot_sock(ctx, ZMQ_PUB), zmq_ob_diff_sock(ctx, ZMQ_PUB),
@@ -71,8 +76,17 @@ namespace proxy {
 
       reschedule_broadcast();
       schedule_broadcast();
+
+      std::string schema_ok_file;
+      bool ok = flatbuffers::LoadFile(md_schema_file.c_str(), false, &schema_ok_file);
+      if (!ok) {
+        std::cout << "load file failed!" << std::endl;
+        return;
+      }
+      parser.Parse(schema_ok_file.c_str());
     }
 
+    void zmq_broadcast(const json::Object &jo, zmq::socket_t &zmq_sock);
     void enqueue_work(std::function<void(void) /* noexcept */> &&work);
 
     void connect(std::function<void(void)> synchronized = nullptr);
