@@ -1,6 +1,7 @@
 #ifndef MATCHING_INC_ENGINE_HPP_
 #define MATCHING_INC_ENGINE_HPP_
 
+#include <time.h>
 #include <stddef.h>
 #include <map>
 #include <set>
@@ -13,6 +14,16 @@
 #include <matching/order.hpp>
 #include <core/spin_mutex.hpp>
 #include <implier.hpp>
+
+inline static unsigned long long current()
+{
+		struct timespec tp;
+		clock_gettime(CLOCK_REALTIME, &tp);
+		unsigned long long uRt = tp.tv_sec;
+		uRt *= 1000000000;
+		uRt += ((unsigned long long)((unsigned long long)tp.tv_nsec));
+		return uRt;
+}
 
 namespace matching
 {
@@ -847,9 +858,9 @@ namespace matching
 					last_matched_order_id,
 					last_matched_order_id2);
 		}
-		void callback(const order& o)
+		void callback(order& o)
 		{
-			//TODO market data handler
+			o.timestamp_epoch_ms = current() / 1000000;
 			_callback(o);
 		}
 	private:
