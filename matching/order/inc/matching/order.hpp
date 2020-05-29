@@ -65,8 +65,8 @@ namespace matching
 			TAKER = 0x01
 		};
 	public:
-    unsigned long account_id;
-    unsigned long market_id;
+    unsigned long long account_id;
+    unsigned long long market_id;
 		long long price;
 		unsigned long long quantity;
 		unsigned long long display_quantity;
@@ -89,6 +89,7 @@ namespace matching
 		order_action_type order_action;
 		order_status_type order_state;
 		order_matched_type matched_type;
+    unsigned long long timestamp_epoch_ms;
 	private:
 		inline unsigned int _get_flag_value() const
 		{
@@ -119,7 +120,8 @@ namespace matching
 			filler(0),
 			order_action(order_action_type::NEW),
 			order_state(order_status_type::OPEN),
-			matched_type(order_matched_type::MAKER)
+			matched_type(order_matched_type::MAKER),
+      timestamp_epoch_ms(0)
 		{
 		}
 		order(const order&) = default;
