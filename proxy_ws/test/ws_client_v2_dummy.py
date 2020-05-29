@@ -183,8 +183,11 @@ async def test(sleep_s):
     while True:
       try:
           user_id_limit = USER_IDS[0]; ws_limit = ws_map[user_id_limit]
+
           #user_id_po = USER_IDS[1];  ws_po = ws_map[user_id_po]
-  
+          rnd_bid_px  = random.randint(90, 110);          rnd_ask_px  = random.randint(90, 110)
+          rnd_bid_qty = random.randint(1000, 9000);          rnd_ask_qty = random.randint(1000, 9000)
+
           # ========================= Clear ==========================
           #payload_place_cxl  = {'order_action':"CANCEL",             'method':'PlaceOrder',  'order_id': 1589463760000000708, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_cxl )
           #payload_place_buy  = {'order_action':'NEW', 'side':'BUY' , 'method':'PlaceOrder', "price":4000, 'quantity': 200000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_buy )
@@ -193,8 +196,8 @@ async def test(sleep_s):
           # END ===================== Clear ==========================
   
           #payload_place_sell = {'order_action':'NEW', 'side':'SELL'     , 'method':'PlaceOrder', "price":100, 'quantity': 20000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_sell)
-          payload_place_sell = {'order_action':'NEW', 'side':'SELL'     , 'method':'PlaceOrder', "price":100, 'quantity': 2000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_sell)
-          payload_place_buy  = {'order_action':'NEW', 'side':'BUY'      , 'method':'PlaceOrder', "price":100, 'quantity': 2000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_buy )
+          payload_place_sell = {'order_action':'NEW', 'side':'SELL'     , 'method':'PlaceOrder', "price":rnd_ask_px, 'quantity': rnd_ask_qty, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_sell)
+          payload_place_buy  = {'order_action':'NEW', 'side':'BUY'      , 'method':'PlaceOrder', "price":rnd_bid_px, 'quantity': rnd_bid_qty, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_buy )
   #        payload_place_buy  = {'order_action':'NEW', 'side':'BUY'      , 'method':'PlaceOrder', "price": 99, 'quantity': 12000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_buy )
           #payload_place_buy  = {'order_action':'NEW', 'side':'BUY'      , 'method':'PlaceOrder', "price":2000098, 'quantity': 20000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_buy )
           #payload_place_sell = {'order_action':'NEW', 'side':'SELL_STOP', 'method':'PlaceOrder',              'quantity':  2300, 'client_order_id': tonce,
