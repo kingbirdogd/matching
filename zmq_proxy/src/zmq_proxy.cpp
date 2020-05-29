@@ -217,7 +217,7 @@ int main(int iArgc, char** pszArgv)
     return -2;
   }
   zmq::context_t ctx;
-  zmq::socket_t order_status_pub_sock(ctx, ZMQ_PUB);
+  zmq::socket_t order_status_pub_sock(ctx, ZMQ_PUSH);
   std::string order_status_pub_url = std::string("tcp://*:") + std::to_string(order_status_pub_port);
   order_status_pub_sock.bind(order_status_pub_url);
   std::cout << "order status publish bind to " << order_status_pub_url << std::endl;
