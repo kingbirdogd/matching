@@ -70,4 +70,18 @@ Implied AB, BC
                                                50@5i, implied rest 5i                                               
                            BC 
 50@5i, implied rest 5i                                               
-                                               
+
+===================================================================================
+
+Special case for Spot/Perp/Repo:
+A = Spot
+B = Perp
+C = Repo
+
+Coinflex's business only wants the following IMPLIED OUT relationship:
+LONG A(ASK_A) <- LONG AB(ASK_AB), LONG B(ASK_B)
+SHORT A(BID_A) <- SHORT AB(BID_AB), SHORT B(BID_B)
+
+LONG A(implied OUT, ASK_A) <- ASK_PRICE_B * (1 + ASK_PRICE_AB) @ MIN(ASK_QUANTITY_AB, ASK_QUANTITY_B)
+
+SHORT A(implied OUT, BID_A) <- BID_PRICE_B * (1 + BID_PRICE_AB) @ MIN(BID_QUANTITY_AB, BID_QUANTITY_B)
