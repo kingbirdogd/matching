@@ -24,6 +24,23 @@
 #   zmq PULL port for receving ORDER            : 22031
 #   zmq PUB  port for ORDER STATUS UPDATES      : 22032
 
+# Book D (Spot)
+#   wss port for internal testing               :  8084
+#   wss port for internal MD subscription (OKEx):  9084
+#   zmq PUB port for snapshot                   : 18041
+#   zmq PUB port for diff                       : 18042
+#   zmq PULL port for receving ORDER            : 22041
+#   zmq PUB  port for ORDER STATUS UPDATES      : 22042
+
+# Book E (Repo)
+#   wss port for internal testing               :  8085
+#   wss port for internal MD subscription (OKEx):  9085
+#   zmq PUB port for snapshot                   : 18051
+#   zmq PUB port for diff                       : 18052
+#   zmq PULL port for receving ORDER            : 22051
+#   zmq PUB  port for ORDER STATUS UPDATES      : 22052
+
+
 
 BASEDIR=/home/docker
 CORE_BASE=${BASEDIR}/targets/coinflex_v2_core
@@ -38,27 +55,35 @@ mkdir -p ${LOG_LOCATION}
 #${CORE_LOCATION}/xpubxsub 14001 14002 >> ${LOG_LOCATION}/xpubxsub.out.log 2>> ${LOG_LOCATION}/xpubxsub.err.log &
 
 # Matching server
-${CORE_LOCATION}/test_tcp_matching_server 34671 34672 34673 >> ${LOG_LOCATION}/matching_server.out.log 2>> ${LOG_LOCATION}/matching_server.err.log &
+${CORE_LOCATION}/test_tcp_matching_server 34671 34672 34673 34674 34675 >> ${LOG_LOCATION}/matching_server.out.log 2>> ${LOG_LOCATION}/matching_server.err.log &
 
 # MD Implied Server
-${CORE_LOCATION}/test_md_tcp_server 127.0.0.1 34671 127.0.0.1 34673 127.0.0.1 34672 a_bid_b_bid a_ask_b_ask add_bid_implier   add_ask_implier   35671 >> ${LOG_LOCATION}/md_tcp1.out.log 2>> ${LOG_LOCATION}/md_tcp1.err.log &
-${CORE_LOCATION}/test_md_tcp_server 127.0.0.1 34672 127.0.0.1 34671 127.0.0.1 34673 a_bid_b_ask a_ask_b_bid minus_bid_implier minus_ask_implier 35672  >> ${LOG_LOCATION}/md_tcp2.out.log 2>> ${LOG_LOCATION}/md_tcp2.err.log &
-${CORE_LOCATION}/test_md_tcp_server 127.0.0.1 34673 127.0.0.1 34671 127.0.0.1 34672 a_bid_b_ask a_ask_b_bid minus_bid_implier minus_ask_implier 35673  >> ${LOG_LOCATION}/md_tcp3.out.log 2>> ${LOG_LOCATION}/md_tcp3.err.log &
+${CORE_LOCATION}/test_md_tcp_server 127.0.0.1 34671 127.0.0.1 34673 127.0.0.1 34672 a_bid_b_bid   a_ask_b_ask   add_bid_implier      add_ask_implier      35671 >> ${LOG_LOCATION}/md_tcp1.out.log 2>> ${LOG_LOCATION}/md_tcp1.err.log &
+${CORE_LOCATION}/test_md_tcp_server 127.0.0.1 34672 127.0.0.1 34671 127.0.0.1 34673 a_bid_b_ask   a_ask_b_bid   minus_bid_implier    minus_ask_implier    35672 >> ${LOG_LOCATION}/md_tcp2.out.log 2>> ${LOG_LOCATION}/md_tcp2.err.log &
+${CORE_LOCATION}/test_md_tcp_server 127.0.0.1 34673 127.0.0.1 34671 127.0.0.1 34672 a_bid_b_ask   a_ask_b_bid   minus_bid_implier    minus_ask_implier    35673 >> ${LOG_LOCATION}/md_tcp3.out.log 2>> ${LOG_LOCATION}/md_tcp3.err.log &
+${CORE_LOCATION}/test_md_tcp_server 127.0.0.1 34674 127.0.0.1 34672 127.0.0.1 34675 a_bid_b_bid   a_ask_b_ask   repo_out_bid_implier repo_out_ask_implier 35674 >> ${LOG_LOCATION}/md_tcp4.out.log 2>> ${LOG_LOCATION}/md_tcp4.err.log &
+${CORE_LOCATION}/test_md_tcp_server 127.0.0.1 34675        ""     0        ""     0 a_none_b_none a_none_b_none none                 none                 35675 >> ${LOG_LOCATION}/md_tcp5.out.log 2>> ${LOG_LOCATION}/md_tcp5.err.log &
 
 # MD Orderbook Server
 ${CORE_LOCATION}/proxy_md_lws -s ${CORE_LOCATION}/md.fbs -B 500 -E 18011 -F 18012 -G 9081 -X 35671 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md1.out.log 2>> ${LOG_LOCATION}/proxy_md1.err.log &
 ${CORE_LOCATION}/proxy_md_lws -s ${CORE_LOCATION}/md.fbs -B 500 -E 18021 -F 18022 -G 9082 -X 35672 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md2.out.log 2>> ${LOG_LOCATION}/proxy_md2.err.log &
 ${CORE_LOCATION}/proxy_md_lws -s ${CORE_LOCATION}/md.fbs -B 500 -E 18031 -F 18032 -G 9083 -X 35673 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md3.out.log 2>> ${LOG_LOCATION}/proxy_md3.err.log &
+${CORE_LOCATION}/proxy_md_lws -s ${CORE_LOCATION}/md.fbs -B 500 -E 18041 -F 18042 -G 9084 -X 35674 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md4.out.log 2>> ${LOG_LOCATION}/proxy_md4.err.log &
+${CORE_LOCATION}/proxy_md_lws -s ${CORE_LOCATION}/md.fbs -B 500 -E 18051 -F 18052 -G 9085 -X 35675 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md5.out.log 2>> ${LOG_LOCATION}/proxy_md5.err.log &
 
 # ZMQ Proxy
 ${CORE_LOCATION}/zmq_proxy 127.0.0.1 34671 22011 22012 >> ${LOG_LOCATION}/zmq_proxy1.out.log 2>> ${LOG_LOCATION}/zmq_proxy1.err.log &
 ${CORE_LOCATION}/zmq_proxy 127.0.0.1 34672 22021 22022 >> ${LOG_LOCATION}/zmq_proxy2.out.log 2>> ${LOG_LOCATION}/zmq_proxy2.err.log &
 ${CORE_LOCATION}/zmq_proxy 127.0.0.1 34673 22031 22032 >> ${LOG_LOCATION}/zmq_proxy3.out.log 2>> ${LOG_LOCATION}/zmq_proxy3.err.log &
+${CORE_LOCATION}/zmq_proxy 127.0.0.1 34674 22041 22042 >> ${LOG_LOCATION}/zmq_proxy4.out.log 2>> ${LOG_LOCATION}/zmq_proxy4.err.log &
+${CORE_LOCATION}/zmq_proxy 127.0.0.1 34675 22051 22052 >> ${LOG_LOCATION}/zmq_proxy5.out.log 2>> ${LOG_LOCATION}/zmq_proxy5.err.log &
 
 # WSS Proxy for testing
 ${CORE_LOCATION}/proxy_lws -M 34671 -P 8081 --skipAuth --oneQueue -v localhost >> ${LOG_LOCATION}/proxy_lws1.out.log 2>> ${LOG_LOCATION}/proxy_lws1.err.log &
 ${CORE_LOCATION}/proxy_lws -M 34672 -P 8082 --skipAuth --oneQueue -v localhost >> ${LOG_LOCATION}/proxy_lws2.out.log 2>> ${LOG_LOCATION}/proxy_lws2.err.log &
 ${CORE_LOCATION}/proxy_lws -M 34673 -P 8083 --skipAuth --oneQueue -v localhost >> ${LOG_LOCATION}/proxy_lws3.out.log 2>> ${LOG_LOCATION}/proxy_lws3.err.log &
+${CORE_LOCATION}/proxy_lws -M 34674 -P 8084 --skipAuth --oneQueue -v localhost >> ${LOG_LOCATION}/proxy_lws4.out.log 2>> ${LOG_LOCATION}/proxy_lws4.err.log &
+${CORE_LOCATION}/proxy_lws -M 34675 -P 8085 --skipAuth --oneQueue -v localhost >> ${LOG_LOCATION}/proxy_lws5.out.log 2>> ${LOG_LOCATION}/proxy_lws5.err.log &
 
 tail -f /dev/null
 
