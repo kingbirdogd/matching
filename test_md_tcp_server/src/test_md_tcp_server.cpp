@@ -84,7 +84,7 @@ int main(int iArgc, char** pszArgv)
 	{
 		ask_implie_type = md::md_book::implier_type::a_ask_b_ask;
 	}
-	else if (str_bid_implie_type == "a_none_b_none")
+	else if (str_ask_implie_type == "a_none_b_none")
 	{
 		ask_implie_type = md::md_book::implier_type::a_none_b_none;
 	}
