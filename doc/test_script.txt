@@ -24,7 +24,7 @@
 ../matching_build/matching/bin/test_md_tcp_server 127.0.0.1 34673 127.0.0.1 34671 127.0.0.1 34672 a_bid_b_ask a_ask_b_bid minus_bid_implier minus_ask_implier 35673
 
 #Spot book md port MD
-../matching_build/matching/bin/test_md_tcp_server 127.0.0.1 34674 127.0.0.1 34671 127.0.0.1 34675 a_bid_b_bid a_ask_b_ask implied_repo_out_bid implied_repo_out_ask 35674
+../matching_build/matching/bin/test_md_tcp_server 127.0.0.1 34674 127.0.0.1 34672 127.0.0.1 34675 a_bid_b_bid a_ask_b_ask implied_repo_out_bid implied_repo_out_ask 35674
 
 #Repo book md port MD
 ../matching_build/matching/bin/test_md_tcp_server 127.0.0.1 34675 "" 0 "" 0 a_none_b_none a_none_b_none none none 35675
