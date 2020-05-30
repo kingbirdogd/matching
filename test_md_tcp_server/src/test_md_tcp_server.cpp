@@ -6,6 +6,8 @@
 #include <add_ask_implier.hpp>
 #include <minus_bid_implier.hpp>
 #include <minus_ask_implier.hpp>
+#include <repo_out_bid_implier.hpp>
+#include <repo_out_ask_implier.hpp>
 
 
 int main(int iArgc, char** pszArgv)
@@ -56,6 +58,10 @@ int main(int iArgc, char** pszArgv)
 	{
 		bid_implie_type = md::md_book::implier_type::a_ask_b_ask;
 	}
+	else if (str_bid_implie_type == "a_none_b_none")
+	{
+		bid_implie_type = md::md_book::implier_type::a_none_b_none;
+	}
 	else
 	{
 		std::cerr << "bid_implie_type type not support:" << str_bid_implie_type << std::endl;
@@ -77,6 +83,10 @@ int main(int iArgc, char** pszArgv)
 	else if (str_ask_implie_type == "a_ask_b_ask")
 	{
 		ask_implie_type = md::md_book::implier_type::a_ask_b_ask;
+	}
+	else if (str_bid_implie_type == "a_none_b_none")
+	{
+		ask_implie_type = md::md_book::implier_type::a_none_b_none;
 	}
 	else
 	{
@@ -103,6 +113,18 @@ int main(int iArgc, char** pszArgv)
 	{
 		bid_implier = new minus_ask_implier(0);
 	}
+	else if (str_bid_implier == "repo_out_bid_implier")
+	{
+		bid_implier = new repo_out_bid_implier(0);
+	}
+	else if (str_bid_implier == "repo_out_ask_implier")
+	{
+		bid_implier = new repo_out_ask_implier(0);
+	}
+	else if (str_bid_implier == "none")
+	{
+		bid_implier = nullptr;
+	}
 	else
 	{
 		std::cerr << "bid_implier type not support:" << str_bid_implier << std::endl;
@@ -123,6 +145,18 @@ int main(int iArgc, char** pszArgv)
 	else if (str_ask_implier == "minus_ask_implier")
 	{
 		ask_implier = new minus_ask_implier(0);
+	}
+	else if (str_bid_implier == "repo_out_bid_implier")
+	{
+		ask_implier = new repo_out_bid_implier(0);
+	}
+	else if (str_bid_implier == "repo_out_ask_implier")
+	{
+		ask_implier = new repo_out_ask_implier(0);
+	}
+	else if (str_bid_implier == "none")
+	{
+		ask_implier = nullptr;
 	}
 	else
 	{

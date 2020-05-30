@@ -17,7 +17,8 @@ namespace md
 			a_bid_b_bid = 0,
 			a_bid_b_ask = 1,
 			a_ask_b_bid = 2,
-			a_ask_b_ask = 3
+			a_ask_b_ask = 3,
+			a_none_b_none = 4
 		};
 	private:
 		callback cb;

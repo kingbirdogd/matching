@@ -22,6 +22,7 @@ private:
 	control_event _on_disconnected;
 	order_event _on_order;
 	std::mutex m_;
+	bool valid_;
 public:
 	matching_tcp_client(const std::string& host, unsigned short int port);
 	matching_tcp_client(matching_tcp_client&& c);
@@ -35,6 +36,7 @@ public:
 	matching_tcp_client() = delete;
 	matching_tcp_client(const matching_tcp_client&) = delete;
 	matching_tcp_client& operator= (const matching_tcp_client&) = delete;
+	operator bool() const;
 private:
 	void _handle_rcv_odr(const matching::order& o);
 	void _send_odrs();
