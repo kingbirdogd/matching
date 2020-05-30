@@ -1,13 +1,17 @@
 #A book matching port: 34671
 #B book matching port: 34672
 #Spread A-B book matching port: 34673
+#Spot book matching port: 34674
+#Repo book matching port: 346745
 
 #A book md port: 35671
 #B book md port: 35672
 #Spread A-B book md port: 35673
+#Spot book md port: 35674
+#Repo book matching port: 35675
 
 #start test_tcp_matching_server
-../matching_build/matching/bin/test_tcp_matching_server 34671 34672 34673
+../matching_build/matching/bin/test_tcp_matching_server 34671 34672 34673 34674 346745
 
 
 #Start A book MD
@@ -18,4 +22,10 @@
 
 #Spread A-B  book MD
 ../matching_build/matching/bin/test_md_tcp_server 127.0.0.1 34673 127.0.0.1 34671 127.0.0.1 34672 a_bid_b_ask a_ask_b_bid minus_bid_implier minus_ask_implier 35673
+
+#Spot book md port MD
+../matching_build/matching/bin/test_md_tcp_server 127.0.0.1 34674 127.0.0.1 34673 127.0.0.1 34675 a_bid_b_bid a_ask_b_ask implied_repo_out_bid implied_repo_out_ask 35674
+
+#Repo book md port MD
+../matching_build/matching/bin/test_md_tcp_server 127.0.0.1 34675 "" 0 "" 0 a_none_b_none a_none_b_none none none 35675
 
