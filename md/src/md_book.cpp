@@ -45,6 +45,28 @@ std::vector<book_item> handle_implied
 		auto implied_quantity = it1->second.quantity < it2->second.quantity ?
 				it1->second.quantity : it2->second.quantity;
 		auto implied_price = ip->matchd_price(it1->second.price, it2->second.price, mini_tick);
+		if (side == book_item::book_side::bid)
+		{
+			auto it = outright_book.ask.begin();
+			if (outright_book.ask.end() != it)
+			{
+				if (implied_price >= it->first)
+				{
+					implied_price = it->first - mini_tick;
+				}
+			}
+		}
+		else
+		{
+			auto it = outright_book.bid.begin();
+			if (outright_book.bid.end() != it)
+			{
+				if (implied_price <= it->first)
+				{
+					implied_price = it->first + mini_tick;
+				}
+			}
+		}
 		book_item bitem;
 		bitem.side = side;
 		bitem.price = implied_price;

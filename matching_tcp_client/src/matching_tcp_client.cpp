@@ -7,7 +7,8 @@ matching_tcp_client::matching_tcp_client(const std::string& host, unsigned short
 	_on_connected(),
 	_on_disconnected(),
 	_on_order(),
-	m_()
+	m_(),
+	valid_(true)
 {
 	c_.set_connected([&]()
 	{
@@ -23,6 +24,10 @@ matching_tcp_client::matching_tcp_client(const std::string& host, unsigned short
 	{
 		h_.handle(ptr, size);
 	});
+	if (host == "" || port > 65535)
+	{
+		valid_ = false;
+	}
 }
 
 matching_tcp_client::matching_tcp_client(matching_tcp_client&& c):
@@ -32,7 +37,8 @@ matching_tcp_client::matching_tcp_client(matching_tcp_client&& c):
 	_on_connected(std::move(c._on_connected)),
 	_on_disconnected(std::move(c._on_disconnected)),
 	_on_order(std::move(c._on_order)),
-	m_()
+	m_(),
+	valid_(c.valid_)
 {
 }
 
@@ -44,6 +50,7 @@ matching_tcp_client& matching_tcp_client::operator= (matching_tcp_client&& c)
 	_on_connected = std::move(c._on_connected);
 	_on_disconnected = std::move(c._on_disconnected);
 	_on_order = std::move(c._on_order);
+	valid_ = c.valid_;
 	return *this;
 }
 
@@ -55,8 +62,11 @@ void matching_tcp_client::send(const matching::order& o)
 
 void matching_tcp_client::run()
 {
-	c_.run();
-	_send_odrs();
+	if (valid_)
+	{
+		c_.run();
+		_send_odrs();
+	}
 }
 
 void matching_tcp_client::set_connected(control_event&& on_connected)
@@ -89,6 +99,11 @@ void matching_tcp_client::_send_odrs()
 		c_.send(o);
 		q_.pop();
 	}
+}
+
+matching_tcp_client::operator bool() const
+{
+	return valid_;
 }
 
 
