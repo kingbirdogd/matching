@@ -46,8 +46,8 @@ int main(int iArgc, char** pszArgv)
 	matching_tcp_service s1(sPort1);
 	matching_tcp_service s2(sPort2);
 	matching_tcp_service s3(sPort3);
-	matching_tcp_service s4(sPort3);
-	matching_tcp_service s5(sPort3);
+	matching_tcp_service s4(sPort4);
+	matching_tcp_service s5(sPort5);
 	auto& March = s1.get_engine();
 	auto& June = s2.get_engine();
 	auto& Spread = s3.get_engine();
