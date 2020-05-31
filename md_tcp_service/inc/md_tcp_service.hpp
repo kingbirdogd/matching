@@ -14,8 +14,6 @@ private:
 	matching_tcp_client _b;
 	md::md_book _book;
 	net::tcp_service _s;
-  zmq::context_t _ctx;
-  zmq::socket_t _pub_sock;
   unsigned short int _outright_port;
 public:
 	md_tcp_service() = delete;
