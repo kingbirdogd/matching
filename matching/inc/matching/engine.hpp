@@ -723,6 +723,10 @@ namespace matching
 						break;
 					}
 				}
+				if (o.remain_quantity == o.quantity && order::order_time_condition::IOC == o.time_condition)
+				{
+					_local._e->callback(o);
+				}
 				if (0 != o.remain_quantity)
 				{
 					if (order::order_time_condition::IOC == o.time_condition)
@@ -749,10 +753,6 @@ namespace matching
 						}
 					}
 					self[o.price][o.order_id] = &((_local._e->_odr_map.emplace(o.order_id, o).first)->second);
-				}
-				if (o.remain_quantity == o.quantity)
-				{
-					_local._e->callback(o);
 				}
 			}
 			template <typename CMP>
