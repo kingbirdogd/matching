@@ -10,6 +10,7 @@
 using namespace CoinflexV2;
 
 std::unordered_map<unsigned long long, unsigned long long> client_to_engine_id_map;
+std::mutex iomutex;
 
 void handle_order(const matching::order& o)
 {
@@ -164,31 +165,34 @@ void handle_order(const matching::order& o)
 		matched_type = "MAKER";
 	}
 	client_to_engine_id_map[o.client_order_id] = o.order_id;
-	std::cout
-	    << "account_id:" << o.account_id
-      << ",market_id:" << o.market_id
-			<< ",action:" << action
-			<< ",side:" << side
-			<< ",time_condition:" << time_condition
-			<< ",order_id:" << o.order_id
-			<< ",client_order_id:" << o.client_order_id
-			<< ",quantity:" << o.quantity
-			<< ",display_quantity:" << o.display_quantity
-			<< ",remain_quantity:" << o.remain_quantity
-			<< ",price:" << o.price
-			<< ",buy_stop_trigger_price:" << o.buy_stop_trigger_price
-			<< ",buy_stop_limited_price:" << o.buy_stop_limited_price
-			<< ",sell_stop_trigger_price:" << o.sell_stop_trigger_price
-			<< ",sell_stop_limited_price:" << o.sell_stop_limited_price
-			<< ",last_match_price:" << o.last_match_price
-			<< ",last_match_quantity:" << o.last_match_quantity
-			<< ",last_matched_order_id:" << o.last_matched_order_id
-			<< ",last_matched_order_id2:" << o.last_matched_order_id2
-			<< ",matched_id:" << o.matched_id
-			<< ",status:" << status
-			<< ",matched_type:" << matched_type
-      << ",timestamp_epoch_ms:" << o.timestamp_epoch_ms
-			<< std::endl;
+  {
+    std::lock_guard<std::mutex> lockGuard(iomutex);
+    std::cout
+        << "account_id:" << o.account_id
+        << ",market_id:" << o.market_id
+        << ",action:" << action
+        << ",side:" << side
+        << ",time_condition:" << time_condition
+        << ",order_id:" << o.order_id
+        << ",client_order_id:" << o.client_order_id
+        << ",quantity:" << o.quantity
+        << ",display_quantity:" << o.display_quantity
+        << ",remain_quantity:" << o.remain_quantity
+        << ",price:" << o.price
+        << ",buy_stop_trigger_price:" << o.buy_stop_trigger_price
+        << ",buy_stop_limited_price:" << o.buy_stop_limited_price
+        << ",sell_stop_trigger_price:" << o.sell_stop_trigger_price
+        << ",sell_stop_limited_price:" << o.sell_stop_limited_price
+        << ",last_match_price:" << o.last_match_price
+        << ",last_match_quantity:" << o.last_match_quantity
+        << ",last_matched_order_id:" << o.last_matched_order_id
+        << ",last_matched_order_id2:" << o.last_matched_order_id2
+        << ",matched_id:" << o.matched_id
+        << ",status:" << status
+        << ",matched_type:" << matched_type
+        << ",timestamp_epoch_ms:" << o.timestamp_epoch_ms
+        << std::endl;
+  }
 }
 
 int main(int iArgc, char** pszArgv)
@@ -233,21 +237,23 @@ int main(int iArgc, char** pszArgv)
 	{
 		std::cout << "matching_tcp_client disconnected" << std::endl;
 	});
-	c.set_on_order([&](const matching::order& o)
-	{
-		handle_order(o);
-		auto fbs_buf = order_to_fbs_msg(o);  // (*buf, buf_sz)
+	c.set_on_order([&](const matching::order& o) {
+    handle_order(o);
+    auto fbs_buf = order_to_fbs_msg(o);  // (*buf, buf_sz)
 
     auto now = std::chrono::system_clock::now();
     auto itt = std::chrono::system_clock::to_time_t(now);
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() % 1000;
     std::ostringstream ss;
     ss << std::put_time(gmtime(&itt), "%FT%T.")
-       << std::setfill('0') << std::setw(3) << ms << "Z" << ". ZMQ Pushing:" << std::endl;
-		std::cout << ss.str() << std::endl;
-		print_fbs_msg_order(fbs_buf.first);
-    order_status_pub_sock.send(zmq::const_buffer(fbs_buf.first,  fbs_buf.second), zmq::send_flags::none);
-	});
+       << std::setfill('0') << std::setw(3) << ms << "Z" << ". ZMQ Pushing:";
+    {
+      std::lock_guard<std::mutex> lockGuard(iomutex);
+      std::cout << ss.str() << std::endl;
+      print_fbs_msg_order(fbs_buf.first);
+    }
+    order_status_pub_sock.send(zmq::const_buffer(fbs_buf.first, fbs_buf.second), zmq::send_flags::none);
+  });
 	std::thread th([&]()
 	{
 		while (true)
@@ -281,12 +287,22 @@ int main(int iArgc, char** pszArgv)
   while (true) {
     zmq::message_t msg;
     auto n2 = zmq_sock.recv(msg, zmq::recv_flags::none);
-    std::cout << "Received from zmq: " << msg.size() << " bytes. n=" << n2.value() << std::endl;
-    //print_fbs_msg_order(msg.data());
     auto o = fbs_msg_to_order(msg.data());
+
+    auto now = std::chrono::system_clock::now();
+    auto itt = std::chrono::system_clock::to_time_t(now);
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() % 1000;
+    std::ostringstream ss;
+    ss << std::put_time(gmtime(&itt), "%FT%T.")
+       << std::setfill('0') << std::setw(3) << ms << "Z" ;
+    {
+      std::lock_guard<std::mutex> lockGuard(iomutex);
+      std::cout << ss.str() << " Received from zmq: " << msg.size() << " bytes. n=" << n2.value() << std::endl << std::flush;
+      print_order(o);
+    }
+    //print_fbs_msg_order(msg.data());
     c.send(o);
   }
-
 	th.join();
 	return 0;
 }
