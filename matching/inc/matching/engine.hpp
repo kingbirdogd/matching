@@ -1302,7 +1302,7 @@ namespace matching
 			else
 			{
 				o.order_state = order::order_status_type::REJECT_UNKNOW_ORDER_ACTION;
-				o.REJECT_UNKNOW_ORDER_ACTION = 0;
+				o.remain_quantity = 0;
 				callback(o);
 				return;
 			}
