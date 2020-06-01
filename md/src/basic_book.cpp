@@ -48,8 +48,6 @@ book_item basic_book::handle_odr(const matching::order& odr)
 {
 	if (0 == odr.price)
 		return book_item();
-	if (odr.order_state > matching::order::order_status_type::FILLED)
-		return book_item();
 	else
 	{
 		if (matching::order::order_side::BUY == odr.side

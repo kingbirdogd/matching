@@ -692,6 +692,7 @@ namespace matching
 						else if (order::order_time_condition::MAKER_ONLY == o.time_condition)
 						{
 							o.order_state = order::order_status_type::CANCELED_BY_MAKER_ONLY;
+							o.remain_quantity = 0;
 							_local._e->callback(o);
 							return;
 						}
@@ -727,7 +728,11 @@ namespace matching
 				{
 					if (order::order_time_condition::IOC == o.time_condition)
 					{
-						o.order_state = order::order_status_type::CANCELED_ALL_BY_IOC;
+						if (o.quantity == o.remain_quantity)
+							o.order_state = order::order_status_type::CANCELED_ALL_BY_IOC;
+						else
+							o.order_state = order::order_status_type::CANCELED_PARTIAL_BY_IOC;
+						o.remain_quantity = 0;
 						_local._e->callback(o);
 						return;
 					}
@@ -744,6 +749,7 @@ namespace matching
 						if (order::MARKET_PRICE == o.price)
 						{
 							o.order_state = order::order_status_type::CANCELED_BY_MARKET_ORDER_NOTHING_MATCH;
+							o.remain_quantity = 0;
 							_local._e->callback(o);
 							return;
 						}
@@ -777,6 +783,7 @@ namespace matching
 				if (0 != remain_quantity)
 				{
 					o.order_state = order::order_status_type::CANCELED_BY_FOK;
+					o.remain_quantity = 0;
 					_local._e->callback(o);
 					return;
 				}
@@ -1012,12 +1019,14 @@ namespace matching
 			if (0 == o.quantity)
 			{
 				o.order_state = order::order_status_type::REJECT_QUANTITY_ZERO;
+				o.remain_quantity = 0;
 				callback(o);
 				return;
 			}
 			if (o.display_quantity > o.quantity)
 			{
 				o.order_state = order::order_status_type::REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY;
+				o.remain_quantity = 0;
 				callback(o);
 				return;
 			}
@@ -1034,6 +1043,7 @@ namespace matching
 				else if (order::MARKET_PRICE == o.price)
 				{
 					o.order_state = order::order_status_type::REJECT_LIMITE_ORDER_WITH_MARKET_PRICE;
+					o.remain_quantity = 0;
 					callback(o);
 					return;
 				}
@@ -1064,6 +1074,7 @@ namespace matching
 				else if (order::MARKET_PRICE == o.price)
 				{
 					o.order_state = order::order_status_type::REJECT_LIMITE_ORDER_WITH_MARKET_PRICE;
+					o.remain_quantity = 0;
 					callback(o);
 					return;
 				}
@@ -1101,12 +1112,14 @@ namespace matching
 				if (order::MARKET_PRICE == o.buy_stop_limited_price)
 				{
 					o.order_state = order::order_status_type::REJECT_LIMITE_ORDER_WITH_MARKET_PRICE;
+					o.remain_quantity = 0;
 					callback(o);
 					return;
 				}
 				if (o.buy_stop_trigger_price > o.buy_stop_limited_price)
 				{
 					o.order_state = order::order_status_type::REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMITED;
+					o.remain_quantity = 0;
 					callback(o);
 					return;
 				}
@@ -1154,12 +1167,14 @@ namespace matching
 				if (order::MARKET_PRICE == o.sell_stop_limited_price)
 				{
 					o.order_state = order::order_status_type::REJECT_LIMITE_ORDER_WITH_MARKET_PRICE;
+					o.remain_quantity = 0;
 					callback(o);
 					return;
 				}
 				if (o.sell_stop_trigger_price < o.sell_stop_limited_price)
 				{
 					o.order_state = order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED;
+					o.remain_quantity = 0;
 					callback(o);
 					return;
 				}
@@ -1218,24 +1233,28 @@ namespace matching
 				if (order::MARKET_PRICE == o.buy_stop_limited_price)
 				{
 					o.order_state = order::order_status_type::REJECT_LIMITE_ORDER_WITH_MARKET_PRICE;
+					o.remain_quantity = 0;
 					callback(o);
 					return;
 				}
 				if (o.buy_stop_trigger_price > o.buy_stop_limited_price)
 				{
 					o.order_state = order::order_status_type::REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMITED;
+					o.remain_quantity = 0;
 					callback(o);
 					return;
 				}
 				if (order::MARKET_PRICE == o.sell_stop_limited_price)
 				{
 					o.order_state = order::order_status_type::REJECT_LIMITE_ORDER_WITH_MARKET_PRICE;
+					o.remain_quantity = 0;
 					callback(o);
 					return;
 				}
 				if (o.sell_stop_trigger_price < o.sell_stop_limited_price)
 				{
 					o.order_state = order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED;
+					o.remain_quantity = 0;
 					callback(o);
 					return;
 				}
@@ -1283,6 +1302,7 @@ namespace matching
 			else
 			{
 				o.order_state = order::order_status_type::REJECT_UNKNOW_ORDER_ACTION;
+				o.REJECT_UNKNOW_ORDER_ACTION = 0;
 				callback(o);
 				return;
 			}
@@ -1294,12 +1314,14 @@ namespace matching
 			if (_odr_map.end() == it)
 			{
 				o.order_state = order::order_status_type::REJECT_CANCEL_ORDER_ID_NOT_FOUND;
+				o.remain_quantity = 0;
 				callback(o);
 				return;
 			}
 			auto& ori_odr = it->second;
 			ori_odr.client_order_id = o.client_order_id;
 			ori_odr.order_state = order::order_status_type::CANCELED_BY_USER;
+			ori_odr.remain_quantity = 0;
 			callback(ori_odr);
 			if (order::order_side::BUY == ori_odr.side)
 			{
@@ -1416,12 +1438,14 @@ namespace matching
 			if (0 == o.quantity)
 			{
 				o.order_state = order::order_status_type::REJECT_QUANTITY_ZERO;
+				o.remain_quantity = 0;
 				callback(o);
 				return;
 			}
 			if (o.display_quantity > o.quantity)
 			{
 				o.order_state = order::order_status_type::REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY;
+				o.remain_quantity = 0;
 				callback(o);
 				return;
 			}
@@ -1429,6 +1453,7 @@ namespace matching
 			if (_odr_map.end() == it)
 			{
 				o.order_state = order::order_status_type::REJECT_AMEND_ORDER_ID_NOT_FOUND;
+				o.remain_quantity = 0;
 				callback(o);
 				return;
 			}
