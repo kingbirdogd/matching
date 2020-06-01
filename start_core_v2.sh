@@ -6,7 +6,7 @@
 #   zmq PUB port for snapshot                   : 18011
 #   zmq PUB port for diff                       : 18012
 #   zmq PULL port for receving ORDER            : 22011
-#   zmq PUB  port for ORDER STATUS UPDATES      : 22012
+#   zmq PUSH port for ORDER STATUS UPDATES      : 22012
 
 # Book B
 #   wss port for internal testing               :  8082
@@ -14,7 +14,7 @@
 #   zmq PUB port for snapshot                   : 18021
 #   zmq PUB port for diff                       : 18022
 #   zmq PULL port for receving ORDER            : 22021
-#   zmq PUB  port for ORDER STATUS UPDATES      : 22022
+#   zmq PUSH port for ORDER STATUS UPDATES      : 22022
 
 # Book C (Spread A-B)
 #   wss port for internal testing               :  8083
@@ -22,7 +22,7 @@
 #   zmq PUB port for snapshot                   : 18031
 #   zmq PUB port for diff                       : 18032
 #   zmq PULL port for receving ORDER            : 22031
-#   zmq PUB  port for ORDER STATUS UPDATES      : 22032
+#   zmq PUSH port for ORDER STATUS UPDATES      : 22032
 
 # Book D (Spot)
 #   wss port for internal testing               :  8084
@@ -30,7 +30,7 @@
 #   zmq PUB port for snapshot                   : 18041
 #   zmq PUB port for diff                       : 18042
 #   zmq PULL port for receving ORDER            : 22041
-#   zmq PUB  port for ORDER STATUS UPDATES      : 22042
+#   zmq PUSH port for ORDER STATUS UPDATES      : 22042
 
 # Book E (Repo)
 #   wss port for internal testing               :  8085
@@ -38,7 +38,7 @@
 #   zmq PUB port for snapshot                   : 18051
 #   zmq PUB port for diff                       : 18052
 #   zmq PULL port for receving ORDER            : 22051
-#   zmq PUB  port for ORDER STATUS UPDATES      : 22052
+#   zmq PUSH port for ORDER STATUS UPDATES      : 22052
 
 
 

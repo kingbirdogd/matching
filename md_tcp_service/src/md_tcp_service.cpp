@@ -30,8 +30,6 @@ md_tcp_service::md_tcp_service
 			bid_implier,
 			ask_implier),
 	_s(bind_port, bind_ip),
-	_ctx(1),
-  _pub_sock(_ctx, ZMQ_PUB),
   _outright_port(outright_port)
 {
 	_outright.set_on_order([&](const matching::order& o)
@@ -55,17 +53,12 @@ md_tcp_service::md_tcp_service
 	});
 	std::stringstream url;
 	url << "tcp://localhost:" << xsub_port;
-  _pub_sock.connect(url.str().c_str());
-  std::cout << "Connecting to xsub on " << url.str() << std::endl;
 }
 
 void md_tcp_service::_handle_item(const md::book_item& item)
 {
   std::cout << "side=" << item.side << ",px=" << item.price << ",qty=" << item.quantity << std::endl;
 	_s.send(item);
-	md::book_item zmq_book_item = item;
-  zmq_book_item.market_id =_outright_port;
-  _pub_sock.send(zmq::const_buffer(&zmq_book_item,  sizeof(zmq_book_item)), zmq::send_flags::none);
 }
 
 void md_tcp_service::run()

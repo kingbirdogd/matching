@@ -28,7 +28,6 @@ int main(int iArgc, char** pszArgv)
 				"<bind_port> "
 				"[bind_ip] "
 				"[mini_tick] "
-        "[zmq_xsub_port]"
 				<< std::endl;
 		return -2;
 	}
@@ -166,7 +165,6 @@ int main(int iArgc, char** pszArgv)
 	unsigned short int bind_port = static_cast<unsigned short int>(std::stoi(pszArgv[11]));
 	std::string bind_ip = "";
 	unsigned long long mini_tick = 1;
-  unsigned short xsub_port = 36000;
 	if (iArgc > 12)
 	{
 		bind_ip = pszArgv[12];
@@ -175,10 +173,6 @@ int main(int iArgc, char** pszArgv)
 	{
 		mini_tick = std::stoull(pszArgv[11]);
 	}
-  if (iArgc > 14)
-  {
-    mini_tick = std::stol(pszArgv[12]);
-  }
 
 	md_tcp_service srv
 	(
@@ -194,8 +188,7 @@ int main(int iArgc, char** pszArgv)
 			ask_implier,
 			bind_port,
 			bind_ip,
-			mini_tick,
-			xsub_port
+			mini_tick
 	);
 	while (true)
 		srv.run();

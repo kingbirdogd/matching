@@ -26,16 +26,16 @@ from _collections import deque
 # logging.getLogger('websockets.client').setLevel(logging.DEBUG)
 # logging.getLogger('websockets.client').addHandler(logging.StreamHandler())
 
-#HOST  = 'localhost'
-#PORT  = 8080
-HOST  = 'ironmanapi1.coinflex.com'
+HOST  = 'localhost'
+PORT  = 8080
+#HOST  = 'ironmanapi2.coinflex.com'
 #HOST  = '18.162.39.80'
 #HOST  = 'chiaapi.coinflex.com'
 #HOST  = 'lycheews.coinflex.com/test'
-PORT  = 0
-PORT1 = 8080
-PORT2 = 8081
-PORT3 = 8082
+#PORT  = 0
+#PORT1 = 8080
+PORT2 = 8082
+PORT3 = 8083
 PROTOCOL = 'lws-minimal'
 
 BASE_ID    = 0xFFFE # 65534
@@ -212,7 +212,7 @@ async def test(sleep_s):
           # await send_order(user_id_limit, payload_place_buy)
   
   
-          await asyncio.sleep(2)
+          await asyncio.sleep(0.1)
   
           # payload_ticker_mod = {"method": "ModifyOrder", 'tonce': tonce-2, "quantity_delta" : 2}
           # await send_order(user_id_limit, payload_ticker_mod)
