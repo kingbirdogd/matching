@@ -557,7 +557,7 @@ int main()
 	implied_test();
 	stop_test();
 	stop_test_by_cancel();
-
+*/
 	o.side = matching::order::order_side::BUY;
 	o.client_order_id = 1;
 	o.price = 100;
@@ -565,7 +565,7 @@ int main()
 	o.display_quantity = 1000;
 	e.handle(o);
 
-
+/*
 	o.side = matching::order::order_side::BUY;
 	o.client_order_id = 2;
 	o.price = 99;
