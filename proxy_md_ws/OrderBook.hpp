@@ -35,12 +35,12 @@ namespace proxy {
     void clear_unused_bids_asks();
     void print_bids_asks(book_map_t &bids, book_map_t &asks);
     book_map_t last_valid_bids, last_valid_asks;
+    std::mutex ob_mutex;
   private:
     book_map_t bids, asks, last_bids, last_asks;
     long long top_bid_px, top_ask_px;
     unsigned long long seq_num;
     unsigned long long market_id;
-    std::mutex ob_mutex;
   };
 
 
