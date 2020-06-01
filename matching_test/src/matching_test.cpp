@@ -547,6 +547,8 @@ void test_case_2()
 
 int main()
 {
+  matching::engine e(handle_order);
+  matching::order o;
 	implied_test();
 	implied_test_case_5();
   /*
@@ -555,9 +557,6 @@ int main()
 	implied_test();
 	stop_test();
 	stop_test_by_cancel();
-	matching::engine e(handle_order);
-	matching::order o;
-
 
 	o.side = matching::order::order_side::BUY;
 	o.client_order_id = 1;
@@ -640,7 +639,7 @@ int main()
 	std::cout << "FOK success recovery start" << std::endl;
 	e.recovery(handle_order);
 	std::cout << "FOK success recovery end" << std::endl;
-
+*/
 
 	o.side = matching::order::order_side::SELL;
 	o.time_condition = matching::order::order_time_condition::IOC;
@@ -656,7 +655,7 @@ int main()
 	e.recovery(handle_order);
 	std::cout << "IOC recovery end" << std::endl;
 
-
+/*
 	o.side = matching::order::order_side::SELL;
 	o.time_condition = matching::order::order_time_condition::MAKER_ONLY;
 	o.client_order_id = 400;
