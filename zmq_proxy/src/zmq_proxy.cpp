@@ -187,6 +187,7 @@ void handle_order(const matching::order& o)
 			<< ",matched_id:" << o.matched_id
 			<< ",status:" << status
 			<< ",matched_type:" << matched_type
+      << ",timestamp_epoch_ms:" << o.timestamp_epoch_ms
 			<< std::endl;
 }
 
@@ -236,6 +237,15 @@ int main(int iArgc, char** pszArgv)
 	{
 		handle_order(o);
 		auto fbs_buf = order_to_fbs_msg(o);  // (*buf, buf_sz)
+
+    auto now = std::chrono::system_clock::now();
+    auto itt = std::chrono::system_clock::to_time_t(now);
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() % 1000;
+    std::ostringstream ss;
+    ss << std::put_time(gmtime(&itt), "%FT%T.")
+       << std::setfill('0') << std::setw(3) << ms << "Z" << ". ZMQ Pushing:" << std::endl;
+		std::cout << ss.str() << std::endl;
+		print_fbs_msg_order(fbs_buf.first);
     order_status_pub_sock.send(zmq::const_buffer(fbs_buf.first,  fbs_buf.second), zmq::send_flags::none);
 	});
 	std::thread th([&]()

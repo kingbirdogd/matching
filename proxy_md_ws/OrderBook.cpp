@@ -15,7 +15,60 @@ std::string currentISO8601TimeUTC() {
   return ss.str();
 }
 
+void OrderBook::print_bids_asks(book_map_t &bids, book_map_t &asks) {
+  int N = 4096;
+  char str[N];
+  int rc = 0, pos = 0;
+
+  std::lock_guard ob_guard(ob_mutex);
+
+  auto it_a = asks.rbegin();
+  auto it_b = bids.rbegin();
+  //while (!((it_a == asks.end()) && (it_b == bids.rend()))) {
+  auto top_bid_price = std::numeric_limits<long long>::min();
+  auto top_ask_price = std::numeric_limits<long long>::max();
+  while (it_a != asks.rend()) {
+    //elog.debug() << it_a->second.price << it_a->second.quantity << std::endl;
+    if ((it_b != bids.rend()) && (it_a->second.price == it_b->second.price)) {
+      rc = snprintf(str + pos, N, "%6d %6d %6d %6d\n", it_b->second.price, it_b->second.quantity, it_a->second.price, it_a->second.quantity); N -= rc; pos += rc;
+      if ((top_ask_price > it_a->second.price) && (it_a->second.quantity > 0))
+        top_ask_price = it_a->second.price;
+      if ((top_bid_price < it_b->second.price) && (it_b->second.quantity > 0))
+        top_bid_price = it_b->second.price;
+      it_a++; it_b++;
+    }
+    else {
+      rc = snprintf(str + pos, N, "%6s %6s %6d %6d\n", "", "", it_a->second.price, it_a->second.quantity);
+      N -= rc;
+      pos += rc;
+      if ((top_ask_price > it_a->second.price) && (it_a->second.quantity > 0))
+        top_ask_price = it_a->second.price;
+      it_a++;
+    }
+  }
+  while (it_b != bids.rend()) {
+    rc = snprintf(str + pos, N, "%6d %6d\n", it_b->second.price, it_b->second.quantity); N -= rc; pos += rc;
+    if ((top_bid_price < it_b->second.price) && (it_b->second.quantity > 0))
+      top_bid_price = it_b->second.price;
+    it_b++;
+  }
+
+  elog.debug() << std::endl << std::setw(6) << std::setfill(' ')
+               << "top_bid_price=" << top_bid_price << " top_ask_price=" << top_ask_price <<  std::endl
+               << "top_bid_px   =" << top_bid_px    << " top_ask_px   =" << top_ask_px    <<  std::endl
+               << std::string(str) << std::endl;
+
+  if (top_bid_price >= top_ask_price) {
+    elog.debug() << "ERROR: top_bid_price >= top_ask_price" << std::endl;
+    exit(-1);
+  }
+
+}
+
 void OrderBook::update(const book_item &o) {
+  auto side = o.side == book_item::book_side::bid ? "BID" : "ASK";
+  elog.debug() << side << " " << o.price << " " << o.quantity << std::endl;
+
   std::lock_guard ob_guard(ob_mutex);
   if ((market_id != 0) && (market_id != o.market_id)) {
     elog.error() << "market_id(" << market_id << ") != current market_id(" << o.market_id << ") Stopping..." << std::endl;
@@ -28,8 +81,8 @@ void OrderBook::update(const book_item &o) {
       top_bid_px = o.price;
     else if ((o.quantity == 0) && (o.price == top_bid_px)) {  // top bid is deleted
       for (auto it = bids.rbegin(); it != bids.rend(); it++) {
-        if (o.quantity > 0) {
-          top_bid_px = o.price;
+        if (it->second.quantity > 0) {
+          top_bid_px = it->second.price;
           break;
         }
       }
@@ -41,14 +94,18 @@ void OrderBook::update(const book_item &o) {
       top_ask_px = o.price;
     else if ((o.quantity == 0) && (o.price == top_ask_px)) {  // top ask is deleted
       for (auto it = asks.begin(); it != asks.end(); it++) {
-        if (o.quantity > 0) {
-          top_ask_px = o.price;
+        if (it->second.quantity > 0) {
+          top_ask_px = it->second.price;
           break;
         }
       }
     }
   }
 
+  if (top_bid_px < top_ask_px) {
+    last_valid_bids = bids;
+    last_valid_asks = asks;
+  }
 }
 
 json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
@@ -61,7 +118,7 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
   snapshot.insert("action", json::String("partial"));
 
   int cnt = 0;
-  for (auto it = bids.rbegin(); it != bids.rend(); it++) {
+  for (auto it = last_valid_bids.rbegin(); it != last_valid_bids.rend(); it++) {
     if (it->second.price > top_bid_px) continue;
 
     json::Array details;
@@ -74,7 +131,7 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
   }
 
   cnt = 0;
-  for (auto it = asks.begin(); it != asks.end(); it++) {
+  for (auto it = last_valid_asks.begin(); it != last_valid_asks.end(); it++) {
     if (it->second.price < top_ask_px) continue;
     if ((market_id != 0) && (market_id != it->second.market_id)) {
       elog.error() << "market_id(" << market_id << ") != current market_id(" << it->second.market_id << ") Stopping..." << std::endl;
@@ -131,7 +188,7 @@ json::Object OrderBook::get_orderbook_diff(//book_map_t &bids,
       break;
   }
   int cnt = 0;
-  for (auto it = bids.rbegin(); it != bids.rend(); it++) {
+  for (auto it = last_valid_bids.rbegin(); it != last_valid_bids.rend(); it++) {
     if (it->second.price <= top_bid_px) {
       auto last_it = last_bids.find(it->first);
       if ((last_it == last_bids.end()) || (last_it->second != it->second)) {
@@ -160,7 +217,7 @@ json::Object OrderBook::get_orderbook_diff(//book_map_t &bids,
       break;
   }
   cnt = 0;
-  for (auto it = asks.begin(); it != asks.end(); it++) {
+  for (auto it = last_valid_asks.begin(); it != last_valid_asks.end(); it++) {
     if (it->second.price >= top_ask_px) {
       auto last_it = last_asks.find(it->first);
       if ((last_it == last_asks.end()) || (last_it->second != it->second)) {
@@ -205,17 +262,25 @@ void OrderBook::clear_unused_bids_asks() {
   //   2. we can then remove these prices from bids
   std::lock_guard ob_guard(ob_mutex);
   for (auto it = bids.rbegin(); it != bids.rend(); it++) {
-    if (it->second.price > top_bid_px) {
-      bids.erase(it->first);
+    if ((it->second.price > top_bid_px) && (it->second.price == 0)) {
+      auto it_last_valid_bid = last_valid_bids.find(it->first);
+      if (it_last_valid_bid != last_valid_bids.end()) {
+        bids.erase(it->first);
+        last_valid_bids.erase(it->first);
+      }
     }
   }
   for (auto it = asks.begin(); it != asks.end(); it++) {
-    if (it->second.price < top_ask_px) {
-      asks.erase(it->first);
+    if ((it->second.price < top_ask_px) && (it->second.price == 0)) {
+      auto it_last_valid_ask = last_valid_asks.find(it->first);
+      if (it_last_valid_ask != last_valid_asks.end()) {
+        asks.erase(it->first);
+        last_valid_asks.erase(it->first);
+      }
     }
   }
-  last_bids = bids;
-  last_asks = asks;
+  last_bids = last_valid_bids;
+  last_asks = last_valid_asks;
   seq_num++;
 }
 

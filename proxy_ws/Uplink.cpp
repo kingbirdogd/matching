@@ -182,6 +182,7 @@ json::Object handle_order(const matching::order& o)
       << ",matched_id:" << o.matched_id
       << ",status:" << status
       << ",matched_type:" << matched_type
+      << ",timestamp_epoch_ms:" << o.timestamp_epoch_ms
       << std::endl;
 
   json::Object response;
@@ -205,6 +206,7 @@ json::Object handle_order(const matching::order& o)
   response.insert("matched_id", json::Integer(o.matched_id));
   response.insert("status", json::String(status));
   response.insert("matched_type", json::String(matched_type));
+  response.insert("timestamp_epoch_ms", json::Integer(o.timestamp_epoch_ms));
 
   //response.insert("time",
   //    json::Integer(std::chrono::duration_cast<std::chrono::microseconds>(reply.time.time_since_epoch()).count()));

@@ -19,7 +19,8 @@ context = zmq.Context()
 # Socket with direct access to the sink: used to syncronize start of batch
 sink = context.socket(zmq.PULL)
 #sink.setsockopt(zmq.SUBSCRIBE, b"")
-sink.connect("tcp://localhost:22012")
+#sink.connect("tcp://localhost:22012")
+sink.connect("tcp://18.162.39.80:22022")
 
 def print_order(o) :
   print(f"version={o.Version()},"
@@ -45,7 +46,8 @@ def print_order(o) :
         f"time_condition={o.TimeCondition()},"
         f"order_action={o.OrderAction()},"
         f"order_state={o.OrderState()},"
-        f"order_matched_type={o.OrderMatchedType()}"
+        f"order_matched_type={o.OrderMatchedType()},"
+        f"timestamp_epoch_ms={o.TimestampEpochMs()}"
         )
 
 if __name__ == '__main__':
@@ -53,7 +55,7 @@ if __name__ == '__main__':
         #workload = random.randint(1, 100)
         #sink.send_string(str(workload))
         buf = sink.recv()
-        print(f'recv {len(buf)} bytes from PUB')
+        print(f'recv {len(buf)} bytes from PULL')
 
         msg = cm.Msg.GetRootAsMsg(buf,0)
         payload_type = msg.PayloadType()
