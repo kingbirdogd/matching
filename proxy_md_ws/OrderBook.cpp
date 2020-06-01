@@ -111,7 +111,7 @@ void OrderBook::update(const book_item &o) {
 json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
                                                //OrderBook::book_map_t &asks,
                                                uint32_t max_entries) {
-  std::lock_guard ob_guard(ob_mutex);
+  //std::lock_guard ob_guard(ob_mutex);
   json::Array bids_pxLevels, asks_pxLevels, book, data;
   json::Object data_item, snapshot;
   snapshot.insert("table", json::String("futures/depth"));
@@ -119,7 +119,8 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
 
   int cnt = 0;
   for (auto it = last_valid_bids.rbegin(); it != last_valid_bids.rend(); it++) {
-    if (it->second.price > top_bid_px) continue;
+    //if (it->second.price > top_bid_px) continue;
+    if (it->second.quantity == 0) continue;
 
     json::Array details;
     details.insert(json::Integer(it->second.price));
@@ -132,7 +133,9 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
 
   cnt = 0;
   for (auto it = last_valid_asks.begin(); it != last_valid_asks.end(); it++) {
-    if (it->second.price < top_ask_px) continue;
+    //if (it->second.price < top_ask_px) continue;
+    if (it->second.quantity == 0) continue;
+
     if ((market_id != 0) && (market_id != it->second.market_id)) {
       elog.error() << "market_id(" << market_id << ") != current market_id(" << it->second.market_id << ") Stopping..." << std::endl;
       break;
@@ -168,15 +171,26 @@ json::Object OrderBook::get_orderbook_diff(//book_map_t &bids,
                                            //book_map_t &last_bids,
                                            //book_map_t &last_asks,
                                            uint32_t max_entries) {
-  std::lock_guard ob_guard(ob_mutex);
+  //std::lock_guard ob_guard(ob_mutex);
   json::Array bids_pxLevels, asks_pxLevels, book, data;
   json::Object data_item, delta;
   delta.insert("table", json::String("futures/depth"));
   delta.insert("action", json::String("update"));
 
+  auto top_valid_bid_price = std::numeric_limits<long long>::min();
+  auto top_valid_ask_price = std::numeric_limits<long long>::max();
+  {
+    auto it = last_valid_bids.rbegin();
+    while (it++ != last_valid_bids.rend()) top_valid_bid_price = it->second.price;
+  }
+  {
+    auto it = last_valid_asks.begin();
+    while (it++ != last_valid_asks.end()) top_valid_ask_price = it->second.price;
+  }
+
   // Previous bids which have been deleted
   for (auto it = last_bids.rbegin(); it != last_bids.rend(); it++) {
-    if (it->second.price > top_bid_px) {
+    if (it->second.price > top_valid_bid_price) {
       json::Array details;
       details.insert(json::Integer(it->second.price));
       details.insert(json::Integer(0));
@@ -189,7 +203,7 @@ json::Object OrderBook::get_orderbook_diff(//book_map_t &bids,
   }
   int cnt = 0;
   for (auto it = last_valid_bids.rbegin(); it != last_valid_bids.rend(); it++) {
-    if (it->second.price <= top_bid_px) {
+    if (it->second.price <= top_valid_bid_price) {
       auto last_it = last_bids.find(it->first);
       if ((last_it == last_bids.end()) || (last_it->second != it->second)) {
         json::Array details;
@@ -205,7 +219,7 @@ json::Object OrderBook::get_orderbook_diff(//book_map_t &bids,
 
   // Previous asks which have been deleted
   for (auto it = last_asks.begin(); it != last_asks.end(); it++) {
-    if (it->second.price < top_ask_px) {
+    if (it->second.price < top_valid_ask_price) {
       json::Array details;
       details.insert(json::Integer(it->second.price));
       details.insert(json::Integer(0));
@@ -218,7 +232,7 @@ json::Object OrderBook::get_orderbook_diff(//book_map_t &bids,
   }
   cnt = 0;
   for (auto it = last_valid_asks.begin(); it != last_valid_asks.end(); it++) {
-    if (it->second.price >= top_ask_px) {
+    if (it->second.price >= top_valid_ask_price) {
       auto last_it = last_asks.find(it->first);
       if ((last_it == last_asks.end()) || (last_it->second != it->second)) {
         json::Array details;
@@ -260,7 +274,7 @@ void OrderBook::clear_unused_bids_asks() {
   // then
   //   1. get_orderbook_diff(...) already told clients to set quantity = 0 for prices 120, 119, 118, 117
   //   2. we can then remove these prices from bids
-  std::lock_guard ob_guard(ob_mutex);
+  //std::lock_guard ob_guard(ob_mutex);
   for (auto it = bids.rbegin(); it != bids.rend(); it++) {
     if ((it->second.price > top_bid_px) && (it->second.price == 0)) {
       auto it_last_valid_bid = last_valid_bids.find(it->first);
@@ -279,6 +293,9 @@ void OrderBook::clear_unused_bids_asks() {
       }
     }
   }
+  if (bids.empty()) top_bid_px = std::numeric_limits<long long>::min();
+  if (asks.empty()) top_ask_px = std::numeric_limits<long long>::max();
+
   last_bids = last_valid_bids;
   last_asks = last_valid_asks;
   seq_num++;
