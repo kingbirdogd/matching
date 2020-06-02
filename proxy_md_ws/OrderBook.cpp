@@ -181,11 +181,20 @@ json::Object OrderBook::get_orderbook_diff(//book_map_t &bids,
   auto top_valid_ask_price = std::numeric_limits<long long>::max();
   {
     auto it = last_valid_bids.rbegin();
-    while (it != last_valid_bids.rend()) { top_valid_bid_price = it->second.price; it++; }
-  }
-  {
-    auto it = last_valid_asks.begin();
-    while (it != last_valid_asks.end()) { top_valid_ask_price = it->second.price; it++; }
+    while (it != last_valid_bids.rend()) {
+      if (it->second.quantity > 0) {
+        top_valid_bid_price = it->second.price;
+        it++;
+        break;
+      }
+    }
+    auto it2 = last_valid_asks.begin();
+    while (it2 != last_valid_asks.end()) {
+      if (it2->second.quantity > 0) {
+        top_valid_ask_price = it2->second.price; it2++;
+        break;
+      }
+    }
   }
 
   // Previous bids which have been deleted
