@@ -370,8 +370,11 @@ namespace proxy {
       if (n < msg_size) return 0;
 
       auto &reply = (*static_cast<const md::book_item *>(buf));
-      ob.update(reply);
-      ob.print_bids_asks(ob.last_valid_bids, ob.last_valid_asks);
+      {
+        std::lock_guard ob_guard(ob.ob_mutex);
+        ob.update(reply);
+        ob.print_bids_asks(ob.last_valid_bids, ob.last_valid_asks);
+      }
       //json::Object response = handle_book_item(reply);
       //Client::multicast(Client::all_clients, response);
       //std::stringstream ss;

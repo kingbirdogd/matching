@@ -17,10 +17,10 @@ std::string currentISO8601TimeUTC() {
 
 void OrderBook::print_bids_asks(book_map_t &bids, book_map_t &asks) {
   int N = 4096;
-  char str[N];
+  char str[N]; str[0] = '\0';
   int rc = 0, pos = 0;
 
-  std::lock_guard ob_guard(ob_mutex);
+  //std::lock_guard ob_guard(ob_mutex);
 
   auto it_a = asks.rbegin();
   auto it_b = bids.rbegin();
@@ -54,9 +54,9 @@ void OrderBook::print_bids_asks(book_map_t &bids, book_map_t &asks) {
   }
 
   elog.debug() << std::endl << std::setw(6) << std::setfill(' ')
-               << "top_bid_price=" << top_bid_price << " top_ask_price=" << top_ask_price <<  std::endl
-               << "top_bid_px   =" << top_bid_px    << " top_ask_px   =" << top_ask_px    <<  std::endl
-               << std::string(str) << std::endl;
+               << "  top_bid_price=" << top_bid_price << " top_ask_price=" << top_ask_price <<  std::endl
+               << "  top_bid_px   =" << top_bid_px    << " top_ask_px   =" << top_ask_px    <<  std::endl;
+  elog.debug() << std::endl << std::string(str) << std::endl;
 
   if (top_bid_price >= top_ask_price) {
     elog.debug() << "ERROR: top_bid_price >= top_ask_price" << std::endl;
@@ -69,7 +69,7 @@ void OrderBook::update(const book_item &o) {
   auto side = o.side == book_item::book_side::bid ? "BID" : "ASK";
   elog.debug() << side << " " << o.price << " " << o.quantity << std::endl;
 
-  std::lock_guard ob_guard(ob_mutex);
+  //std::lock_guard ob_guard(ob_mutex);
   if ((market_id != 0) && (market_id != o.market_id)) {
     elog.error() << "market_id(" << market_id << ") != current market_id(" << o.market_id << ") Stopping..." << std::endl;
     return;
