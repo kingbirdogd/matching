@@ -184,16 +184,17 @@ json::Object OrderBook::get_orderbook_diff(//book_map_t &bids,
     while (it != last_valid_bids.rend()) {
       if (it->second.quantity > 0) {
         top_valid_bid_price = it->second.price;
-        it++;
         break;
       }
+      it++;
     }
     auto it2 = last_valid_asks.begin();
     while (it2 != last_valid_asks.end()) {
       if (it2->second.quantity > 0) {
-        top_valid_ask_price = it2->second.price; it2++;
+        top_valid_ask_price = it2->second.price;
         break;
       }
+      it2++;
     }
   }
 
