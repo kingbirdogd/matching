@@ -7,7 +7,7 @@
 class add_bid_implier : public virtual implier
 {
 public:
-	add_bid_implier(unsigned long long pips):
+	add_bid_implier(long long pips):
 		implier(pips)
 	{
 	}

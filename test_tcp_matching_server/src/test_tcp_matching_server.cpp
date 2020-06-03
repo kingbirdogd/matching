@@ -59,8 +59,8 @@ int main(int iArgc, char** pszArgv)
 	matching::implied_spread_a_out_ask a_ask_implier(1, &Spread, &BBook);
 	matching::implied_spread_b_out_bid b_bid_implier(1, &ABook, &Spread);
 	matching::implied_spread_b_out_ask b_ask_implier(1, &ABook, &Spread);
-	matching::implied_repo_out_bid spot_bid_implier(1, &BBook, &Repo);
-	matching::implied_repo_out_ask spot_ask_implier(1, &BBook, &Repo);
+	matching::implied_repo_out_bid spot_bid_implier(1, &BBook, &Repo, 0, 10000);
+	matching::implied_repo_out_ask spot_ask_implier(1, &BBook, &Repo, 0, 10000);
 	Spread.set_bid_implier(&spread_bid_implier);
 	Spread.set_ask_implier(&spread_ask_implier);
 	ABook.set_bid_implier(&a_bid_implier);

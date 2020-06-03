@@ -7,7 +7,7 @@
 class minus_ask_implier : public virtual implier
 {
 public:
-	minus_ask_implier(unsigned long long pips):
+	minus_ask_implier(long long pips):
 		implier(pips)
 	{
 	}

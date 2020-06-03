@@ -12,7 +12,8 @@ namespace matching
 		implied_repo_out_ask(unsigned long long priority,
 				engine* leg1_e,
 				engine* leg2_e,
-				long long pips):
+				long long pips,
+				unsigned long long factor):
 			implier(pips),
 			implier_base(priority,
 					leg1_e,
@@ -20,7 +21,7 @@ namespace matching
 					order::order_side::BUY,
 					order::order_side::BUY,
 					pips),
-					repo_out_ask_implier(pips)
+					repo_out_ask_implier(pips, factor)
 		{
 		}
 		implied_repo_out_ask(unsigned long long priority,
@@ -33,7 +34,7 @@ namespace matching
 							order::order_side::BUY,
 							order::order_side::BUY,
 							0),
-							repo_out_ask_implier(0)
+							repo_out_ask_implier(0, 1)
 		{
 		}
 		implied_repo_out_ask(const implied_repo_out_ask&) = default;
