@@ -147,11 +147,11 @@ int main(int iArgc, char** pszArgv)
 	}
 	else if (str_bid_implier == "repo_out_bid_implier")
 	{
-		ask_implier = new repo_out_bid_implier(0);
+		ask_implier = new repo_out_bid_implier(0, 10000);
 	}
 	else if (str_bid_implier == "repo_out_ask_implier")
 	{
-		ask_implier = new repo_out_ask_implier(0);
+		ask_implier = new repo_out_ask_implier(0, 10000);
 	}
 	else if (str_bid_implier == "none")
 	{
