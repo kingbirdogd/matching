@@ -4,7 +4,7 @@
 #include <net/tcp_service.hpp>
 #include <md/md_book.hpp>
 #include <matching_tcp_client.hpp>
-//#include <zmq.hpp>
+#include <zmq.hpp>
 
 class md_tcp_service
 {
