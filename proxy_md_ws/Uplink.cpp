@@ -738,8 +738,9 @@ namespace proxy {
       {
         std::lock_guard ob_guard(ob.ob_mutex);
         ob_snapshot = this->ob.get_orderbook_snapshot();
-        ob_diff = this->ob.get_orderbook_diff();
+        ob_diff     = this->ob.get_orderbook_diff();
         this->ob.clear_unused_bids_asks();
+        //this->ob.print_bids_asks(ob.last_valid_bids, ob.last_valid_asks);
       }
       Client::multicast_orderbook(Client::all_clients, ob_snapshot, ob_diff);
       zmq_broadcast(ob_snapshot, zmq_ob_snapshot_sock);
