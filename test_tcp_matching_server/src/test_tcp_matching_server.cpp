@@ -13,16 +13,17 @@
 
 int main(int iArgc, char** pszArgv)
 {
-	if (6 != iArgc)
+	if (7 != iArgc)
 	{
-		std::cout << "usage: test_tcp_matching_server <port1[1,65535]> <port2[1,65535]> <port3[1,65535]> <port4[1,65535]> <port5[1,65535]>" << std::endl;
+		std::cout << "usage: test_tcp_matching_server <factor> <port1[1,65535]> <port2[1,65535]> <port3[1,65535]> <port4[1,65535]> <port5[1,65535]>" << std::endl;
 		return -1;
 	}
-	int iPort1 = std::atoi(pszArgv[1]);
-	int iPort2 = std::atoi(pszArgv[2]);
-	int iPort3 = std::atoi(pszArgv[3]);
-	int iPort4 = std::atoi(pszArgv[4]);
-	int iPort5 = std::atoi(pszArgv[5]);
+  unsigned long long factor = strtoull(pszArgv[1], NULL, 10);
+	int iPort1 = std::atoi(pszArgv[2]);
+	int iPort2 = std::atoi(pszArgv[3]);
+	int iPort3 = std::atoi(pszArgv[4]);
+	int iPort4 = std::atoi(pszArgv[5]);
+	int iPort5 = std::atoi(pszArgv[6]);
 	if (iPort1 < 1 || iPort1 > 65535)
 	{
 		std::cout << "usage: test_tcp_matching_server <port1[1,65535]> <port2[1,65535]> <port3[1,65535]> <port4[1,65535]> <port5[1,65535]>" << std::endl;
@@ -59,8 +60,8 @@ int main(int iArgc, char** pszArgv)
 	matching::implied_spread_a_out_ask a_ask_implier(1, &Spread, &BBook);
 	matching::implied_spread_b_out_bid b_bid_implier(1, &ABook, &Spread);
 	matching::implied_spread_b_out_ask b_ask_implier(1, &ABook, &Spread);
-	matching::implied_repo_out_bid spot_bid_implier(1, &BBook, &Repo, 0, 10000);
-	matching::implied_repo_out_ask spot_ask_implier(1, &BBook, &Repo, 0, 10000);
+	matching::implied_repo_out_bid spot_bid_implier(1, &BBook, &Repo, 0, factor);
+	matching::implied_repo_out_ask spot_ask_implier(1, &BBook, &Repo, 0, factor);
 	Spread.set_bid_implier(&spread_bid_implier);
 	Spread.set_ask_implier(&spread_ask_implier);
 	ABook.set_bid_implier(&a_bid_implier);

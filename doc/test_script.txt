@@ -11,11 +11,11 @@
 #Repo book matching port: 35675
 
 #start test_tcp_matching_server
-../matching_build/matching/bin/test_tcp_matching_server 34671 34672 34673 34674 346745
+../matching_build/matching/bin/test_tcp_matching_server 10000000 34671 34672 34673 34674 346745
 
 
 #Start A book MD
-../matching_build/matching/bin/test_md_tcp_server 127.0.0.1 34671 127.0.0.1 34673 127.0.0.1 34672 a_bid_b_bid a_ask_b_ask add_bid_implier add_ask_implier 35671
+../matching_build/matching/bin/test_md_tcp_server 10000000 127.0.0.1 34671 127.0.0.1 34673 127.0.0.1 34672 a_bid_b_bid a_ask_b_ask add_bid_implier add_ask_implier 35671
 
 #Start B book MD
 ../matching_build/matching/bin/test_md_tcp_server 127.0.0.1 34672 127.0.0.1 34671 127.0.0.1 34673 a_bid_b_ask a_ask_b_bid minus_bid_implier minus_ask_implier 35672
