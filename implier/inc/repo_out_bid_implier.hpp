@@ -7,15 +7,18 @@
 
 class repo_out_bid_implier : public virtual implier
 {
+private:
+	unsigned long long factor_;
 public:
-	repo_out_bid_implier(unsigned long long pips):
-		implier(pips)
+	repo_out_bid_implier(long long pips, unsigned long long factor):
+		implier(pips),
+		factor_(factor)
 	{
 	}
 	virtual ~repo_out_bid_implier() = default;
 	virtual long long matchd_price(long long leg1_price, long long leg2_price, unsigned long long mini_tick)
 	{
-		return round_down(leg1_price * (1 + leg2_price) -  2 * _pips, mini_tick);
+		return round_down(leg1_price * (factor_ + leg2_price) / factor_ -  2 * _pips, mini_tick);
 	}
 };
 
