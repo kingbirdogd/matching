@@ -421,6 +421,10 @@ namespace matching
 				{
 					erase();
 				}
+				else
+				{
+					_remain_quantity =  o.remain_quantity;
+				}
 			}
 			void taker_match(order& o,
 					unsigned long long matched_id,
