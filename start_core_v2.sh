@@ -65,18 +65,32 @@ ${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34674 127.0.0.1 34672 12
 ${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34675        ""     0        ""     0 a_none_b_none a_none_b_none none                 none                 35675 >> ${LOG_LOCATION}/md_tcp5.out.log 2>> ${LOG_LOCATION}/md_tcp5.err.log &
 
 # MD Orderbook Server
-${CORE_LOCATION}/proxy_md_lws -s ${CORE_LOCATION}/md.fbs -B 500 -E 18011 -F 18012 -G 9081 -X 35671 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md1.out.log 2>> ${LOG_LOCATION}/proxy_md1.err.log &
-${CORE_LOCATION}/proxy_md_lws -s ${CORE_LOCATION}/md.fbs -B 500 -E 18021 -F 18022 -G 9082 -X 35672 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md2.out.log 2>> ${LOG_LOCATION}/proxy_md2.err.log &
-${CORE_LOCATION}/proxy_md_lws -s ${CORE_LOCATION}/md.fbs -B 500 -E 18031 -F 18032 -G 9083 -X 35673 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md3.out.log 2>> ${LOG_LOCATION}/proxy_md3.err.log &
-${CORE_LOCATION}/proxy_md_lws -s ${CORE_LOCATION}/md.fbs -B 500 -E 18041 -F 18042 -G 9084 -X 35674 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md4.out.log 2>> ${LOG_LOCATION}/proxy_md4.err.log &
-${CORE_LOCATION}/proxy_md_lws -s ${CORE_LOCATION}/md.fbs -B 500 -E 18051 -F 18052 -G 9085 -X 35675 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md5.out.log 2>> ${LOG_LOCATION}/proxy_md5.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B 500 -R pulsar://localhost:6650 -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001021200626 -F persistent://CF-V2/ME-WS/MD-DIFF-2001021200626 -G 9081 -X 35671 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md1.out.log 2>> ${LOG_LOCATION}/proxy_md1.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B 500 -R pulsar://localhost:6650 -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001011000000 -F persistent://CF-V2/ME-WS/MD-DIFF-2001011000000 -G 9082 -X 35672 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md2.out.log 2>> ${LOG_LOCATION}/proxy_md2.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B 500 -R pulsar://localhost:6650 -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001051000000 -F persistent://CF-V2/ME-WS/MD-DIFF-2001051000000 -G 9083 -X 35673 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md3.out.log 2>> ${LOG_LOCATION}/proxy_md3.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B 500 -R pulsar://localhost:6650 -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001000000000 -F persistent://CF-V2/ME-WS/MD-DIFF-2001000000000 -G 9084 -X 35674 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md4.out.log 2>> ${LOG_LOCATION}/proxy_md4.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B 500 -R pulsar://localhost:6650 -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001031000000 -F persistent://CF-V2/ME-WS/MD-DIFF-2001031000000 -G 9085 -X 35675 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md5.out.log 2>> ${LOG_LOCATION}/proxy_md5.err.log &
 
-# ZMQ Proxy
-${CORE_LOCATION}/zmq_proxy 127.0.0.1 34671 22011 22012 >> ${LOG_LOCATION}/zmq_proxy1.out.log 2>> ${LOG_LOCATION}/zmq_proxy1.err.log &
-${CORE_LOCATION}/zmq_proxy 127.0.0.1 34672 22021 22022 >> ${LOG_LOCATION}/zmq_proxy2.out.log 2>> ${LOG_LOCATION}/zmq_proxy2.err.log &
-${CORE_LOCATION}/zmq_proxy 127.0.0.1 34673 22031 22032 >> ${LOG_LOCATION}/zmq_proxy3.out.log 2>> ${LOG_LOCATION}/zmq_proxy3.err.log &
-${CORE_LOCATION}/zmq_proxy 127.0.0.1 34674 22041 22042 >> ${LOG_LOCATION}/zmq_proxy4.out.log 2>> ${LOG_LOCATION}/zmq_proxy4.err.log &
-${CORE_LOCATION}/zmq_proxy 127.0.0.1 34675 22051 22052 >> ${LOG_LOCATION}/zmq_proxy5.out.log 2>> ${LOG_LOCATION}/zmq_proxy5.err.log &
+# Pulsar Proxy
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34671 pulsar://localhost:6650 persistent://CF-V2/ME-WS/ORDER-IN-2001021200626 persistent://CF-V2/ME-WS/ORDER-OUT-2001021200626 >> ${LOG_LOCATION}/zmq_proxy1.out.log 2>> ${LOG_LOCATION}/zmq_proxy1.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34672 pulsar://localhost:6650 persistent://CF-V2/ME-WS/ORDER-IN-2001011000000 persistent://CF-V2/ME-WS/ORDER-OUT-2001011000000 >> ${LOG_LOCATION}/zmq_proxy2.out.log 2>> ${LOG_LOCATION}/zmq_proxy2.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34673 pulsar://localhost:6650 persistent://CF-V2/ME-WS/ORDER-IN-2001051000000 persistent://CF-V2/ME-WS/ORDER-OUT-2001051000000 >> ${LOG_LOCATION}/zmq_proxy3.out.log 2>> ${LOG_LOCATION}/zmq_proxy3.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34674 pulsar://localhost:6650 persistent://CF-V2/ME-WS/ORDER-IN-2001000000000 persistent://CF-V2/ME-WS/ORDER-OUT-2001000000000 >> ${LOG_LOCATION}/zmq_proxy4.out.log 2>> ${LOG_LOCATION}/zmq_proxy4.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34675 pulsar://localhost:6650 persistent://CF-V2/ME-WS/ORDER-IN-2001031000000 persistent://CF-V2/ME-WS/ORDER-OUT-2001031000000 >> ${LOG_LOCATION}/zmq_proxy5.out.log 2>> ${LOG_LOCATION}/zmq_proxy5.err.log &
+
+## MD Orderbook Server
+#${CORE_LOCATION}/proxy_md_lws -s ${CORE_LOCATION}/md.fbs -B 500 -E 18011 -F 18012 -G 9081 -X 35671 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md1.out.log 2>> ${LOG_LOCATION}/proxy_md1.err.log &
+#${CORE_LOCATION}/proxy_md_lws -s ${CORE_LOCATION}/md.fbs -B 500 -E 18021 -F 18022 -G 9082 -X 35672 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md2.out.log 2>> ${LOG_LOCATION}/proxy_md2.err.log &
+#${CORE_LOCATION}/proxy_md_lws -s ${CORE_LOCATION}/md.fbs -B 500 -E 18031 -F 18032 -G 9083 -X 35673 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md3.out.log 2>> ${LOG_LOCATION}/proxy_md3.err.log &
+#${CORE_LOCATION}/proxy_md_lws -s ${CORE_LOCATION}/md.fbs -B 500 -E 18041 -F 18042 -G 9084 -X 35674 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md4.out.log 2>> ${LOG_LOCATION}/proxy_md4.err.log &
+#${CORE_LOCATION}/proxy_md_lws -s ${CORE_LOCATION}/md.fbs -B 500 -E 18051 -F 18052 -G 9085 -X 35675 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md5.out.log 2>> ${LOG_LOCATION}/proxy_md5.err.log &
+
+## ZMQ Proxy
+#${CORE_LOCATION}/zmq_proxy 127.0.0.1 34671 22011 22012 >> ${LOG_LOCATION}/zmq_proxy1.out.log 2>> ${LOG_LOCATION}/zmq_proxy1.err.log &
+#${CORE_LOCATION}/zmq_proxy 127.0.0.1 34672 22021 22022 >> ${LOG_LOCATION}/zmq_proxy2.out.log 2>> ${LOG_LOCATION}/zmq_proxy2.err.log &
+#${CORE_LOCATION}/zmq_proxy 127.0.0.1 34673 22031 22032 >> ${LOG_LOCATION}/zmq_proxy3.out.log 2>> ${LOG_LOCATION}/zmq_proxy3.err.log &
+#${CORE_LOCATION}/zmq_proxy 127.0.0.1 34674 22041 22042 >> ${LOG_LOCATION}/zmq_proxy4.out.log 2>> ${LOG_LOCATION}/zmq_proxy4.err.log &
+#${CORE_LOCATION}/zmq_proxy 127.0.0.1 34675 22051 22052 >> ${LOG_LOCATION}/zmq_proxy5.out.log 2>> ${LOG_LOCATION}/zmq_proxy5.err.log &
 
 # WSS Proxy for testing
 ${CORE_LOCATION}/proxy_lws -M 34671 -P 8081 --skipAuth --oneQueue -v localhost >> ${LOG_LOCATION}/proxy_lws1.out.log 2>> ${LOG_LOCATION}/proxy_lws1.err.log &

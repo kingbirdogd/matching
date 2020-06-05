@@ -28,7 +28,7 @@ from _collections import deque
 
 HOST  = 'localhost'
 PORT  = 8080
-#HOST  = 'ironmanapi2.coinflex.com'
+#HOST  = 'ironmanapi1.coinflex.com'
 #HOST  = '18.162.39.80'
 #HOST  = 'chiaapi.coinflex.com'
 #HOST  = 'lycheews.coinflex.com/test'
@@ -194,10 +194,10 @@ async def test(sleep_s):
           #payload_place_sell = {'order_action':'NEW', 'side':'SELL', 'method':'PlaceOrder', "price":   1, 'quantity': 200000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_sell)
           #payload_place_buy  = {'order_action':'NEW', 'side':'BUY' , 'method':'PlaceOrder', "price":   2, 'quantity': 200000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_buy )
           # END ===================== Clear ==========================
-  
+          #'time_condition': 'IOC',
           #payload_place_sell = {'order_action':'NEW', 'side':'SELL'     , 'method':'PlaceOrder', "price":100, 'quantity': 20000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_sell)
-          payload_place_sell = {'order_action':'NEW', 'side':'SELL'     , 'method':'PlaceOrder', "price":rnd_ask_px, 'quantity': rnd_ask_qty, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_sell)
-          payload_place_buy  = {'order_action':'NEW', 'side':'BUY'      , 'method':'PlaceOrder', "price":rnd_bid_px, 'quantity': rnd_bid_qty, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_buy )
+          payload_place_sell = { 'order_action':'NEW', 'side':'SELL'     , 'method':'PlaceOrder', "price":rnd_ask_px, 'quantity': rnd_ask_qty, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_sell)
+          payload_place_buy  = { 'order_action':'NEW', 'side':'BUY'      , 'method':'PlaceOrder', "price":rnd_bid_px, 'quantity': rnd_bid_qty, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_buy )
   #        payload_place_buy  = {'order_action':'NEW', 'side':'BUY'      , 'method':'PlaceOrder', "price": 99, 'quantity': 12000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_buy )
           #payload_place_buy  = {'order_action':'NEW', 'side':'BUY'      , 'method':'PlaceOrder', "price":2000098, 'quantity': 20000, 'client_order_id': tonce}; tonce += 1; await send_order(user_id_limit, payload_place_buy )
           #payload_place_sell = {'order_action':'NEW', 'side':'SELL_STOP', 'method':'PlaceOrder',              'quantity':  2300, 'client_order_id': tonce,
@@ -212,7 +212,7 @@ async def test(sleep_s):
           # await send_order(user_id_limit, payload_place_buy)
   
   
-          await asyncio.sleep(0.1)
+          await asyncio.sleep(2)
   
           # payload_ticker_mod = {"method": "ModifyOrder", 'tonce': tonce-2, "quantity_delta" : 2}
           # await send_order(user_id_limit, payload_ticker_mod)

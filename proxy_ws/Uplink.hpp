@@ -52,7 +52,7 @@ namespace proxy {
 
     bool send_message(const void *msg, size_t n, bool force = false) ;
 
-    bool do_request(const void *msg, size_t n, std::shared_ptr<Client> client_ptr);
+    bool do_request(const void *msg, size_t n, std::shared_ptr<proxy::Client> client_ptr);
 
   protected:
     void selected(Selector &selector, Selector::Flags flags) noexcept override ;

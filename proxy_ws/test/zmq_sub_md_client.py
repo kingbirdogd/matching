@@ -2,6 +2,7 @@ import flatbuffers
 import zmq
 import random
 import time
+import datetime as dt
 
 #import CoinflexV2.*
 
@@ -55,6 +56,7 @@ if __name__ == '__main__':
         #workload = random.randint(1, 100)
         #sink.send_string(str(workload))
         buf = sink.recv()
+        print(f'{dt.datetime.now()} ',end='')
         print(f'recv {len(buf)} bytes from PUB')
 
         # msg = cm.Msg.GetRootAsMsg(buf,0)

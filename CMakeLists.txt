@@ -34,4 +34,6 @@ add_subdirectory(test_zmq_matching_server)
 add_subdirectory(xpubxsub)
 
 add_subdirectory(md)
-
+add_subdirectory(pulsar)
+add_subdirectory(pulsar_proxy)
+add_subdirectory(proxy_md_pulsar)
