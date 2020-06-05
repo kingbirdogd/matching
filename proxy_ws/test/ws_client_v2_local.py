@@ -36,11 +36,14 @@ PORT  = 8080
 #HOST  = 'lycheews.coinflex.com/test'
 #HOST  = ''
 #PORT  = 0
-#PORT1 = 8080
-PORT2 = 8081
-PORT3 = 8082
+PORT1 = 8081
+PORT2 = 8082
+PORT3 = 8083
+PORT4 = 8084
+PORT5 = 8085
 PROTOCOL = 'lws-minimal'
 
+M = 100000000
 BASE_ID    = 0xFFFE # 65534
 COUNTER_ID = 0xFFFF # 65535
 
@@ -169,10 +172,11 @@ async def get_reply_notice(user_id, sleep_s, bPrint):
             sys.stdout.flush()
         #await asyncio.sleep(sleep_s)
 
-async def test(host, payload):
-    global ws_map, listen_map, tonce, HOST
+async def test(host, port, payload):
+    global ws_map, listen_map, tonce, HOST, PORT
     sleep_s = 0.5
     HOST = host
+    PORT = port
 
     # Login and authentication...
     for uid in USER_IDS:
@@ -461,20 +465,23 @@ if __name__ == '__main__':
     tonce = int(time.time()) * 1000
 
     # Setup async tasks for login and listening to messages
-    payload_place_sell1  = {'side':'SELL', "price": 31, 'quantity':    5,'order_action':'NEW',  'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
-    payload_place_sell2  = {'side':'SELL', "price": 10, 'quantity':   30,'order_action':'NEW',  'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
-    payload_place_sell3  = {'side':'SELL', "price": 30, 'quantity':    1,'order_action':'NEW',  'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
+    payload_place_sell1  = {'side':'SELL', "price":   int(7800*M), 'quantity':    1000,'order_action':'NEW',  'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
+    payload_place_sell2  = {'side':'SELL', "price": int(0.0001*M), 'quantity':   1500,'order_action':'NEW',  'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
+    payload_place_sell3  = {'side':'SELL', "price": 30, 'quantity':    999999980,'order_action':'NEW',  'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
 
-    payload_place_buy1  = {'side':'BUY' , "price": 95, 'quantity': 2000, 'order_action':'NEW', 'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
-    payload_place_buy2  = {'side':'BUY' , "price": 20, 'quantity': 5, 'order_action':'NEW', 'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
-    payload_place_buy3  = {'side':'BUY' , "price": 10, 'quantity': 5, 'order_action':'NEW', 'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
+    payload_place_buy1  = {'side':'BUY' , "price":         160, 'quantity':       720, 'order_action':'NEW', 'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
+    payload_place_buy2  = {'side':'BUY' , "price": 2000000, 'quantity': 1600, 'order_action':'NEW', 'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
+    #payload_place_buy3  = {'side':'BUY' , "price": 10, 'quantity': 5, 'order_action':'NEW', 'method':'PlaceOrder', 'client_order_id': tonce};      tonce += 1;
 
     payload_reconnect = { 'method' : 'ReconnectEngine'}
 
     #loop.create_task(test(HOST, payload_reconnect))
-    #loop.create_task(test(HOST, payload_place_sell1))
-    #loop.create_task(test(HOST, payload_place_buy2))
-    loop.create_task(test(HOST, payload_place_buy3))
+    #loop.create_task(test(HOST, PORT2, payload_place_sell1))
+    loop.create_task(test(HOST, PORT5, payload_place_sell2))
+    #loop.create_task(test(HOST, PORT5, payload_place_buy2))
+    #loop.create_task(test(HOST, payload_place_buy1))
+    # loop.create_task(test(HOST, payload_place_buy2))
+    #loop.create_task(test(HOST, payload_place_sell3))
     #loop.create_task(test_stress(nUsers, 0.1))
     for uid in USER_IDS:
         order_map[uid] = deque(maxlen=10)

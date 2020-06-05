@@ -19,7 +19,8 @@ context = zmq.Context()
 # Socket with direct access to the sink: used to syncronize start of batch
 sink = context.socket(zmq.SUB)
 sink.setsockopt(zmq.SUBSCRIBE, b"")
-sink.connect("tcp://localhost:22012")
+#sink.connect("tcp://localhost:22012")
+sink.connect("tcp://172.31.30.253:22012")
 
 def print_order(o) :
   print(f"version={o.Version()},"
