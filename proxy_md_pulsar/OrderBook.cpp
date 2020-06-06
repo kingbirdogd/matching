@@ -52,7 +52,7 @@ void OrderBook::print_bids_asks(book_map_t &bids, book_map_t &asks) {
       top_bid_price = it_b->second.price;
     it_b++;
   }
-
+  str[N-1] = '\0';
   elog.debug() << std::endl << std::setw(6) << std::setfill(' ')
                << "  top_bid_price=" << top_bid_price << " top_ask_price=" << top_ask_price <<  std::endl
                << "  top_bid_px   =" << top_bid_px    << " top_ask_px   =" << top_ask_px    <<  std::endl;
