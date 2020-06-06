@@ -8,9 +8,12 @@
 #include <iomanip>
 #include <fbs_helper.hpp>
 #include <pulsar/Client.h>
-#include <lib/LogUtils.h>
+//#include <lib/LogUtils.h>
+#include "common/log.h"
 
-DECLARE_LOG_OBJECT()
+Log elog(Log::INFO);
+
+//DECLARE_LOG_OBJECT()
 
 using namespace CoinflexV2;
 using namespace pulsar;
@@ -173,7 +176,7 @@ void handle_order(const matching::order& o)
 	client_to_engine_id_map[o.client_order_id] = o.order_id;
   {
     std::lock_guard<std::mutex> lockGuard(iomutex);
-    std::cout
+    elog.debug()
         << "account_id:" << o.account_id
         << ",market_id:" << o.market_id
         << ",action:" << action
@@ -206,14 +209,14 @@ int main(int iArgc, char** pszArgv)
 	if (6 != iArgc)
 	{
 		//std::cout << "usage: " << pszArgv[0] << " host <port[1,65535]> <zmq_port[1,65535]> <order_status_pub_port[1,65535]>" << std::endl;
-    std::cout << "usage: " << pszArgv[0] << " host <port[1,65535]> pulsar_url order_in_url order_out_url" << std::endl;
+    elog.info() << "usage: " << pszArgv[0] << " host <port[1,65535]> pulsar_url order_in_url order_out_url" << std::endl;
 		return -1;
 	}
 	std::string host = pszArgv[1];
 	int iPort = std::atoi(pszArgv[2]);
 	if (iPort < 1 || iPort > 65535)
 	{
-    std::cout << "usage: " << pszArgv[0] << " host <port[1,65535]> <zmq_port[1,65535]> <order_status_pub_port[1,65535]>" << std::endl;
+    elog.info() << "usage: " << pszArgv[0] << " host <port[1,65535]> <zmq_port[1,65535]> <order_status_pub_port[1,65535]>" << std::endl;
 		return -2;
 	}
 
@@ -226,21 +229,21 @@ int main(int iArgc, char** pszArgv)
 
   Producer producer;
   //std::string order_out_url = std::string("persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-") + std::to_string(market_id);
-  LOG_INFO("Creating Producer: " << order_out_url);
+  elog.info()  << "Creating Producer: " << order_out_url << std::endl;
   Result result = client.createProducer(order_out_url.c_str(), producer);
   if (result != ResultOk) {
-    LOG_ERROR("Error creating producer: " << result);
+    elog.error()  <<"Error creating producer: " << result << std::endl;
     return -1;
   }
 
   Consumer consumer;
   std::string market_id_str = order_in_url.substr(0, order_in_url.find_last_of('-'));
-  LOG_INFO("Market ID: " << market_id_str);
+  elog.info() <<"Market ID: " << market_id_str << std::endl;
   //std::string order_in_url = std::string("persistent://CF-V2/PRETRADE-ME/ORDER-IN-") + std::to_string(market_id);
-  LOG_INFO("Creating Consumer: " << order_in_url);
+  elog.info() <<"Creating Consumer: " << order_in_url << std::endl;
   result = client.subscribe(order_in_url.c_str(), std::string("pulsar_proxy-") + market_id_str, consumer);
   if (result != ResultOk) {
-    LOG_ERROR("Failed to subscribe: " << result);
+    elog.error() <<"Failed to subscribe: " << result << std::endl;
     return -1;
   }
 
@@ -254,11 +257,11 @@ int main(int iArgc, char** pszArgv)
 	matching_tcp_client c(host, sPort);
 	c.set_connected([&]()
 	{
-		std::cout << "matching_tcp_client connected" << std::endl;
+    elog.info()  << "matching_tcp_client connected" << std::endl;
 	});
 	c.set_disconnected([&]()
 	{
-		std::cout << "matching_tcp_client disconnected" << std::endl;
+    elog.info()  << "matching_tcp_client disconnected" << std::endl;
 	});
 	c.set_on_order([&](const matching::order& o) {
     handle_order(o);
@@ -272,7 +275,7 @@ int main(int iArgc, char** pszArgv)
        << std::setfill('0') << std::setw(3) << ms << "Z" << ". ZMQ Pushing:";
     {
       std::lock_guard<std::mutex> lockGuard(iomutex);
-      std::cout << ss.str() << std::endl;
+      elog.info() << ss.str() << std::endl;
       print_fbs_msg_order(fbs_buf.first);
     }
     Message msg = MessageBuilder().setContent(fbs_buf.first, fbs_buf.second).build();
@@ -313,7 +316,7 @@ int main(int iArgc, char** pszArgv)
     Message msg;
 
     consumer.receive(msg);
-    LOG_INFO("Received: " << msg << "  with payload length=" << msg.getLength() );
+    elog.info() << "Received: " << msg << "  with payload length=" << msg.getLength() << std::endl;
     auto o = fbs_msg_to_order(msg.getData());
     consumer.acknowledge(msg);
     print_order(o);
