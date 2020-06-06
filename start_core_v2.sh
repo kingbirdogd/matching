@@ -85,11 +85,11 @@ ${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B 500 -R pulsar://$
 ${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B 500 -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001031000000 -F persistent://CF-V2/ME-WS/MD-DIFF-2001031000000 -G 9085 -X 35675 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md5.out.log 2>> ${LOG_LOCATION}/proxy_md5.err.log &
 
 # Pulsar Proxy
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34671 pulsar://${PLSR_URL} persistent://CF-V2/ME-WS/ORDER-IN-2001021200626 persistent://CF-V2/ME-WS/ORDER-OUT-2001021200626 >> ${LOG_LOCATION}/zmq_proxy1.out.log 2>> ${LOG_LOCATION}/zmq_proxy1.err.log &
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34672 pulsar://${PLSR_URL} persistent://CF-V2/ME-WS/ORDER-IN-2001011000000 persistent://CF-V2/ME-WS/ORDER-OUT-2001011000000 >> ${LOG_LOCATION}/zmq_proxy2.out.log 2>> ${LOG_LOCATION}/zmq_proxy2.err.log &
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34673 pulsar://${PLSR_URL} persistent://CF-V2/ME-WS/ORDER-IN-2001051000000 persistent://CF-V2/ME-WS/ORDER-OUT-2001051000000 >> ${LOG_LOCATION}/zmq_proxy3.out.log 2>> ${LOG_LOCATION}/zmq_proxy3.err.log &
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34674 pulsar://${PLSR_URL} persistent://CF-V2/ME-WS/ORDER-IN-2001000000000 persistent://CF-V2/ME-WS/ORDER-OUT-2001000000000 >> ${LOG_LOCATION}/zmq_proxy4.out.log 2>> ${LOG_LOCATION}/zmq_proxy4.err.log &
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34675 pulsar://${PLSR_URL} persistent://CF-V2/ME-WS/ORDER-IN-2001031000000 persistent://CF-V2/ME-WS/ORDER-OUT-2001031000000 >> ${LOG_LOCATION}/zmq_proxy5.out.log 2>> ${LOG_LOCATION}/zmq_proxy5.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34671 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-2001021200626 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-2001021200626 >> ${LOG_LOCATION}/zmq_proxy1.out.log 2>> ${LOG_LOCATION}/zmq_proxy1.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34672 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-2001011000000 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-2001011000000 >> ${LOG_LOCATION}/zmq_proxy2.out.log 2>> ${LOG_LOCATION}/zmq_proxy2.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34673 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-2001051000000 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-2001051000000 >> ${LOG_LOCATION}/zmq_proxy3.out.log 2>> ${LOG_LOCATION}/zmq_proxy3.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34674 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-2001000000000 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-2001000000000 >> ${LOG_LOCATION}/zmq_proxy4.out.log 2>> ${LOG_LOCATION}/zmq_proxy4.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34675 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-2001031000000 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-2001031000000 >> ${LOG_LOCATION}/zmq_proxy5.out.log 2>> ${LOG_LOCATION}/zmq_proxy5.err.log &
 
 ## MD Orderbook Server
 #${CORE_LOCATION}/proxy_md_lws -s ${CORE_LOCATION}/md.fbs -B 500 -E 18011 -F 18012 -G 9081 -X 35671 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md1.out.log 2>> ${LOG_LOCATION}/proxy_md1.err.log &
