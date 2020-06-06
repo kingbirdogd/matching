@@ -237,7 +237,7 @@ int main(int iArgc, char** pszArgv)
   }
 
   Consumer consumer;
-  std::string market_id_str = order_in_url.substr(order_in_url.find_last_of('-'));
+  std::string market_id_str = order_in_url.substr(order_in_url.find_last_of('-') + 1);
   elog.info() <<"Market ID: " << market_id_str << std::endl;
   //std::string order_in_url = std::string("persistent://CF-V2/PRETRADE-ME/ORDER-IN-") + std::to_string(market_id);
   elog.info() <<"Creating Consumer: " << order_in_url << std::endl;
