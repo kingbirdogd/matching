@@ -2,7 +2,7 @@
 
 # aliyun-test: 172.21.21.221:6650
 # aliyun-dev : 172.21.11.79:6650
-PLSR_URL="172.21.11.79:6650"
+PLSR_URL="172.21.11.79:6650"  
 
 if [ $# -eq 1 ]; then
   if [ $1 = "aliyun-test" ] ; then
