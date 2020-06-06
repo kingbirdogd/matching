@@ -3,12 +3,13 @@
 # aliyun-test: 172.21.21.221:6650
 # aliyun-dev : 172.21.11.79:6650
 PLSR_URL="172.21.21.79:6650"
-if [ "$#" -ne 1 ]; then
-  if [ $1 -eq "aliyun-test" ] ; then
+
+if [ $# -eq 1 ]; then
+  if [ $1 = "aliyun-test" ] ; then
     PLSR_URL="172.21.21.221:6650"
-  elif [ $1 -eq "aliyun-dev" ] ; then
+  elif [ $1 = "aliyun-dev" ] ; then
     PLSR_URL="172.21.11.79:6650"
-  elif [ $1 -eq "local" ] ; then
+  elif [ $1 = "local" ] ; then
     PLSR_URL="127.0.0.1:6650"
   fi
 fi
