@@ -69,6 +69,7 @@ namespace proxy {
         client(pulsar_host_url_option),
         //ctx(1), zmq_ob_snapshot_sock(ctx, ZMQ_PUB), zmq_ob_diff_sock(ctx, ZMQ_PUB),
         broadcast_ms(broadcast_ms)  {
+      elog.info() << "Pulsar Host: " << pulsar_host_url_option << std::endl;
       elog.info() << "Creating Producer: " << md_pub_snapshot_url << std::endl;
       Result result = client.createProducer(md_pub_snapshot_url, prd_snapshot);
       if (result != ResultOk) {
