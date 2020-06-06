@@ -1,10 +1,10 @@
 add_executable(SampleConsumer SampleConsumer.cc)
-target_include_directories(SampleConsumer PUBLIC ${CMAKE_SOURCE_DIR}/pulsar)
+target_include_directories(SampleConsumer PUBLIC $ENV{HOME}/usr/local/include)
 target_link_directories(SampleConsumer PUBLIC $ENV{HOME}/usr/local/lib $ENV{HOME}/usr/local/lib64)
 target_link_libraries(SampleConsumer pulsar)
 #install(TARGETS v DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 add_executable(SampleProducer SampleProducer.cc)
-target_include_directories(SampleProducer PUBLIC ${CMAKE_SOURCE_DIR}/pulsar)
+target_include_directories(SampleProducer PUBLIC $ENV{HOME}/usr/local/include)
 target_link_directories(SampleProducer PUBLIC $ENV{HOME}/usr/local/lib $ENV{HOME}/usr/local/lib64)
 target_link_libraries(SampleProducer pulsar)
