@@ -267,15 +267,16 @@ int main(int iArgc, char** pszArgv)
     handle_order(o);
     auto fbs_buf = order_to_fbs_msg(o);  // (*buf, buf_sz)
 
-    auto now = std::chrono::system_clock::now();
-    auto itt = std::chrono::system_clock::to_time_t(now);
-    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() % 1000;
-    std::ostringstream ss;
-    ss << std::put_time(gmtime(&itt), "%FT%T.")
-       << std::setfill('0') << std::setw(3) << ms << "Z" << ". Pulsar Pushing:";
+//    auto now = std::chrono::system_clock::now();
+//    auto itt = std::chrono::system_clock::to_time_t(now);
+//    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() % 1000;
+//    std::ostringstream ss;
+//    ss << std::put_time(gmtime(&itt), "%FT%T.")
+//       << std::setfill('0') << std::setw(3) << ms << "Z" << ". Pulsar Pushing:";
     {
       std::lock_guard<std::mutex> lockGuard(iomutex);
-      elog.info() << ss.str() << std::endl;
+      //elog.info() << ss.str() << std::endl;
+      elog.info() << "Pulsar pushing:" << std::endl;
       if (fbs_buf.second > 0)
         print_fbs_msg_order(fbs_buf.first);
     }
