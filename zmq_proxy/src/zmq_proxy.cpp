@@ -250,7 +250,7 @@ int main(int iArgc, char** pszArgv)
     {
       std::lock_guard<std::mutex> lockGuard(iomutex);
       std::cout << ss.str() << std::endl;
-      print_fbs_msg_order(fbs_buf.first);
+      std::cout << get_fbs_msg_order_as_string(fbs_buf.first);
     }
     order_status_pub_sock.send(zmq::const_buffer(fbs_buf.first, fbs_buf.second), zmq::send_flags::none);
   });
@@ -298,7 +298,7 @@ int main(int iArgc, char** pszArgv)
     {
       std::lock_guard<std::mutex> lockGuard(iomutex);
       std::cout << ss.str() << " Received from zmq: " << msg.size() << " bytes. n=" << n2.value() << std::endl << std::flush;
-      print_order(o);
+      std::cout << get_order_as_string(o);
     }
     //print_fbs_msg_order(msg.data());
     c.send(o);
