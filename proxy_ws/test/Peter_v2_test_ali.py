@@ -13,8 +13,8 @@ https_url = 'https://api-test-v2.coinflex-cn.com/v2/account/auth/trading/login'
 # wss_url   = 'wss://api-dev-v2.coinflex-cn.com/v2/websocket'
 # https_url = 'https://api-dev-v2.coinflex-cn.com/v2/account/auth/trading/login'
 
-#market = "BTC-USD-200626-LIN"
-market = "BTC-USD-SWAP-LIN"
+market = "BTC-USD-200626-LIN"
+#market = "BTC-USD-SWAP-LIN"
 #market = 'BTC-USD-SPR-QP-LIN'
 #market = 'BTC-USD-REPO-LIN'
 
