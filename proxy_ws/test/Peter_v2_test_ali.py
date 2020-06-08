@@ -4,6 +4,7 @@ import json
 import requests
 import time
 import random
+import datetime as dt
 
 # test env
 wss_url   = 'wss://api-test-v2.coinflex-cn.com/v2/websocket'
@@ -38,7 +39,7 @@ cf_token=res.json()["data"]["token"]
 def placeOrder(side,quantity,price):
     global client_order_id
     send_order={"op":"placeorder", "data" : {"client_order_id":client_order_id, "market_code": market, "side":str(side), "order_type":"LIMIT", "quantity":quantity, "time_in_force":"GTC", "limit_price":price}}
-    print(f'{send_order}')
+    print(f'{dt.datetime.now()} {send_order}')
     client_order_id = client_order_id + 1
     return send_order
 
@@ -53,7 +54,7 @@ async def get_reply_notice(sleep_s, bPrint=True):
             response = await ws.recv()
             msg = json.loads(response)
             if bPrint:
-                print(f'{msg}')
+                print(f'{dt.datetime.now()} {msg}')
 
 async def call_api():
     global ws, logined
