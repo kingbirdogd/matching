@@ -1,0 +1,10 @@
+**/*.pyc
+.idea/
+build/
+cmake-build-debug/
+common.bak/
+common/Makefile
+proxy_ws.bak/
+proxy_ws/.idea/
+
+
