@@ -272,11 +272,12 @@ int main(int iArgc, char** pszArgv)
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() % 1000;
     std::ostringstream ss;
     ss << std::put_time(gmtime(&itt), "%FT%T.")
-       << std::setfill('0') << std::setw(3) << ms << "Z" << ". ZMQ Pushing:";
+       << std::setfill('0') << std::setw(3) << ms << "Z" << ". Pulsar Pushing:";
     {
       std::lock_guard<std::mutex> lockGuard(iomutex);
       elog.info() << ss.str() << std::endl;
-      print_fbs_msg_order(fbs_buf.first);
+      if (fbs_buf.second > 0)
+        print_fbs_msg_order(fbs_buf.first);
     }
     Message msg = MessageBuilder().setContent(fbs_buf.first, fbs_buf.second).build();
     Result res = producer.send(msg);

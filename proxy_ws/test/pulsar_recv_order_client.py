@@ -20,7 +20,7 @@ local_url = 'localhost:6650'
 local_topic_prefix = 'persistent://prop/r1/ns1'
 
 aliyuen_dev_url = "172.21.21.79:6650"
-aliyuen_dev_prefix = 'persistent://CF-V2/ME-POSTTRADE'
+aliyuen_dev_prefix = 'persistent://CF-V2/PRETRADE-ME'
 
 aliyun_test_url = '172.21.21.221:6650'
 
@@ -29,7 +29,7 @@ host_url = aliyun_test_url
 
 client = pulsar.Client('pulsar://' + host_url )
 
-consumer = client.subscribe(topic_prefix + '/ORDER-OUT-2001021200626',
+consumer = client.subscribe(topic_prefix + '/ORDER-IN-2001021200626',
                             "my-subscription",
                             properties={
                                 "consumer-name": "test-consumer-name",

@@ -4,6 +4,7 @@ set(VERSION dev)
 
 find_package(PkgConfig REQUIRED)
 include_directories(SYSTEM $ENV{HOME}/usr/local/include)
+link_directories(SYSTEM $ENV{HOME}/usr/local/lib $ENV{HOME}/usr/local/lib64)
 
 #pkg_check_modules(RABBITMQ REQUIRED IMPORTED_TARGET librabbitmq)
 
