@@ -15,10 +15,20 @@ import CoinflexV2.order_action_type
 import CoinflexV2.order_type
 
 
-client = pulsar.Client('pulsar://localhost:6650')
+local_url = 'localhost:6650'
+local_topic_prefix = 'persistent://prop/r1/ns1'
 
-producer = client.create_producer(
-                    'persistent://prop/r1/ns1/ORDER-IN-2001011000000',
+aliyuen_dev_url = "172.21.21.79:6650"
+aliyuen_dev_prefix = 'persistent://CF-V2/PRETRADE-ME'
+
+aliyun_test_url = '172.21.21.221:6650'
+
+topic_prefix = aliyuen_dev_prefix
+host_url = aliyun_test_url
+
+client = pulsar.Client('pulsar://' + host_url )
+
+producer = client.create_producer(topic_prefix + '/ORDER-IN-2001021200626',
                     block_if_queue_full=True,
                     batching_enabled=True,
                     batching_max_publish_delay_ms=10,

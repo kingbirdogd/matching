@@ -36,6 +36,10 @@ void OrderBook::print_bids_asks(book_map_t &bids, book_map_t &asks) {
       if ((top_bid_price < it_b->second.price) && (it_b->second.quantity > 0))
         top_bid_price = it_b->second.price;
       it_a++; it_b++;
+      if (pos > N-1) {
+        elog.error() << "Orderbook too big. Stop printing Orderbook..." << std::endl;
+        return;
+      }
     }
     else {
       rc = snprintf(str + pos, N, "%6s %6s %6lld %6lld\n", "", "", it_a->second.price, it_a->second.quantity);
@@ -44,6 +48,10 @@ void OrderBook::print_bids_asks(book_map_t &bids, book_map_t &asks) {
       if ((top_ask_price > it_a->second.price) && (it_a->second.quantity > 0))
         top_ask_price = it_a->second.price;
       it_a++;
+      if (pos > N-1) {
+        elog.error() << "Orderbook too big. Stop printing Orderbook..." << std::endl;
+        return;
+      }
     }
   }
   while (it_b != bids.rend()) {
@@ -51,6 +59,10 @@ void OrderBook::print_bids_asks(book_map_t &bids, book_map_t &asks) {
     if ((top_bid_price < it_b->second.price) && (it_b->second.quantity > 0))
       top_bid_price = it_b->second.price;
     it_b++;
+    if (pos > N-1) {
+      elog.error() << "Orderbook too big. Stop printing Orderbook..." << std::endl;
+      return;
+    }
   }
   str[N-1] = '\0';
   elog.debug() << std::endl << std::setw(6) << std::setfill(' ')
@@ -59,7 +71,7 @@ void OrderBook::print_bids_asks(book_map_t &bids, book_map_t &asks) {
   elog.debug() << std::endl << std::string(str) << std::endl;
 
   if (top_bid_price >= top_ask_price) {
-    elog.debug() << "ERROR: top_bid_price >= top_ask_price" << std::endl;
+    elog.error() << "top_bid_price >= top_ask_price" << std::endl;
     exit(-1);
   }
 
