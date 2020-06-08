@@ -23,12 +23,12 @@ aliyuen_dev_prefix = 'persistent://CF-V2/PRETRADE-ME'
 
 aliyun_test_url = '172.21.21.221:6650'
 
-topic_prefix = aliyuen_dev_prefix
-host_url = aliyun_test_url
+topic_prefix = local_topic_prefix
+host_url = local_url
 
 client = pulsar.Client('pulsar://' + host_url )
 
-producer = client.create_producer(topic_prefix + '/ORDER-IN-2001021200626',
+producer = client.create_producer(topic_prefix + '/ORDER-IN-2001011000000',
                     block_if_queue_full=True,
                     batching_enabled=True,
                     batching_max_publish_delay_ms=10,

@@ -275,10 +275,9 @@ int main(int iArgc, char** pszArgv)
 //       << std::setfill('0') << std::setw(3) << ms << "Z" << ". Pulsar Pushing:";
     {
       std::lock_guard<std::mutex> lockGuard(iomutex);
-      //elog.info() << ss.str() << std::endl;
-      elog.info() << "Pulsar pushing:" << std::endl;
+      elog.info() << "size: " << fbs_buf.second  << std::endl;
       if (fbs_buf.second > 0)
-        print_fbs_msg_order(fbs_buf.first);
+        elog.info() << "Pulsar pushing:" << get_fbs_msg_order_as_string(fbs_buf.first) << std::endl;
     }
     Message msg = MessageBuilder().setContent(fbs_buf.first, fbs_buf.second).build();
     Result res = producer.send(msg);
@@ -321,7 +320,7 @@ int main(int iArgc, char** pszArgv)
     elog.info() << "Received: " << msg << "  with payload length=" << msg.getLength() << std::endl;
     auto o = fbs_msg_to_order(msg.getData());
     consumer.acknowledge(msg);
-    print_order(o);
+    elog.info() << get_order_as_string(o) << std::endl;
 
 //    zmq::message_t msg;
 //    auto n2 = zmq_sock.recv(msg, zmq::recv_flags::none);
