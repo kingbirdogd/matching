@@ -54,11 +54,11 @@ int main(int iArgc, char** pszArgv)
 	auto sPort3 = static_cast<unsigned short int>(iPort3);
 	auto sPort4 = static_cast<unsigned short int>(iPort4);
 	auto sPort5 = static_cast<unsigned short int>(iPort5);
-	matching_tcp_service s1(sPort1, iTickSz1);
-	matching_tcp_service s2(sPort2, iTickSz2);
-	matching_tcp_service s3(sPort3, iTickSz3);
-	matching_tcp_service s4(sPort4, iTickSz4);
-	matching_tcp_service s5(sPort5, iTickSz5);
+	matching_tcp_service s1(iTickSz1, sPort1);
+	matching_tcp_service s2(iTickSz2, sPort2);
+	matching_tcp_service s3(iTickSz3, sPort3);
+	matching_tcp_service s4(iTickSz4, sPort4);
+	matching_tcp_service s5(iTickSz5, sPort5);
 	auto& ABook = s1.get_engine();
 	auto& BBook = s2.get_engine();
 	auto& Spread = s3.get_engine();
