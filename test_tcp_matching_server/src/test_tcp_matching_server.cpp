@@ -13,6 +13,7 @@
 
 int main(int iArgc, char** pszArgv)
 {
+	matching::engine::set_node_id(1);
 	if (7 != iArgc)
 	{
 		std::cout << "usage: test_tcp_matching_server <factor> <port1[1,65535]> <port2[1,65535]> <port3[1,65535]> <port4[1,65535]> <port5[1,65535]>" << std::endl;
