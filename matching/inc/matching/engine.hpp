@@ -837,7 +837,7 @@ namespace matching
 		}
 		inline static void set_node_id(unsigned long long node_id)
 		{
-			_node_id = (node_id << 25);
+			_node_id = (node_id << 57);
 		}
 		inline static void match(order& o,
 				order::order_matched_type match_type,
