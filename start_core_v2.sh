@@ -69,7 +69,7 @@ mkdir -p ${LOG_LOCATION}
 
 # Matching server
 ${CORE_LOCATION}/test_tcp_matching_server 100000000 34671 34672 34673 34674 34675 0.5 0.5 1 0.1 0.00005 >> ${LOG_LOCATION}/matching_server.out.log 2>> ${LOG_LOCATION}/matching_server.err.log &
-sleep 1
+sleep 2
 # MD Implied Server
 ${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34671 127.0.0.1 34673 127.0.0.1 34672 a_bid_b_bid   a_ask_b_ask   add_bid_implier      add_ask_implier      35671 127.0.0.1 0.5 >> ${LOG_LOCATION}/md_tcp1.out.log 2>> ${LOG_LOCATION}/md_tcp1.err.log &
 sleep 1
