@@ -13,7 +13,8 @@
 
 int main(int iArgc, char** pszArgv)
 {
-	if (7 != iArgc)
+	matching::engine::set_node_id(1);
+	if (12 != iArgc)
 	{
 		std::cout << "usage: test_tcp_matching_server <factor> <port1[1,65535]> <port2[1,65535]> <port3[1,65535]> <port4[1,65535]> <port5[1,65535]>" << std::endl;
 		return -1;
@@ -24,6 +25,15 @@ int main(int iArgc, char** pszArgv)
 	int iPort3 = std::atoi(pszArgv[4]);
 	int iPort4 = std::atoi(pszArgv[5]);
 	int iPort5 = std::atoi(pszArgv[6]);
+
+	char *ptr;
+  unsigned long long iTickSz1 = factor * strtod(pszArgv[7] , &ptr); printf("iTickSz: %llu\n", iTickSz1);
+  unsigned long long iTickSz2 = factor * strtod(pszArgv[8] , &ptr); printf("iTickSz: %llu\n", iTickSz2);
+  unsigned long long iTickSz3 = factor * strtod(pszArgv[9] , &ptr); printf("iTickSz: %llu\n", iTickSz3);
+  unsigned long long iTickSz4 = factor * strtod(pszArgv[10], &ptr); printf("iTickSz: %llu\n", iTickSz4);
+  unsigned long long iTickSz5 = factor * strtod(pszArgv[11], &ptr); printf("iTickSz: %llu\n", iTickSz5);
+  fflush(stdout);
+
 	if (iPort1 < 1 || iPort1 > 65535)
 	{
 		std::cout << "usage: test_tcp_matching_server <port1[1,65535]> <port2[1,65535]> <port3[1,65535]> <port4[1,65535]> <port5[1,65535]>" << std::endl;
@@ -44,11 +54,11 @@ int main(int iArgc, char** pszArgv)
 	auto sPort3 = static_cast<unsigned short int>(iPort3);
 	auto sPort4 = static_cast<unsigned short int>(iPort4);
 	auto sPort5 = static_cast<unsigned short int>(iPort5);
-	matching_tcp_service s1(sPort1);
-	matching_tcp_service s2(sPort2);
-	matching_tcp_service s3(sPort3);
-	matching_tcp_service s4(sPort4);
-	matching_tcp_service s5(sPort5);
+	matching_tcp_service s1(sPort1, iTickSz1);
+	matching_tcp_service s2(sPort2, iTickSz2);
+	matching_tcp_service s3(sPort3, iTickSz3);
+	matching_tcp_service s4(sPort4, iTickSz4);
+	matching_tcp_service s5(sPort5, iTickSz5);
 	auto& ABook = s1.get_engine();
 	auto& BBook = s2.get_engine();
 	auto& Spread = s3.get_engine();

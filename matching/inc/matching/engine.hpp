@@ -817,6 +817,7 @@ namespace matching
 		};
 	private:
 		static std::atomic<unsigned long long> _id;
+		static unsigned long long _node_id;
 	private:
 		mutable core::spin_mutex _mutex;
 		mutable mutex_set _mutex_set;
@@ -829,10 +830,15 @@ namespace matching
 		matcher _ask_book_matcher;
 		callback_type _callback;
 		unsigned long long _mini_tick;
+	public:
+		inline static void set_node_id(unsigned long long node_id)
+		{
+			_node_id = (node_id << 57);
+		}
 	private:
 		inline static unsigned long long get_id()
 		{
-			return _id.fetch_add(1, std::memory_order_relaxed);
+			return (_id.fetch_add(1, std::memory_order_relaxed) | _node_id);
 		}
 		inline static void match(order& o,
 				order::order_matched_type match_type,

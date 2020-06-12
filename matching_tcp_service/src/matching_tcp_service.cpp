@@ -1,8 +1,10 @@
 #include <matching_tcp_service.hpp>
 
-matching_tcp_service::matching_tcp_service(unsigned short int bind_port,
+matching_tcp_service::matching_tcp_service(
+    unsigned long long tick_sz,
+    unsigned short int bind_port,
 		const std::string& bind_addr):
-		e_([&](const matching::order& o){_handle_snd_odr(o);}),
+		e_([&](const matching::order& o){_handle_snd_odr(o);}, tick_sz),
 		h_([&](const matching::order& o){_handle_rcv_odr(o);}),
 		s_(bind_port, bind_addr)
 {

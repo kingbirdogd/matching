@@ -13,7 +13,7 @@ private:
 	matching::order_handler h_;
 	net::tcp_service s_;
 public:
-	matching_tcp_service(unsigned short int bind_port, const std::string& bind_addr = "");
+	matching_tcp_service(unsigned long long tick_sz, unsigned short int bind_port, const std::string& bind_addr = "");
 	matching_tcp_service(matching_tcp_service&& s);
 	matching_tcp_service& operator=(matching_tcp_service&& s);
 	~matching_tcp_service() = default;
