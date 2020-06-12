@@ -173,7 +173,11 @@ int main(int iArgc, char** pszArgv)
 	}
 	if (iArgc > 14)
 	{
-		mini_tick = std::stoull(pszArgv[14]);
+		//mini_tick = std::stoull(pszArgv[14]);
+		char *ptr;
+    mini_tick = factor * strtod(pszArgv[14], &ptr) ;
+    printf("tick size: %llu\n", mini_tick);
+    fflush(stdout);
 	}
 
 	md_tcp_service srv

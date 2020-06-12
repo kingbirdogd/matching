@@ -14,14 +14,16 @@ https_url = 'https://api-test-v2.coinflex-cn.com/v2/account/auth/trading/login'
 # wss_url   = 'wss://api-dev-v2.coinflex-cn.com/v2/websocket'
 # https_url = 'https://api-dev-v2.coinflex-cn.com/v2/account/auth/trading/login'
 
-market = "BTC-USD-200626-LIN"
-#market = "BTC-USD-SWAP-LIN"
+#market = "BTC-USD-200626-LIN"
+market = "BTC-USD-SWAP-LIN"
 #market = 'BTC-USD-SPR-QP-LIN'
 #market = 'BTC-USD-REPO-LIN'
 
 
-login = 'peter.chan+v2_test1@coinflex.com'
-passwd= 'peter.test'
+# login = 'peter.chan+v2_test1@coinflex.com'
+# passwd= 'peter.test'
+login = "siang.xu+test1@coinflex.com"
+passwd ="coinflex"
 #API    key: 3b207a63-b872-47f3-a85b-ba95fafc8b51
 #API Secret: 73f1982f-cde5-44d6-b236-e65466377d3c
 
