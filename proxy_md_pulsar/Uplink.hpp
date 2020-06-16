@@ -69,6 +69,10 @@ namespace proxy {
         client(pulsar_host_url_option),
         //ctx(1), zmq_ob_snapshot_sock(ctx, ZMQ_PUB), zmq_ob_diff_sock(ctx, ZMQ_PUB),
         broadcast_ms(broadcast_ms)  {
+      std::string market_id_str = md_pub_snapshot_url.substr(md_pub_snapshot_url.find_last_of('-') + 1);
+      elog.info() <<"Market ID: " << market_id_str << std::endl;
+      ob.set_market_id(strtoull(market_id_str.c_str(), nullptr, 10));
+
       elog.info() << "Pulsar Host: " << pulsar_host_url_option << std::endl;
       elog.info() << "Creating Producer: " << md_pub_snapshot_url << std::endl;
       Result result = client.createProducer(md_pub_snapshot_url, prd_snapshot);

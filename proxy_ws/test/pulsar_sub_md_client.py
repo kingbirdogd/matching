@@ -20,7 +20,7 @@ host_url = aliyun_test_url
 
 client = pulsar.Client('pulsar://' + host_url )
 consumer = client.subscribe(topic_prefix + '/MD-SNAPSHOT-2001021200626',
-                            "my-subscription1",
+                            "my-subscription3",
                             properties={
                                 "consumer-name": "test-consumer-name",
                                 "consumer-id": "test-consumer-id"
