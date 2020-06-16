@@ -81,8 +81,8 @@ class OrderBook(object):
     def Timestamp(self):
         o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
         if o != 0:
-            return self._tab.String(o + self._tab.Pos)
-        return None
+            return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
+        return 0
 
     # OrderBook
     def Checksum(self):
@@ -104,7 +104,7 @@ def OrderBookAddAsks(builder, asks): builder.PrependUOffsetTRelativeSlot(1, flat
 def OrderBookStartAsksVector(builder, numElems): return builder.StartVector(4, numElems, 4)
 def OrderBookAddBids(builder, bids): builder.PrependUOffsetTRelativeSlot(2, flatbuffers.number_types.UOffsetTFlags.py_type(bids), 0)
 def OrderBookStartBidsVector(builder, numElems): return builder.StartVector(4, numElems, 4)
-def OrderBookAddTimestamp(builder, timestamp): builder.PrependUOffsetTRelativeSlot(3, flatbuffers.number_types.UOffsetTFlags.py_type(timestamp), 0)
+def OrderBookAddTimestamp(builder, timestamp): builder.PrependUint64Slot(3, timestamp, 0)
 def OrderBookAddChecksum(builder, checksum): builder.PrependInt64Slot(4, checksum, 0)
 def OrderBookAddSeqNum(builder, seqNum): builder.PrependUint64Slot(5, seqNum, 0)
 def OrderBookEnd(builder): return builder.EndObject()
