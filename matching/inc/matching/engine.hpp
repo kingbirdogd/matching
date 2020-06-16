@@ -702,7 +702,7 @@ namespace matching
 						}
 						else if (order::order_time_condition::MAKER_ONLY_REPRICE == o.time_condition)
 						{
-							o.price += mini_tick;
+							o.price = rt.matched_price + mini_tick;
 							break;
 						}
 						auto matched_quantity = rt.matched_quantity < o.remain_quantity ? rt.matched_quantity : o.remain_quantity;
