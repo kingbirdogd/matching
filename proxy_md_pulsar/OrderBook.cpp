@@ -83,8 +83,8 @@ void OrderBook::update(const book_item &o) {
 
   //std::lock_guard ob_guard(ob_mutex);
   if ((market_id != 0) && (market_id != o.market_id)) {
-    elog.error() << "market_id(" << market_id << ") != current market_id(" << o.market_id << ") Stopping..." << std::endl;
-    return;
+    //elog.error() << "market_id(" << market_id << ") != current market_id(" << o.market_id << ") Stopping..." << std::endl;
+    //return;
   }
 
   if (o.side == book_item::book_side::bid) {
@@ -154,8 +154,8 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
     if (it->second.quantity == 0) continue;
 
     if ((market_id != 0) && (market_id != it->second.market_id)) {
-      elog.error() << "market_id(" << market_id << ") != current market_id(" << it->second.market_id << ") Stopping..." << std::endl;
-      break;
+      //elog.error() << "market_id(" << market_id << ") != current market_id(" << it->second.market_id << ") Stopping..." << std::endl;
+      //break;
     }
 
     json::Array details;
