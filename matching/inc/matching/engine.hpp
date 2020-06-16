@@ -1017,7 +1017,10 @@ namespace matching
 	private:
 		inline void init_new_order(order& o)
 		{
-			o.order_id = get_id();
+			if (0 != o.order_id)
+			{
+				o.order_id = get_id();
+			}
 			o.remain_quantity = o.quantity;
 			o.order_state = order::order_status_type::OPEN;
 		}
@@ -1025,7 +1028,10 @@ namespace matching
 		inline void handle_new(order& o)
 		{
 			long long mini_tick = _mini_tick;
-			o.order_id = 0;
+			if (order::order_action_type::NEW == o.order_action)
+			{
+				o.order_id = 0;
+			}
 			if (0 == o.quantity)
 			{
 				o.order_state = order::order_status_type::REJECT_QUANTITY_ZERO;
@@ -1318,21 +1324,31 @@ namespace matching
 			}
 		}
 
-		inline void handle_cancel(order& o)
+		inline bool handle_cancel(order& o)
 		{
 			auto it = _odr_map.find(o.order_id);
 			if (_odr_map.end() == it)
 			{
-				o.order_state = order::order_status_type::REJECT_CANCEL_ORDER_ID_NOT_FOUND;
 				o.remain_quantity = 0;
-				callback(o);
-				return;
+				if (order::order_action_type::CANCEL == o.order_action)
+				{
+					o.order_state = order::order_status_type::REJECT_CANCEL_ORDER_ID_NOT_FOUND;
+					callback(o);
+				}
+				else if (order::order_action_type::AMEND == o.order_action)
+				{
+					o.order_state = order::order_status_type::REJECT_AMEND_ORDER_ID_NOT_FOUND;
+				}
+				return false;
 			}
 			auto& ori_odr = it->second;
 			ori_odr.client_order_id = o.client_order_id;
 			ori_odr.order_state = order::order_status_type::CANCELED_BY_USER;
 			ori_odr.remain_quantity = 0;
-			callback(ori_odr);
+			if (order::order_action_type::CANCEL == o.order_action)
+			{
+				callback(ori_odr);
+			}
 			if (order::order_side::BUY == ori_odr.side)
 			{
 				bool trigger = false;
@@ -1440,6 +1456,7 @@ namespace matching
 				}
 			}
 			_odr_map.erase(it);
+			return true;
 		}
 
 		//can keep the priority if just reduce quantity
@@ -1478,9 +1495,8 @@ namespace matching
 				callback(ori_odr);
 				return;
 			}
-			else
+			else if (handle_cancel(o))
 			{
-				handle_cancel(o);
 				handle_new(o);
 			}
 		}
