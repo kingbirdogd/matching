@@ -1017,7 +1017,7 @@ namespace matching
 	private:
 		inline void init_new_order(order& o)
 		{
-			if (0 != o.order_id)
+			if (0 == o.order_id)
 			{
 				o.order_id = get_id();
 			}

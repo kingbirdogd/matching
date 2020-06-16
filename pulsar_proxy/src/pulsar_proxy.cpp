@@ -6,6 +6,7 @@
 #include <msg_generated.h>
 //#include <zmq.hpp>
 #include <iomanip>
+#include <unistd.h>
 #include <fbs_helper.hpp>
 #include <pulsar/Client.h>
 //#include <lib/LogUtils.h>
@@ -228,23 +229,31 @@ int main(int iArgc, char** pszArgv)
   Client client(pulsar_host.c_str());
 
   Producer producer;
+  Result result = ResultUnknownError;
   //std::string order_out_url = std::string("persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-") + std::to_string(market_id);
-  elog.info()  << "Creating Producer: " << order_out_url << std::endl;
-  Result result = client.createProducer(order_out_url.c_str(), producer);
-  if (result != ResultOk) {
-    elog.error()  <<"Error creating producer: " << result << std::endl;
-    return -1;
+  while (result != ResultOk) {
+    elog.info() << "Creating Producer: " << order_out_url << std::endl;
+    result = client.createProducer(order_out_url.c_str(), producer);
+    if (result != ResultOk) {
+      elog.error() << "Error creating producer: " << result << std::endl;
+      //return -1;
+      sleep(1);
+    }
   }
 
+  result = ResultUnknownError;
   Consumer consumer;
   std::string market_id_str = order_in_url.substr(order_in_url.find_last_of('-') + 1);
   elog.info() <<"Market ID: " << market_id_str << std::endl;
   //std::string order_in_url = std::string("persistent://CF-V2/PRETRADE-ME/ORDER-IN-") + std::to_string(market_id);
-  elog.info() <<"Creating Consumer: " << order_in_url << std::endl;
-  result = client.subscribe(order_in_url.c_str(), std::string("pulsar_proxy-") + market_id_str, consumer);
-  if (result != ResultOk) {
-    elog.error() <<"Failed to subscribe: " << result << std::endl;
-    return -1;
+  while (result != ResultOk) {
+    elog.info() << "Creating Consumer: " << order_in_url << std::endl;
+    result = client.subscribe(order_in_url.c_str(), std::string("pulsar_proxy-") + market_id_str, consumer);
+    if (result != ResultOk) {
+      elog.error() << "Failed to subscribe: " << result << std::endl;
+      //return -1;
+      sleep(1);
+    }
   }
 
 //  zmq::context_t ctx;
