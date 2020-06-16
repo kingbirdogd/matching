@@ -794,7 +794,7 @@ int main()
 {
   matching::engine e(handle_order);
   matching::order o;
-  implied_test_md_tick_size();
+  //implied_test_md_tick_size();
   //implied_test_remain_qty_overflow();
 	//implied_test();
 	//implied_test_case_5();
@@ -931,7 +931,7 @@ int main()
 	std::cout << "MAKER_ONLY place recovery start" << std::endl;
 	e.recovery(handle_order);
 	std::cout << "MAKER_ONLY place recovery end" << std::endl;
-
+*/
 	o.side = matching::order::order_side::SELL;
 	o.client_order_id = 8;
 	o.price = 96;
@@ -942,7 +942,7 @@ int main()
 	std::cout << "Second recovery start" << std::endl;
 	e.recovery(handle_order);
 	std::cout << "Second recovery end" << std::endl;
-
+/*
 	o.order_action = matching::order::order_action_type::CANCEL;
 	o.client_order_id = 7;
 	o.order_id = client_to_engine_id_map[7];
@@ -951,7 +951,7 @@ int main()
 	std::cout << "Thrid recovery start" << std::endl;
 	e.recovery(handle_order);
 	std::cout << "Thrid recovery end" << std::endl;
-
+*/
 
 	o.order_action = matching::order::order_action_type::AMEND;
 	o.client_order_id = 8;
@@ -988,7 +988,7 @@ int main()
 	std::cout << "6th recovery end" << std::endl;
 
 	test_object_pool();
-*/
+
 	return 0;
 }
 

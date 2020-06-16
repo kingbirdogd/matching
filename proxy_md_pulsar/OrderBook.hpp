@@ -24,6 +24,7 @@ namespace proxy {
     {
       elog.debug() << "seq_num=" << seq_num << std::endl;
     }
+    void set_market_id(unsigned long long mid) { market_id = mid; }
     void update(const book_item& bi);
     //json::Object get_orderbook_snapshot(book_map_t &bids, book_map_t &asks, uint32_t max_enteries=400);
     json::Object get_orderbook_snapshot(uint32_t max_enteries=400);
