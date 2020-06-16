@@ -173,7 +173,7 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
   data_item.insert("instrument_id", json::Integer(market_id));
   data_item.insert("bids", std::move(bids_pxLevels));
   data_item.insert("asks", std::move(asks_pxLevels));
-  data_item.insert("timestamp", json::Integer(ms));
+  data_item.insert("timestamp", json::String(std::to_string(ms)));
   data_item.insert("checksum", json::Integer(0));
   data_item.insert("seq_num", json::Integer(seq_num));
 
@@ -282,7 +282,7 @@ json::Object OrderBook::get_orderbook_diff(//book_map_t &bids,
   data_item.insert("instrument_id", json::Integer(market_id));
   data_item.insert("bids", std::move(bids_pxLevels));
   data_item.insert("asks", std::move(asks_pxLevels));
-  data_item.insert("timestamp", json::Integer(ms));
+  data_item.insert("timestamp", json::String(std::to_string(ms)));
   //data_item.insert("timestamp", json::String(currentISO8601TimeUTC()));
   data_item.insert("checksum", json::Integer(0));
   data_item.insert("seq_num", json::Integer(seq_num));
