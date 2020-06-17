@@ -1611,7 +1611,7 @@ namespace matching
 				}
 				else
 				{
-					o.order_status_type = order::order_status_type::REJECT_AUCTION_SUPPORT_BUY_SELL_ONLY;
+					o.order_state = order::order_status_type::REJECT_AUCTION_SUPPORT_BUY_SELL_ONLY;
 					_callback(o);
 					return;
 				}
