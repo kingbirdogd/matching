@@ -7,6 +7,7 @@
 //#include <zmq.hpp>
 #include <iomanip>
 #include <unistd.h>
+#include <csignal>
 #include <fbs_helper.hpp>
 #include <pulsar/Client.h>
 //#include <lib/LogUtils.h>
@@ -21,6 +22,17 @@ using namespace pulsar;
 
 std::unordered_map<unsigned long long, unsigned long long> client_to_engine_id_map;
 std::mutex iomutex;
+static bool bPause = false;
+
+void signal_handler( int signal_num ) {
+  if (signal_num == SIGUSR1) {
+    bPause = !bPause;
+    if (bPause)
+      elog.info() << "Paused receiving orders... \n";
+    else
+      elog.info() << "Resumed receiving orders... \n";
+  }
+}
 
 void handle_order(const matching::order& o)
 {
@@ -207,6 +219,7 @@ void handle_order(const matching::order& o)
 
 int main(int iArgc, char** pszArgv)
 {
+  signal(SIGUSR1, signal_handler);
 	if (6 != iArgc)
 	{
 		//std::cout << "usage: " << pszArgv[0] << " host <port[1,65535]> <zmq_port[1,65535]> <order_status_pub_port[1,65535]>" << std::endl;
@@ -317,36 +330,21 @@ int main(int iArgc, char** pszArgv)
 	c.send(o);
 */
 
-//  zmq::socket_t zmq_sock(ctx, ZMQ_PULL);
-//  std::string zmq_url = std::string("tcp://*:") + std::to_string(zmq_port);
-//  zmq_sock.bind(zmq_url);
-//  std::cout << "zmq proxy bind to " << zmq_url << std::endl;
-
   while (true) {
+    if (bPause) {
+      elog.info() << "Sleeping for 2s...\n";
+      sleep(2);
+      continue;
+    }
+
     Message msg;
 
-    consumer.receive(msg);
+    Result result = consumer.receive(msg, 1000);
+    if (result != ResultOk) continue;
     elog.info() << "Received: " << msg << "  with payload length=" << msg.getLength() << std::endl;
     auto o = fbs_msg_to_order(msg.getData());
     consumer.acknowledge(msg);
     elog.info() << get_order_as_string(o) << std::endl;
-
-//    zmq::message_t msg;
-//    auto n2 = zmq_sock.recv(msg, zmq::recv_flags::none);
-//    auto o = fbs_msg_to_order(msg.data());
-//
-//    auto now = std::chrono::system_clock::now();
-//    auto itt = std::chrono::system_clock::to_time_t(now);
-//    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() % 1000;
-//    std::ostringstream ss;
-//    ss << std::put_time(gmtime(&itt), "%FT%T.")
-//       << std::setfill('0') << std::setw(3) << ms << "Z" ;
-//    {
-//      std::lock_guard<std::mutex> lockGuard(iomutex);
-//      std::cout << ss.str() << " Received from zmq: " << msg.size() << " bytes. n=" << n2.value() << std::endl << std::flush;
-//      print_order(o);
-//    }
-    //print_fbs_msg_order(msg.data());
     c.send(o);
   }
 	th.join();

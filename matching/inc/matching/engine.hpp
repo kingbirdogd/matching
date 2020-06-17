@@ -39,6 +39,7 @@ namespace matching
 		using ask_stop_book_type = std::map<long long, order_set, std::greater<long long>>;
 		using callback_type = std::function<void(const order&)>;
 		using mutex_set = std::set<core::spin_mutex*>;
+		using callback_records = std::vector<order>;
 	private:
 		class matcher;
 	private:
@@ -740,6 +741,16 @@ namespace matching
 						_local._e->callback(o);
 						return;
 					}
+					else if (order::order_time_condition::AUCTION == o.time_condition)
+					{
+						if (o.quantity == o.remain_quantity)
+							o.order_state = order::order_status_type::CANCELED_ALL_BY_AUCTION;
+						else
+							o.order_state = order::order_status_type::CANCELED_PARTIAL_BY_AUCTION;
+						o.remain_quantity = 0;
+						_local._e->callback(o);
+						return;
+					}
 					if (order::MARKET_PRICE == o.price)
 					{
 						if (order::order_side::BUY == _local._side)
@@ -828,8 +839,10 @@ namespace matching
 		ask_stop_book_type _ask_stop_book;
 		matcher _bid_book_matcher;
 		matcher _ask_book_matcher;
+		callback_records _cb_records;
 		callback_type _callback;
 		unsigned long long _mini_tick;
+		bool _is_auction;
 	public:
 		inline static void set_node_id(unsigned long long node_id)
 		{
@@ -878,7 +891,14 @@ namespace matching
 		void callback(order& o)
 		{
 			o.timestamp_epoch_ms = current() / 1000000;
-			_callback(o);
+			if (_is_auction)
+			{
+				_cb_records.push_back(o);
+			}
+			else
+			{
+				_callback(o);
+			}
 		}
 	private:
 		long long best_bid()
@@ -1325,45 +1345,6 @@ namespace matching
 			}
 		}
 
-		inline void handle_insert(order& o)
-		{
-			if (order::order_side::BUY == o.side)
-			{
-				_bid_book[o.price][o.order_id] = &((_odr_map.emplace(o.order_id, o).first)->second);
-				callback(o);
-			}
-			else if (order::order_side::SELL == o.side)
-			{
-				_ask_book[o.price][o.order_id] = &((_odr_map.emplace(o.order_id, o).first)->second);
-				callback(o);
-			}
-			else if (order::order_side::BUY_STOP == o.side)
-			{
-				_bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
-				callback(o);
-			}
-			else if (order::order_side::SELL_STOP == o.side)
-			{
-				_ask_stop_book[o.sell_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
-				callback(o);
-			}
-			else if (order::order_side::BUY_SELL_STOP == o.side)
-			{
-				auto ptr = &((_odr_map.emplace(o.order_id, o).first)->second);
-				_bid_stop_book[o.buy_stop_trigger_price].insert(ptr);
-				_ask_stop_book[o.sell_stop_trigger_price].insert(ptr);
-				callback(o);
-			}
-			else
-			{
-				o.order_state = order::order_status_type::REJECT_UNKNOW_ORDER_ACTION;
-				o.remain_quantity = 0;
-				callback(o);
-				return;
-			}
-
-		}
-
 		inline bool handle_cancel(order& o)
 		{
 			auto it = _odr_map.find(o.order_id);
@@ -1379,11 +1360,6 @@ namespace matching
 				{
 					o.order_state = order::order_status_type::REJECT_AMEND_ORDER_ID_NOT_FOUND;
 				}
-				else if (order::order_action_type::DUMP == o.order_action)
-				{
-					o.order_state = order::order_status_type::REJECT_DUMP_ORDER_ID_NOT_FOUND;
-					callback(o);
-				}
 				return false;
 			}
 			auto& ori_odr = it->second;
@@ -1392,10 +1368,6 @@ namespace matching
 				ori_odr.client_order_id = o.client_order_id;
 				ori_odr.order_state = order::order_status_type::CANCELED_BY_USER;
 				ori_odr.remain_quantity = 0;
-				callback(ori_odr);
-			}
-			else if (order::order_action_type::DUMP == o.order_action)
-			{
 				callback(ori_odr);
 			}
 			if (order::order_side::BUY == ori_odr.side)
@@ -1561,7 +1533,8 @@ namespace matching
 			_bid_book_matcher(this, order::order_side::SELL),
 			_ask_book_matcher(this, order::order_side::BUY),
 			_callback(std::move(callback)),
-			_mini_tick(mini_tick)
+			_mini_tick(mini_tick),
+			_is_auction(false)
 		{
 			_mutex_set.insert(&_mutex);
 		}
@@ -1575,8 +1548,10 @@ namespace matching
 			_ask_stop_book(e._ask_stop_book),
 			_bid_book_matcher(this, order::order_side::SELL),
 			_ask_book_matcher(this, order::order_side::BUY),
+			_cb_records(),
 			_callback(e._callback),
-			_mini_tick(e._mini_tick)
+			_mini_tick(e._mini_tick),
+			_is_auction(e._is_auction)
 		{
 			_mutex_set.insert(&_mutex);
 		}
@@ -1590,8 +1565,10 @@ namespace matching
 			_ask_stop_book(std::move(e._ask_stop_book)),
 			_bid_book_matcher(this, order::order_side::SELL),
 			_ask_book_matcher(this, order::order_side::BUY),
+			_cb_records(std::move(e._cb_records)),
 			_callback(std::move(e._callback)),
-			_mini_tick(e._mini_tick)
+			_mini_tick(e._mini_tick),
+			_is_auction(e._is_auction)
 		{
 			_mutex_set.insert(&_mutex);
 		}
@@ -1602,8 +1579,10 @@ namespace matching
 			_ask_book = e._ask_book;
 			_bid_stop_book = e._bid_stop_book;
 			_ask_stop_book = e._ask_stop_book;
+			_cb_records = e._cb_records;
 			_callback = e._callback;
 			_mini_tick = e._mini_tick;
+			_is_auction = e._is_auction;
 			return * this;
 		}
 		engine& operator= (engine&& e)
@@ -1613,8 +1592,10 @@ namespace matching
 			_ask_book = std::move(e._ask_book);
 			_bid_stop_book = std::move(e._bid_stop_book);
 			_ask_stop_book = std::move(e._ask_stop_book);
+			_cb_records = std::move(e._cb_records);
 			_callback = std::move(e._callback);
 			_mini_tick = e._mini_tick;
+			_is_auction = e._is_auction;
 			return * this;
 		}
 		~engine() = default;
@@ -1622,6 +1603,19 @@ namespace matching
 		void handle(order& o)
 		{
 			lock();
+			if (order::order_time_condition::AUCTION == o.time_condition)
+			{
+				if (order::order_side::BUY == o.side || order::order_side::SELL == o.side)
+				{
+					_is_auction = true;
+				}
+				else
+				{
+					o.order_state = order::order_status_type::REJECT_AUCTION_SUPPORT_BUY_SELL_ONLY;
+					_callback(o);
+					return;
+				}
+			}
 			if (order::order_action_type::NEW == o.order_action)
 			{
 				handle_new(o);
@@ -1634,15 +1628,46 @@ namespace matching
 			{
 				handle_amend(o);
 			}
-			else if (order::order_action_type::DUMP == o.order_action)
+			if (_is_auction)
 			{
-				handle_cancel(o);
-			}
-			else if (0 == (order::order_action_type::INSERT_FLAG & o.order_action))
-			{
-				o.order_action
-					= static_cast<order::order_action_type>(o.order_action & order::order_action_type::NON_INSERT_FLAG);
-				handle_insert(o);
+				_is_auction = false;
+				long long last_idx = -1;
+				long long last_match_price = 0;
+				for (long long i = _cb_records.size() - 1; i >= 0; --i)
+				{
+					const auto& o = _cb_records[i];
+					if (order::order_status_type::CANCELED_ALL_BY_AUCTION != o.order_state || order::order_status_type::CANCELED_PARTIAL_BY_AUCTION != o.order_state)
+					{
+						last_idx = i;
+						last_match_price = o.last_match_price;
+					}
+				}
+				if (-1 != last_idx)
+				{
+					if (order::order_side::BUY == o.side)
+					{
+						if (last_match_price < 0)
+						{
+							last_match_price = 0;
+						}
+					}
+					else if (order::order_side::SELL == o.side)
+					{
+						if (last_match_price > 0)
+						{
+							last_match_price = 0;
+						}
+					}
+					for (long long i = 0; i < last_idx; ++i)
+					{
+						_cb_records[i].last_match_price = last_match_price;
+					}
+				}
+				for (std::size_t i = 0; i < _cb_records.size(); ++i)
+				{
+					_callback(_cb_records[i]);
+				}
+				_cb_records.resize(0);
 			}
 			unlock();
 		}
