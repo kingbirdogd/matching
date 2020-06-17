@@ -1604,7 +1604,18 @@ namespace matching
 		{
 			lock();
 			if (order::order_time_condition::AUCTION == o.time_condition)
-				_is_auction = true;
+			{
+				if (order::order_side::BUY == o.side || order::order_side::SELL == o.side)
+				{
+					_is_auction = true;
+				}
+				else
+				{
+					o.order_status_type = order::order_status_type::REJECT_AUCTION_SUPPORT_BUY_SELL_ONLY;
+					_callback(o);
+					return;
+				}
+			}
 			if (order::order_action_type::NEW == o.order_action)
 			{
 				handle_new(o);
@@ -1633,6 +1644,20 @@ namespace matching
 				}
 				if (-1 != last_idx)
 				{
+					if (order::order_side::BUY == o.side)
+					{
+						if (last_match_price < 0)
+						{
+							last_match_price = 0;
+						}
+					}
+					else if (order::order_side::SELL == o.side)
+					{
+						if (last_match_price > 0)
+						{
+							last_match_price = 0;
+						}
+					}
 					for (long long i = 0; i < last_idx; ++i)
 					{
 						_cb_records[i].last_match_price = last_match_price;
