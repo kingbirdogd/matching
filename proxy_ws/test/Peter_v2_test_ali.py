@@ -14,8 +14,8 @@ https_url = 'https://api-test-v2.coinflex-cn.com/v2/account/auth/trading/login'
 # wss_url   = 'wss://api-dev-v2.coinflex-cn.com/v2/websocket'
 # https_url = 'https://api-dev-v2.coinflex-cn.com/v2/account/auth/trading/login'
 
-#market = "BTC-USD-200626-LIN"
-market = "BTC-USD-SWAP-LIN"
+market = "BTC-USD-200626-LIN"
+#market = "BTC-USD-SWAP-LIN"
 #market = 'BTC-USD-SPR-QP-LIN'
 #market = 'BTC-USD-REPO-LIN'
 
@@ -40,7 +40,7 @@ cf_token=res.json()["data"]["token"]
 
 def placeOrder(side,quantity,price):
     global client_order_id
-    send_order={"op":"placeorder", "data" : {"client_order_id":client_order_id, "market_code": market, "side":str(side), "order_type":"LIMIT", "quantity":quantity, "time_in_force":"GTC", "limit_price":price}}
+    send_order={"op":"placeorder", "data" : {"clientOrderId":client_order_id, "marketCode": market, "side":str(side), "orderType":"LIMIT", "quantity":quantity, "timeInForce":"GTC", "price":price}}
     print(f'{dt.datetime.now()} {send_order}')
     client_order_id = client_order_id + 1
     return send_order

@@ -29,7 +29,7 @@ topic_prefix = aliyuen_dev_prefix
 
 client = pulsar.Client('pulsar://' + host_url )
 
-producer = client.create_producer(topic_prefix + '/ORDER-IN-2001021200626',
+producer = client.create_producer(topic_prefix + '/ORDER-IN-2001021200626',q
                     block_if_queue_full=True,
                     batching_enabled=True,
                     batching_max_publish_delay_ms=10,
