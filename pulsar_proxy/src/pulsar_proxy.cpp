@@ -28,9 +28,9 @@ void signal_handler( int signal_num ) {
   if (signal_num == SIGUSR1) {
     bPause = !bPause;
     if (bPause)
-      elog.info() << "Paused receiving orders... \n";
+      elog.info() << "Paused receiving orders... " << std::endl;
     else
-      elog.info() << "Resumed receiving orders... \n";
+      elog.info() << "Resumed receiving orders..." << std::endl;
   }
 }
 
@@ -332,7 +332,7 @@ int main(int iArgc, char** pszArgv)
 
   while (true) {
     if (bPause) {
-      elog.info() << "Sleeping for 2s...\n";
+      elog.info() << "Sleeping for 2s..." << std::endl;
       sleep(2);
       continue;
     }
