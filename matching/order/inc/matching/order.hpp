@@ -28,10 +28,7 @@ namespace matching
 		{
 			NEW = 0x00,
 			AMEND = 0x01,
-			CANCEL = 0x02,
-			DUMP = 0x03,
-			NON_INSERT_FLAG = 0x7F,
-			INSERT_FLAG = 0x80
+			CANCEL = 0x02
 		};
 		enum order_time_condition : unsigned char
 		{
@@ -60,8 +57,7 @@ namespace matching
 			REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED = 0x12,
 			REJECT_UNKNOW_ORDER_ACTION = 0x14,
 			REJECT_QUANTITY_ZERO = 0x15,
-			REJECT_LIMITE_ORDER_WITH_MARKET_PRICE = 0x16,
-			REJECT_DUMP_ORDER_ID_NOT_FOUND = 0x17
+			REJECT_LIMITE_ORDER_WITH_MARKET_PRICE = 0x16
 		};
 		enum order_matched_type : unsigned char
 		{

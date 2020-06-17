@@ -1325,45 +1325,6 @@ namespace matching
 			}
 		}
 
-		inline void handle_insert(order& o)
-		{
-			if (order::order_side::BUY == o.side)
-			{
-				_bid_book[o.price][o.order_id] = &((_odr_map.emplace(o.order_id, o).first)->second);
-				callback(o);
-			}
-			else if (order::order_side::SELL == o.side)
-			{
-				_ask_book[o.price][o.order_id] = &((_odr_map.emplace(o.order_id, o).first)->second);
-				callback(o);
-			}
-			else if (order::order_side::BUY_STOP == o.side)
-			{
-				_bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
-				callback(o);
-			}
-			else if (order::order_side::SELL_STOP == o.side)
-			{
-				_ask_stop_book[o.sell_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
-				callback(o);
-			}
-			else if (order::order_side::BUY_SELL_STOP == o.side)
-			{
-				auto ptr = &((_odr_map.emplace(o.order_id, o).first)->second);
-				_bid_stop_book[o.buy_stop_trigger_price].insert(ptr);
-				_ask_stop_book[o.sell_stop_trigger_price].insert(ptr);
-				callback(o);
-			}
-			else
-			{
-				o.order_state = order::order_status_type::REJECT_UNKNOW_ORDER_ACTION;
-				o.remain_quantity = 0;
-				callback(o);
-				return;
-			}
-
-		}
-
 		inline bool handle_cancel(order& o)
 		{
 			auto it = _odr_map.find(o.order_id);
@@ -1379,11 +1340,6 @@ namespace matching
 				{
 					o.order_state = order::order_status_type::REJECT_AMEND_ORDER_ID_NOT_FOUND;
 				}
-				else if (order::order_action_type::DUMP == o.order_action)
-				{
-					o.order_state = order::order_status_type::REJECT_DUMP_ORDER_ID_NOT_FOUND;
-					callback(o);
-				}
 				return false;
 			}
 			auto& ori_odr = it->second;
@@ -1392,10 +1348,6 @@ namespace matching
 				ori_odr.client_order_id = o.client_order_id;
 				ori_odr.order_state = order::order_status_type::CANCELED_BY_USER;
 				ori_odr.remain_quantity = 0;
-				callback(ori_odr);
-			}
-			else if (order::order_action_type::DUMP == o.order_action)
-			{
 				callback(ori_odr);
 			}
 			if (order::order_side::BUY == ori_odr.side)
@@ -1633,16 +1585,6 @@ namespace matching
 			else if (order::order_action_type::AMEND == o.order_action)
 			{
 				handle_amend(o);
-			}
-			else if (order::order_action_type::DUMP == o.order_action)
-			{
-				handle_cancel(o);
-			}
-			else if (0 == (order::order_action_type::INSERT_FLAG & o.order_action))
-			{
-				o.order_action
-					= static_cast<order::order_action_type>(o.order_action & order::order_action_type::NON_INSERT_FLAG);
-				handle_insert(o);
 			}
 			unlock();
 		}
