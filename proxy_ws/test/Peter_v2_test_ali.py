@@ -14,16 +14,16 @@ https_url = 'https://api-test-v2.coinflex-cn.com/v2/account/auth/trading/login'
 # wss_url   = 'wss://api-dev-v2.coinflex-cn.com/v2/websocket'
 # https_url = 'https://api-dev-v2.coinflex-cn.com/v2/account/auth/trading/login'
 
-market = "BTC-USD-200626-LIN"
+#market = "BTC-USD-200626-LIN"
 #market = "BTC-USD-SWAP-LIN"
 #market = 'BTC-USD-SPR-QP-LIN'
-#market = 'BTC-USD-REPO-LIN'
+market = 'BTC-USD-REPO-LIN'
 
 
-# login = 'peter.chan+v2_test1@coinflex.com'
-# passwd= 'peter.test'
-login = "siang.xu+test1@coinflex.com"
-passwd ="coinflex"
+login = 'peter.chan+v2_test1@coinflex.com'
+passwd= 'peter.test'
+#login = "siang.xu+test1@coinflex.com"
+#passwd ="coinflex"
 #API    key: 3b207a63-b872-47f3-a85b-ba95fafc8b51
 #API Secret: 73f1982f-cde5-44d6-b236-e65466377d3c
 
@@ -77,19 +77,19 @@ async def call_api():
         if ("event" in msg and msg["event"]=="login") or logined :
             print("________inputs______________________________________")
             print("______________________________________________")
-            # await websocket.send(json.dumps(placeOrder( "BUY",  1100, -0.000800000)))
-            # await websocket.send(json.dumps(placeOrder( "BUY", 1100, 0.0001)))
-            # await websocket.send(json.dumps(placeOrder( "BUY",  1300, -0.000500000)))
-            # await websocket.send(json.dumps(placeOrder( "SELL", 1400, 0.002200000)))
-            # await websocket.send(json.dumps(placeOrder( "BUY",  1500, -0.0006000000)))
-            # await websocket.send(json.dumps(placeOrder( "SELL", 1600, 0.0021300000)))
-            # await websocket.send(json.dumps(placeOrder( "BUY",  1700, -0.0007)))
+            await websocket.send(json.dumps(placeOrder( "BUY",  1100, -0.000800000)))
+            await websocket.send(json.dumps(placeOrder( "BUY", 1100, 0.0001)))
+            await websocket.send(json.dumps(placeOrder( "BUY",  1300, -0.000500000)))
+            await websocket.send(json.dumps(placeOrder( "SELL", 1400, 0.002200000)))
+            await websocket.send(json.dumps(placeOrder( "BUY",  1500, -0.0006000000)))
+            await websocket.send(json.dumps(placeOrder( "SELL", 1600, 0.0021300000)))
+            await websocket.send(json.dumps(placeOrder( "BUY",  1700, -0.0007)))
 
-            rnd_bid_px = random.randint(8700, 8800);             rnd_ask_px = random.randint(8700, 8800)
-            rnd_bid_qty = random.randint(1000, 9000);            rnd_ask_qty = random.randint(1000, 9000)
-
-            await websocket.send(json.dumps(placeOrder( "BUY",  rnd_bid_qty, rnd_bid_px)))
-            await websocket.send(json.dumps(placeOrder( "SELL", rnd_ask_qty, rnd_ask_px)))
+            # rnd_bid_px = random.randint(8700, 8800);             rnd_ask_px = random.randint(8700, 8800)
+            # rnd_bid_qty = random.randint(1000, 9000);            rnd_ask_qty = random.randint(1000, 9000)
+            #
+            # await websocket.send(json.dumps(placeOrder( "BUY",  rnd_bid_qty, rnd_bid_px)))
+            # await websocket.send(json.dumps(placeOrder( "SELL", rnd_ask_qty, rnd_ask_px)))
         await asyncio.sleep(2)
 
 def main():

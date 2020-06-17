@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <string>
 #include <thread>
+#include <unistd.h>
 
 std::unordered_map<unsigned long long, unsigned long long> client_to_engine_id_map;
 
@@ -185,9 +186,9 @@ void handle_order(const matching::order& o)
 
 int main(int iArgc, char** pszArgv)
 {
-	if (9 != iArgc)
+	if (10 != iArgc)
 	{
-		std::cout << "usage: test_tcp_matching_client host <port[1,65535]> account_id market_id qty px [BUY|SELL]" << std::endl;
+		std::cout << "usage: test_tcp_matching_client host <port[1,65535]> qty_factor px_factor account_id market_id qty px [BUY|SELL]" << std::endl;
 		return -1;
 	}
 	std::string host = pszArgv[1];
@@ -198,13 +199,14 @@ int main(int iArgc, char** pszArgv)
 		return -2;
 	}
 	auto sPort = static_cast<unsigned short int>(iPort);
-  unsigned long long factor = strtoull(pszArgv[3], nullptr, 10);
-	unsigned long long account_id = strtoull(pszArgv[4], nullptr, 10);
-  unsigned long long market_id = strtoull(pszArgv[5], nullptr, 10);
-  unsigned long long qty = strtoull(pszArgv[6], nullptr, 10);
-  unsigned long long px = strtoull(pszArgv[7], nullptr, 10);
+  unsigned long long qty_factor = strtoull(pszArgv[3], nullptr, 10);
+  unsigned long long px_factor = strtoull(pszArgv[4], nullptr, 10);
+	unsigned long long account_id = strtoull(pszArgv[5], nullptr, 10);
+  unsigned long long market_id = strtoull(pszArgv[6], nullptr, 10);
+  unsigned long long qty = strtoull(pszArgv[7], nullptr, 10);
+  unsigned long long px = strtoull(pszArgv[8], nullptr, 10);
 
-  matching::order::order_side side = (strcmp(pszArgv[8], "SELL") == 0) ? matching::order::order_side::SELL : matching::order::order_side::BUY;
+  matching::order::order_side side = (strcmp(pszArgv[9], "SELL") == 0) ? matching::order::order_side::SELL : matching::order::order_side::BUY;
 
   matching_tcp_client c(host, sPort);
 	c.set_connected([&]()
@@ -219,9 +221,11 @@ int main(int iArgc, char** pszArgv)
 	{
 		//handle_order(o);
 	});
+
+	bool done = false;
 	std::thread th([&]()
 	{
-		while (true)
+		while (!done)
 		{
 			c.run();
 		}
@@ -231,13 +235,15 @@ int main(int iArgc, char** pszArgv)
 	o.account_id       = account_id;
 	o.market_id        = market_id;
 	o.side             = side;
-	o.quantity         = qty;
-	o.display_quantity = qty;
-	o.price            = factor*px;
+	o.quantity         = qty_factor*qty;
+	o.display_quantity = qty_factor*qty;
+	o.price            = px_factor*px;
   o.client_order_id  = 1;
   o.time_condition   = matching::order::order_time_condition::AUCTION;
 	c.send(o);
 
+	sleep(3);
+	done = true;
 	th.join();
 	return 0;
 }
