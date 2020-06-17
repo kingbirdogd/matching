@@ -36,7 +36,8 @@ namespace matching
 			IOC = 0x01,
 			FOK = 0x02,
 			MAKER_ONLY = 0x03,
-			MAKER_ONLY_REPRICE = 0x04
+			MAKER_ONLY_REPRICE = 0x04,
+			AUCTION = 0x05
 		};
 		enum order_status_type : unsigned char
 		{
@@ -57,7 +58,9 @@ namespace matching
 			REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED = 0x12,
 			REJECT_UNKNOW_ORDER_ACTION = 0x14,
 			REJECT_QUANTITY_ZERO = 0x15,
-			REJECT_LIMITE_ORDER_WITH_MARKET_PRICE = 0x16
+			REJECT_LIMITE_ORDER_WITH_MARKET_PRICE = 0x16,
+			CANCELED_ALL_BY_AUCTION = 0x17,
+			CANCELED_PARTIAL_BY_AUCTION = 0x18
 		};
 		enum order_matched_type : unsigned char
 		{
