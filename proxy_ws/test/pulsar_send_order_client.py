@@ -23,22 +23,31 @@ aliyuen_dev_prefix = 'persistent://CF-V2/PRETRADE-ME'
 
 aliyun_test_url = '172.21.21.221:6650'
 
+# ==== Change the following as you need ====
 host_url = aliyun_test_url
 topic_prefix = aliyuen_dev_prefix
 
+market_id = '2001031000000'
+name = 'peter'
+# ==========================================
+
+producer_name = "producer-" + name
+producer_id_name = "producer-id-" + name
 
 client = pulsar.Client('pulsar://' + host_url )
 
-producer = client.create_producer(topic_prefix + '/ORDER-IN-2001021200626',
+producer = client.create_producer(topic_prefix + '/ORDER-IN-' + market_id,
                     block_if_queue_full=True,
                     batching_enabled=True,
                     batching_max_publish_delay_ms=10,
                     properties={
-                        "producer-name": "test-producer-name",
-                        "producer-id": "test-producer-id"
+                        "producer-name": producer_name,
+                        "producer-id": producer_id_name
                     }
                 )
 random.seed()
+
+# ==== Create order in flatbuffer format =====
 builder = flatbuffers.Builder(1024)
 
 co.OrderStart(builder)
@@ -48,11 +57,11 @@ co.OrderAddPrice(builder, 102)
 co.OrderAddQuantity(builder, 2000)
 co.OrderAddDisplayQuantity(builder, 2000)
 
-co.OrderAddOrderId(builder,160039206495859630)
+#co.OrderAddOrderId(builder,160039206495859630)
 
-co.OrderAddClientOrderId(builder, 12)
+co.OrderAddClientOrderId(builder, 1322)
 co.OrderAddSide(builder, CoinflexV2.order_side.order_side.BUY)
-co.OrderAddOrderAction(builder, CoinflexV2.order_action_type.order_action_type.AMEND)
+co.OrderAddOrderAction(builder, CoinflexV2.order_action_type.order_action_type.NEW)
 co.OrderAddType(builder, CoinflexV2.order_type.order_type.LIMITED)
 
 order = co.OrderEnd(builder)
@@ -63,6 +72,7 @@ cm.MsgAddPayload(builder, order)
 msg = cm.MsgEnd(builder)
 builder.Finish(msg)
 buf = builder.Output()
+# ============================================
 
 cnt = 1
 while True:
@@ -73,10 +83,6 @@ while True:
     except Exception as e:
         print("Failed to send message: %s", e)
     producer.flush()
-    #sink.send_string(str(workload))
-    #sink.send(buf)
-    break
     time.sleep(1)
-
 
 producer.close()

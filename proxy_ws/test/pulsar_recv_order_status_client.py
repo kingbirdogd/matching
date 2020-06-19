@@ -1,5 +1,4 @@
 import flatbuffers
-#import zmq
 import random
 import time
 import pulsar
@@ -24,17 +23,25 @@ aliyuen_dev_prefix = 'persistent://CF-V2/ME-POSTTRADE'
 
 aliyun_test_url = '172.21.21.221:6650'
 
+# ==== Change the following as you need ====
 topic_prefix = aliyuen_dev_prefix
 host_url = aliyun_test_url
+
 market_id = '2001031000000'
+name = 'peter'
+# ==========================================
+
+subscription_name = "subscription-" + name
+consumer_name = 'consumer-' + name
+consumer_id_name = 'consumer-id-' + name
 
 client = pulsar.Client('pulsar://' + host_url )
 
 consumer = client.subscribe(topic_prefix + '/ORDER-OUT-' + market_id,
-                            "my-subscription",
+                            subscription_name,
                             properties={
-                                "consumer-name": "test-consumer-name",
-                                "consumer-id": "test-consumer-id"
+                                "consumer-name": consumer_name,
+                                "consumer-id": consumer_id_name
                             })
 
 def print_order(o) :
@@ -67,13 +74,9 @@ def print_order(o) :
 
 if __name__ == '__main__':
     while True:
-        #workload = random.randint(1, 100)
         buf = consumer.receive()
-        #print("Received message '{0}' id='{1}'".format(msg.data().decode('utf-8'), msg.message_id()))
         consumer.acknowledge(buf)
 
-
-        #buf = sink.recv()
         print(f'recv {len(buf.data())} bytes from pulsar')
 
         msg = cm.Msg.GetRootAsMsg(buf.data(),0)

@@ -1,5 +1,4 @@
 import flatbuffers
-import zmq
 import random
 import time
 import datetime as dt
@@ -15,17 +14,24 @@ aliyuen_dev_prefix = 'persistent://CF-V2/ME-WS'
 
 aliyun_test_url = '172.21.21.221:6650'
 
+# ==== Change the following as you need ====
 topic_prefix = aliyuen_dev_prefix
 host_url = aliyun_test_url
 
 market_id = '2001031000000'
+name = 'peter'
+# ==========================================
+
+subscription_name = "subscription-" + name
+consumer_name = 'consumer-' + name
+consumer_id_name = 'consumer-id-' + name
 
 client = pulsar.Client('pulsar://' + host_url )
 consumer = client.subscribe(topic_prefix + '/MD-SNAPSHOT-' + market_id,
-                            "my-subscription7",
+                            subscription_name,
                             properties={
-                                "consumer-name": "test-consumer-name",
-                                "consumer-id": "test-consumer-id"
+                                "consumer-name": consumer_name,
+                                "consumer-id": consumer_id_name
                             })
 
 def getStr_PxLevel(pxl, ind=2):
@@ -76,11 +82,6 @@ if __name__ == '__main__':
         print(f'recv {len(buf.data())} bytes from pulsar')
 
         msg = mm.MdsMsg.GetRootAsMdsMsg(buf.data(),0)
-        #payload_type = msg.PayloadType()
-        #if payload_type == CoinflexV2.Payload.Payload.Order:
-        #md = msg.MdsOrder()
-        #order.Init(msg.Payload().Bytes, msg.Payload().Pos)
-        #md(order)
         print (getStr_MdsMsg(msg))
 
 
