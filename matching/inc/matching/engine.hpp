@@ -1520,6 +1520,7 @@ namespace matching
 			else if (handle_cancel(o))
 			{
 				o.client_order_id = client_order_id;
+				o.order_id = 0;
 				handle_new(o);
 			}
 		}
