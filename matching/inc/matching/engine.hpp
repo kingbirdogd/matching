@@ -1659,7 +1659,7 @@ namespace matching
 							last_match_price = 0;
 						}
 					}
-					for (long long i = 0; i < last_idx; ++i)
+					for (long long i = 0; i <= last_idx; ++i)
 					{
 						_cb_records[i].last_match_price = last_match_price;
 					}
