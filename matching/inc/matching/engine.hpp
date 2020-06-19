@@ -1509,7 +1509,7 @@ namespace matching
 			ori_odr.order_action = o.order_action;
 			if (order::can_amend(o, ori_odr))
 			{
-				ori_odr.client_order_id = o.client_order_id;
+				//ori_odr.client_order_id = o.client_order_id;
 				ori_odr.quantity = o.quantity;
 				ori_odr.display_quantity = o.display_quantity;
 				ori_odr.remain_quantity = ori_odr.quantity;
