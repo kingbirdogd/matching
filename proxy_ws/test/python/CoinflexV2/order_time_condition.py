@@ -9,4 +9,5 @@ class order_time_condition(object):
     FOK = 3
     MAKER_ONLY = 4
     MAKER_ONLY_REPRICE = 5
+    AUCTION = 6
 

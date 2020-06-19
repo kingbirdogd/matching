@@ -6,5 +6,5 @@ common.bak/
 common/Makefile
 proxy_ws.bak/
 proxy_ws/.idea/
-
+proxy_ws/test/CoinflexV2/*
 
