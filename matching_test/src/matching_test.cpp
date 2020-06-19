@@ -804,7 +804,7 @@ void test_case_2()
   return;
 }
 
-void auction_test_1() {
+void auction_test_auction_buy1() {
   unsigned long long factor = 100000000;
   matching::engine e(handle_order, factor);
   matching::order o;
@@ -824,11 +824,10 @@ void auction_test_1() {
   o.time_condition = matching::order::AUCTION;
   e.handle(o);
 
-  assert(o.last_match_price ==  std::round(0.0001*factor));
   return;
 }
 
-void auction_test_2() {
+void auction_test_auction_buy2() {
   unsigned long long factor = 100000000;
   matching::engine e(handle_order, factor);
   matching::order o;
@@ -855,11 +854,10 @@ void auction_test_2() {
   o.time_condition = matching::order::AUCTION;
   e.handle(o);
 
-  assert(o.last_match_price ==  std::round(0.00015*factor));
   return;
 }
 
-void auction_test_3() {
+void auction_test_auction_buy3() {
   unsigned long long factor = 100000000;
   matching::engine e(handle_order, factor);
   matching::order o;
@@ -886,18 +884,71 @@ void auction_test_3() {
   o.time_condition = matching::order::AUCTION;
   e.handle(o);
 
-  assert(o.last_match_price == 0);
   return;
-
 }
+
+void auction_test_auction_sell1() {
+  unsigned long long factor = 100000000;
+  matching::engine e(handle_order, factor);
+  matching::order o;
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 30020;
+  o.price = std::round(-0.0001 * factor);
+  o.quantity = 6;
+  o.display_quantity = 6;
+  e.handle(o);
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 11111;
+  o.price =  std::round(-98 * factor);
+  o.quantity = 2000;
+  o.display_quantity = 2000;
+  o.time_condition = matching::order::AUCTION;
+  e.handle(o);
+
+  return;
+}
+
+void auction_test_auction_sell2() {
+  unsigned long long factor = 100000000;
+  matching::engine e(handle_order, factor);
+  matching::order o;
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 30020;
+  o.price =  std::round(-0.0001 * factor);
+  o.quantity = 6;
+  o.display_quantity = 6;
+  e.handle(o);
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 30021;
+  o.price =  std::round(-0.00015 * factor);
+  o.quantity = 7;
+  o.display_quantity = 7;
+  e.handle(o);
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 11111;
+  o.price = -98 * factor;
+  o.quantity = 2000;
+  o.display_quantity = 2000;
+  o.time_condition = matching::order::AUCTION;
+  e.handle(o);
+
+  return;
+}
+
 
 int main()
 {
   matching::engine e(handle_order);
   matching::order o;
-  //auction_test_1();
-  //auction_test_2();
-  auction_test_3();
+  //auction_test_auction_buy1();
+  //auction_test_auction_buy2();
+  //auction_test_auction_buy3();
+  auction_test_auction_sell1();
   //implied_test_md_tick_size();
   //implied_test_remain_qty_overflow();
 	//implied_test();
