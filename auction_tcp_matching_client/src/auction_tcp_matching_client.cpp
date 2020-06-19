@@ -186,9 +186,9 @@ void handle_order(const matching::order& o)
 
 int main(int iArgc, char** pszArgv)
 {
-	if (10 != iArgc)
+	if (12 != iArgc)
 	{
-		std::cout << "usage: test_tcp_matching_client host <port[1,65535]> qty_factor px_factor account_id market_id qty px [BUY|SELL]" << std::endl;
+		std::cout << "usage: test_tcp_matching_client host <port[1,65535]> qty_factor px_factor account_id market_id qty px [BUY|SELL] buy_upper_band sell_lower_band" << std::endl;
 		return -1;
 	}
 	std::string host = pszArgv[1];
@@ -200,13 +200,14 @@ int main(int iArgc, char** pszArgv)
 	}
 	auto sPort = static_cast<unsigned short int>(iPort);
   unsigned long long qty_factor = strtoull(pszArgv[3], nullptr, 10);
-  unsigned long long px_factor = strtoull(pszArgv[4], nullptr, 10);
+  unsigned long long px_factor  = strtoull(pszArgv[4], nullptr, 10);
 	unsigned long long account_id = strtoull(pszArgv[5], nullptr, 10);
-  unsigned long long market_id = strtoull(pszArgv[6], nullptr, 10);
-  unsigned long long qty = strtoull(pszArgv[7], nullptr, 10);
-  unsigned long long px = strtoull(pszArgv[8], nullptr, 10);
-
+  unsigned long long market_id  = strtoull(pszArgv[6], nullptr, 10);
+  unsigned long long qty        = strtoull(pszArgv[7], nullptr, 10);
+  long long          px         = strtoll( pszArgv[8], nullptr, 10);
   matching::order::order_side side = (strcmp(pszArgv[9], "SELL") == 0) ? matching::order::order_side::SELL : matching::order::order_side::BUY;
+  long long buy_upper_band  = strtoll(pszArgv[10], nullptr, 10);
+  long long sell_lower_band = strtoll(pszArgv[11], nullptr, 10);
 
   matching_tcp_client c(host, sPort);
 	c.set_connected([&]()

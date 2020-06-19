@@ -948,7 +948,8 @@ int main()
   //auction_test_auction_buy1();
   //auction_test_auction_buy2();
   //auction_test_auction_buy3();
-  auction_test_auction_sell1();
+  //auction_test_auction_sell1();
+  auction_test_auction_sell2();
   //implied_test_md_tick_size();
   //implied_test_remain_qty_overflow();
 	//implied_test();

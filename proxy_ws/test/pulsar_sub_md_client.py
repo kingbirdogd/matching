@@ -18,9 +18,11 @@ aliyun_test_url = '172.21.21.221:6650'
 topic_prefix = aliyuen_dev_prefix
 host_url = aliyun_test_url
 
+market_id = '2001031000000'
+
 client = pulsar.Client('pulsar://' + host_url )
-consumer = client.subscribe(topic_prefix + '/MD-SNAPSHOT-2001021200626',
-                            "my-subscription5",
+consumer = client.subscribe(topic_prefix + '/MD-SNAPSHOT-' + market_id,
+                            "my-subscription7",
                             properties={
                                 "consumer-name": "test-consumer-name",
                                 "consumer-id": "test-consumer-id"

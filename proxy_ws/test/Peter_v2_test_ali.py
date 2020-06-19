@@ -72,18 +72,18 @@ async def call_api():
             print(msg)
             if "nonce" in msg:
               await websocket.send(json.dumps({"op":"login","data":{"x-cf-token":str(cf_token)}}))
-              #await websocket.send(json.dumps({"op": "subscribe", "args": ["futures/depth:" + market]}))
+              await websocket.send(json.dumps({"op": "subscribe", "args": ["futures/depth:" + market]}))
               logined =True
         if ("event" in msg and msg["event"]=="login") or logined :
             print("________inputs______________________________________")
             print("______________________________________________")
-            await websocket.send(json.dumps(placeOrder( "BUY",  1100, -0.000800000)))
-            await websocket.send(json.dumps(placeOrder( "BUY", 1100, 0.0001)))
-            await websocket.send(json.dumps(placeOrder( "BUY",  1300, -0.000500000)))
-            await websocket.send(json.dumps(placeOrder( "SELL", 1400, 0.002200000)))
-            await websocket.send(json.dumps(placeOrder( "BUY",  1500, -0.0006000000)))
-            await websocket.send(json.dumps(placeOrder( "SELL", 1600, 0.0021300000)))
-            await websocket.send(json.dumps(placeOrder( "BUY",  1700, -0.0007)))
+            # await websocket.send(json.dumps(placeOrder( "BUY",  1100, -0.000800000)))
+            # await websocket.send(json.dumps(placeOrder( "BUY", 1100, 0.0001)))
+            # await websocket.send(json.dumps(placeOrder( "BUY",  1300, -0.000500000)))
+            # await websocket.send(json.dumps(placeOrder( "SELL", 1400, 0.002200000)))
+            # await websocket.send(json.dumps(placeOrder( "BUY",  1500, -0.0006000000)))
+            # await websocket.send(json.dumps(placeOrder( "SELL", 1600, 0.0021300000)))
+            # await websocket.send(json.dumps(placeOrder( "BUY",  1700, -0.0007)))
 
             # rnd_bid_px = random.randint(8700, 8800);             rnd_ask_px = random.randint(8700, 8800)
             # rnd_bid_qty = random.randint(1000, 9000);            rnd_ask_qty = random.randint(1000, 9000)
