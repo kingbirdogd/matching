@@ -29,7 +29,7 @@ topic_prefix = aliyuen_dev_prefix
 
 client = pulsar.Client('pulsar://' + host_url )
 
-producer = client.create_producer(topic_prefix + '/ORDER-IN-2001021200626',q
+producer = client.create_producer(topic_prefix + '/ORDER-IN-2001021200626',
                     block_if_queue_full=True,
                     batching_enabled=True,
                     batching_max_publish_delay_ms=10,
@@ -44,12 +44,15 @@ builder = flatbuffers.Builder(1024)
 co.OrderStart(builder)
 co.OrderAddAccountId(builder, 123456)
 co.OrderAddMarketId(builder, 333)
-co.OrderAddPrice(builder, 101)
+co.OrderAddPrice(builder, 102)
 co.OrderAddQuantity(builder, 2000)
 co.OrderAddDisplayQuantity(builder, 2000)
-co.OrderAddClientOrderId(builder, 1)
+
+co.OrderAddOrderId(builder,160039206495859630)
+
+co.OrderAddClientOrderId(builder, 12)
 co.OrderAddSide(builder, CoinflexV2.order_side.order_side.BUY)
-co.OrderAddOrderAction(builder, CoinflexV2.order_action_type.order_action_type.NEW)
+co.OrderAddOrderAction(builder, CoinflexV2.order_action_type.order_action_type.AMEND)
 co.OrderAddType(builder, CoinflexV2.order_type.order_type.LIMITED)
 
 order = co.OrderEnd(builder)
@@ -72,6 +75,8 @@ while True:
     producer.flush()
     #sink.send_string(str(workload))
     #sink.send(buf)
+    break
     time.sleep(1)
+
 
 producer.close()

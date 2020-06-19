@@ -13,6 +13,8 @@
 #include <memory/object_pool.hpp>
 #include <iostream>
 #include <unordered_map>
+#include <cassert>
+#include <cmath>
 
 std::unordered_map<unsigned long long, unsigned long long> client_to_engine_id_map;
 
@@ -146,9 +148,21 @@ void handle_order(const matching::order& o)
 	{
 		status = "REJECT_QUANTITY_ZERO";
 	}
+  else if (o.order_state == matching::order::order_status_type::REJECT_LIMITE_ORDER_WITH_MARKET_PRICE)
+  {
+    status = "REJECT_LIMITE_ORDER_WITH_MARKET_PRICE";
+  }
+  else if (o.order_state == matching::order::order_status_type::CANCELED_ALL_BY_AUCTION)
+  {
+    status = "CANCELED_ALL_BY_AUCTION";
+  }
+  else if (o.order_state == matching::order::order_status_type::CANCELED_PARTIAL_BY_AUCTION)
+  {
+    status = "CANCELED_PARTIAL_BY_AUCTION";
+  }
 	else
 	{
-		status = "REJECT_LIMITE_ORDER_WITH_MARKET_PRICE";
+		status = "REJECT_AUCTION_SUPPORT_BUY_SELL_ONLY";
 	}
 	if (matching::order::order_time_condition::GTC == o.time_condition)
 	{
@@ -166,9 +180,13 @@ void handle_order(const matching::order& o)
 	{
 		time_condition = "MAKER_ONLY";
 	}
+  else if (matching::order::order_time_condition::MAKER_ONLY_REPRICE == o.time_condition)
+  {
+    time_condition = "MAKER_ONLY_REPRICE";
+  }
 	else
 	{
-		time_condition = "MAKER_ONLY_REPRICE";
+		time_condition = "AUCTION";
 	}
 	if (matching::order::order_action_type::NEW == o.order_action)
 	{
@@ -214,7 +232,6 @@ void handle_order(const matching::order& o)
 			<< ",matched_type:" << matched_type
 			<< std::endl;
 }
-
 
 void stop_test()
 {
@@ -429,7 +446,6 @@ void implied_test_md_tick_size()
 
 }
 
-
 void implied_test_remain_qty_overflow()
 {
   add_bid_implier abi(0);
@@ -553,7 +569,6 @@ void implied_test_remain_qty_overflow()
   o.display_quantity =  100000000000;
   Spread.handle(o);
 }
-
 
 void implied_test()
 {
@@ -789,206 +804,347 @@ void test_case_2()
   return;
 }
 
+void auction_test_auction_buy1() {
+  unsigned long long factor = 100000000;
+  matching::engine e(handle_order, factor);
+  matching::order o;
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 30020;
+  o.price = std::round(0.0001 * factor);
+  o.quantity = 6;
+  o.display_quantity = 6;
+  e.handle(o);
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 11111;
+  o.price =  std::round(98 * factor);
+  o.quantity = 2000;
+  o.display_quantity = 2000;
+  o.time_condition = matching::order::AUCTION;
+  e.handle(o);
+
+  return;
+}
+
+void auction_test_auction_buy2() {
+  unsigned long long factor = 100000000;
+  matching::engine e(handle_order, factor);
+  matching::order o;
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 30020;
+  o.price =  std::round(0.0001 * factor);
+  o.quantity = 6;
+  o.display_quantity = 6;
+  e.handle(o);
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 30021;
+  o.price =  std::round(0.00015 * factor);
+  o.quantity = 7;
+  o.display_quantity = 7;
+  e.handle(o);
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 11111;
+  o.price = 98 * factor;
+  o.quantity = 2000;
+  o.display_quantity = 2000;
+  o.time_condition = matching::order::AUCTION;
+  e.handle(o);
+
+  return;
+}
+
+void auction_test_auction_buy3() {
+  unsigned long long factor = 100000000;
+  matching::engine e(handle_order, factor);
+  matching::order o;
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 30020;
+  o.price =  std::round(-0.0001 * factor);
+  o.quantity = 6;
+  o.display_quantity = 6;
+  e.handle(o);
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 30021;
+  o.price =  std::round(-0.00015 * factor);
+  o.quantity = 7;
+  o.display_quantity = 7;
+  e.handle(o);
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 11111;
+  o.price =  std::round(98 * factor);
+  o.quantity = 2000;
+  o.display_quantity = 2000;
+  o.time_condition = matching::order::AUCTION;
+  e.handle(o);
+
+  return;
+}
+
+void auction_test_auction_sell1() {
+  unsigned long long factor = 100000000;
+  matching::engine e(handle_order, factor);
+  matching::order o;
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 30020;
+  o.price = std::round(-0.0001 * factor);
+  o.quantity = 6;
+  o.display_quantity = 6;
+  e.handle(o);
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 11111;
+  o.price =  std::round(-98 * factor);
+  o.quantity = 2000;
+  o.display_quantity = 2000;
+  o.time_condition = matching::order::AUCTION;
+  e.handle(o);
+
+  return;
+}
+
+void auction_test_auction_sell2() {
+  unsigned long long factor = 100000000;
+  matching::engine e(handle_order, factor);
+  matching::order o;
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 30020;
+  o.price =  std::round(-0.0001 * factor);
+  o.quantity = 6;
+  o.display_quantity = 6;
+  e.handle(o);
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 30021;
+  o.price =  std::round(-0.00015 * factor);
+  o.quantity = 7;
+  o.display_quantity = 7;
+  e.handle(o);
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 11111;
+  o.price = -98 * factor;
+  o.quantity = 2000;
+  o.display_quantity = 2000;
+  o.time_condition = matching::order::AUCTION;
+  e.handle(o);
+
+  return;
+}
+
 
 int main()
 {
   matching::engine e(handle_order);
   matching::order o;
+  //auction_test_auction_buy1();
+  //auction_test_auction_buy2();
+  //auction_test_auction_buy3();
+  //auction_test_auction_sell1();
+  auction_test_auction_sell2();
   //implied_test_md_tick_size();
   //implied_test_remain_qty_overflow();
 	//implied_test();
 	//implied_test_case_5();
-  /*
-  test_case_2();
-	test_case_1();
-	implied_test();
-	stop_test();
-	stop_test_by_cancel();
-
-	o.side = matching::order::order_side::BUY;
-	o.client_order_id = 1;
-	o.price = 100;
-	o.quantity = 6000;
-	o.display_quantity = 1000;
-	e.handle(o);
-
-
-	o.side = matching::order::order_side::BUY;
-	o.client_order_id = 2;
-	o.price = 99;
-	o.quantity = 1200;
-	o.display_quantity = 1200;
-	e.handle(o);
-
-	o.side = matching::order::order_side::BUY;
-	o.client_order_id = 3;
-	o.price = 98;
-	o.quantity = 800;
-	o.display_quantity = 800;
-	e.handle(o);
-
-	o.side = matching::order::order_side::BUY;
-	o.client_order_id = 4;
-	o.price = 97;
-	o.quantity = 3200;
-	o.display_quantity = 3200;
-	e.handle(o);
-
-	o.side = matching::order::order_side::BUY;
-	o.client_order_id = 5;
-	o.price = 96;
-	o.quantity = 500;
-	o.display_quantity = 500;
-	e.handle(o);
-
-	o.side = matching::order::order_side::BUY;
-	o.client_order_id = 6;
-	o.price = 96;
-	o.quantity = 800;
-	o.display_quantity = 800;
-	e.handle(o);
-
-	o.side = matching::order::order_side::BUY;
-	o.client_order_id = 7;
-	o.price = 95;
-	o.quantity = 8000;
-	o.display_quantity = 8000;
-	e.handle(o);
-
-	std::cout << "First recovery start" << std::endl;
-	e.recovery(handle_order);
-	std::cout << "First recovery end" << std::endl;
-
-	o.side = matching::order::order_side::SELL;
-	o.time_condition = matching::order::order_time_condition::FOK;
-	o.client_order_id = 200;
-	o.price = 99;
-	o.quantity = 8000;
-	o.display_quantity = 8000;
-	e.handle(o);
-	//recovery GTC
-	o.time_condition = matching::order::order_time_condition::GTC;
-
-	std::cout << "FOK recovery start" << std::endl;
-	e.recovery(handle_order);
-	std::cout << "FOK recovery end" << std::endl;
-
-	o.side = matching::order::order_side::SELL;
-	o.time_condition = matching::order::order_time_condition::FOK;
-	o.client_order_id = 201;
-	o.price = 99;
-	o.quantity = 10;
-	o.display_quantity = 5;
-	e.handle(o);
-	//recovery GTC
-	o.time_condition = matching::order::order_time_condition::GTC;
-
-	std::cout << "FOK success recovery start" << std::endl;
-	e.recovery(handle_order);
-	std::cout << "FOK success recovery end" << std::endl;
-
-
-	o.side = matching::order::order_side::SELL;
-	o.time_condition = matching::order::order_time_condition::IOC;
-	o.client_order_id = 300;
-	o.price = 99;
-	o.quantity = 8000;
-	o.display_quantity = 8000;
-	e.handle(o);
-	//recovery GTC
-	o.time_condition = matching::order::order_time_condition::GTC;
-
-	std::cout << "IOC recovery start" << std::endl;
-	e.recovery(handle_order);
-	std::cout << "IOC recovery end" << std::endl;
-
-
-	o.side = matching::order::order_side::SELL;
-	o.time_condition = matching::order::order_time_condition::MAKER_ONLY;
-	o.client_order_id = 400;
-	o.price = 92;
-	o.quantity = 8000;
-	o.display_quantity = 8000;
-	e.handle(o);
-	//recovery GTC
-	o.time_condition = matching::order::order_time_condition::GTC;
-
-	std::cout << "MAKER_ONLY cancel recovery start" << std::endl;
-	e.recovery(handle_order);
-	std::cout << "MAKER_ONLY cancel recovery end" << std::endl;
-
-
-	o.side = matching::order::order_side::SELL;
-	o.time_condition = matching::order::order_time_condition::MAKER_ONLY;
-	o.client_order_id = 500;
-	o.price = 101;
-	o.quantity = 8000;
-	o.display_quantity = 8000;
-	e.handle(o);
-	//recovery GTC
-	o.time_condition = matching::order::order_time_condition::GTC;
-
-	std::cout << "MAKER_ONLY place recovery start" << std::endl;
-	e.recovery(handle_order);
-	std::cout << "MAKER_ONLY place recovery end" << std::endl;
-*/
-	o.side = matching::order::order_side::SELL;
-	o.client_order_id = 8;
-	o.price = 96;
-	o.quantity = 10000;
-	o.display_quantity = 10000;
-	e.handle(o);
-
-	std::cout << "Second recovery start" << std::endl;
-	e.recovery(handle_order);
-	std::cout << "Second recovery end" << std::endl;
-/*
-	o.order_action = matching::order::order_action_type::CANCEL;
-	o.client_order_id = 7;
-	o.order_id = client_to_engine_id_map[7];
-	e.handle(o);
-
-	std::cout << "Thrid recovery start" << std::endl;
-	e.recovery(handle_order);
-	std::cout << "Thrid recovery end" << std::endl;
-*/
-
-	o.order_action = matching::order::order_action_type::AMEND;
-	o.client_order_id = 8;
-	o.order_id = client_to_engine_id_map[8];
-	o.quantity = 1500;
-	o.display_quantity = 1500;
-	e.handle(o);
-
-	std::cout << "4th recovery start" << std::endl;
-	e.recovery(handle_order);
-	std::cout << "4th recovery end" << std::endl;
-
-	o.order_action = matching::order::order_action_type::AMEND;
-	o.client_order_id = 8;
-	o.order_id = client_to_engine_id_map[8];
-	o.quantity = 1800;
-	o.display_quantity = 1800;
-	e.handle(o);
-
-	std::cout << "5th recovery start" << std::endl;
-	e.recovery(handle_order);
-	std::cout << "5th recovery end" << std::endl;
-
-	o.order_action = matching::order::order_action_type::AMEND;
-	o.side = matching::order::order_side::BUY;
-	o.client_order_id = 8;
-	o.order_id = client_to_engine_id_map[8];
-	o.quantity = 200;
-	o.display_quantity = 200;
-	e.handle(o);
-
-	std::cout << "6th recovery start" << std::endl;
-	e.recovery(handle_order);
-	std::cout << "6th recovery end" << std::endl;
-
-	test_object_pool();
-
+//  /*
+//  test_case_2();
+//	test_case_1();
+//	implied_test();
+//	stop_test();
+//	stop_test_by_cancel();
+//
+//	o.side = matching::order::order_side::BUY;
+//	o.client_order_id = 1;
+//	o.price = 100;
+//	o.quantity = 6000;
+//	o.display_quantity = 1000;
+//	e.handle(o);
+//
+//
+//	o.side = matching::order::order_side::BUY;
+//	o.client_order_id = 2;
+//	o.price = 99;
+//	o.quantity = 1200;
+//	o.display_quantity = 1200;
+//	e.handle(o);
+//
+//	o.side = matching::order::order_side::BUY;
+//	o.client_order_id = 3;
+//	o.price = 98;
+//	o.quantity = 800;
+//	o.display_quantity = 800;
+//	e.handle(o);
+//
+//	o.side = matching::order::order_side::BUY;
+//	o.client_order_id = 4;
+//	o.price = 97;
+//	o.quantity = 3200;
+//	o.display_quantity = 3200;
+//	e.handle(o);
+//
+//	o.side = matching::order::order_side::BUY;
+//	o.client_order_id = 5;
+//	o.price = 96;
+//	o.quantity = 500;
+//	o.display_quantity = 500;
+//	e.handle(o);
+//
+//	o.side = matching::order::order_side::BUY;
+//	o.client_order_id = 6;
+//	o.price = 96;
+//	o.quantity = 800;
+//	o.display_quantity = 800;
+//	e.handle(o);
+//*/
+//	o.side = matching::order::order_side::BUY;
+//	o.client_order_id = 7;
+//	o.price = 95;
+//	o.quantity = 8000;
+//	o.display_quantity = 8000;
+//	e.handle(o);
+///*
+//	std::cout << "First recovery start" << std::endl;
+//	e.recovery(handle_order);
+//	std::cout << "First recovery end" << std::endl;
+//
+//	o.side = matching::order::order_side::SELL;
+//	o.time_condition = matching::order::order_time_condition::FOK;
+//	o.client_order_id = 200;
+//	o.price = 99;
+//	o.quantity = 8000;
+//	o.display_quantity = 8000;
+//	e.handle(o);
+//	//recovery GTC
+//	o.time_condition = matching::order::order_time_condition::GTC;
+//
+//	std::cout << "FOK recovery start" << std::endl;
+//	e.recovery(handle_order);
+//	std::cout << "FOK recovery end" << std::endl;
+//
+//	o.side = matching::order::order_side::SELL;
+//	o.time_condition = matching::order::order_time_condition::FOK;
+//	o.client_order_id = 201;
+//	o.price = 99;
+//	o.quantity = 10;
+//	o.display_quantity = 5;
+//	e.handle(o);
+//	//recovery GTC
+//	o.time_condition = matching::order::order_time_condition::GTC;
+//
+//	std::cout << "FOK success recovery start" << std::endl;
+//	e.recovery(handle_order);
+//	std::cout << "FOK success recovery end" << std::endl;
+//
+//
+//	o.side = matching::order::order_side::SELL;
+//	o.time_condition = matching::order::order_time_condition::IOC;
+//	o.client_order_id = 300;
+//	o.price = 99;
+//	o.quantity = 8000;
+//	o.display_quantity = 8000;
+//	e.handle(o);
+//	//recovery GTC
+//	o.time_condition = matching::order::order_time_condition::GTC;
+//
+//	std::cout << "IOC recovery start" << std::endl;
+//	e.recovery(handle_order);
+//	std::cout << "IOC recovery end" << std::endl;
+//
+//
+//	o.side = matching::order::order_side::SELL;
+//	o.time_condition = matching::order::order_time_condition::MAKER_ONLY;
+//	o.client_order_id = 400;
+//	o.price = 92;
+//	o.quantity = 8000;
+//	o.display_quantity = 8000;
+//	e.handle(o);
+//	//recovery GTC
+//	o.time_condition = matching::order::order_time_condition::GTC;
+//
+//	std::cout << "MAKER_ONLY cancel recovery start" << std::endl;
+//	e.recovery(handle_order);
+//	std::cout << "MAKER_ONLY cancel recovery end" << std::endl;
+//
+//
+//	o.side = matching::order::order_side::SELL;
+//	o.time_condition = matching::order::order_time_condition::MAKER_ONLY;
+//	o.client_order_id = 500;
+//	o.price = 101;
+//	o.quantity = 8000;
+//	o.display_quantity = 8000;
+//	e.handle(o);
+//	//recovery GTC
+//	o.time_condition = matching::order::order_time_condition::GTC;
+//
+//	std::cout << "MAKER_ONLY place recovery start" << std::endl;
+//	e.recovery(handle_order);
+//	std::cout << "MAKER_ONLY place recovery end" << std::endl;
+//*/
+//	o.side = matching::order::order_side::SELL;
+//	o.client_order_id = 8;
+//	o.price = 96;
+//	o.quantity = 10000;
+//	o.display_quantity = 10000;
+//	e.handle(o);
+//
+//	std::cout << "Second recovery start" << std::endl;
+//	e.recovery(handle_order);
+//	std::cout << "Second recovery end" << std::endl;
+//
+//	o.order_action = matching::order::order_action_type::CANCEL;
+//	o.client_order_id = 7;
+//	o.order_id = client_to_engine_id_map[7];
+//	e.handle(o);
+///*
+//	std::cout << "Thrid recovery start" << std::endl;
+//	e.recovery(handle_order);
+//	std::cout << "Thrid recovery end" << std::endl;
+//
+//
+//	o.order_action = matching::order::order_action_type::AMEND;
+//	o.client_order_id = 8;
+//	o.order_id = client_to_engine_id_map[8];
+//	o.quantity = 1500;
+//	o.display_quantity = 1500;
+//	e.handle(o);
+//
+//	std::cout << "4th recovery start" << std::endl;
+//	e.recovery(handle_order);
+//	std::cout << "4th recovery end" << std::endl;
+//
+//	o.order_action = matching::order::order_action_type::AMEND;
+//	o.client_order_id = 8;
+//	o.order_id = client_to_engine_id_map[8];
+//	o.quantity = 1800;
+//	o.display_quantity = 1800;
+//	e.handle(o);
+//
+//	std::cout << "5th recovery start" << std::endl;
+//	e.recovery(handle_order);
+//	std::cout << "5th recovery end" << std::endl;
+//
+//	o.order_action = matching::order::order_action_type::AMEND;
+//	o.side = matching::order::order_side::BUY;
+//	o.client_order_id = 8;
+//	o.order_id = client_to_engine_id_map[8];
+//	o.quantity = 200;
+//	o.display_quantity = 200;
+//	e.handle(o);
+//
+//	std::cout << "6th recovery start" << std::endl;
+//	e.recovery(handle_order);
+//	std::cout << "6th recovery end" << std::endl;
+//
+//	test_object_pool();
+//*/
 	return 0;
 }
 

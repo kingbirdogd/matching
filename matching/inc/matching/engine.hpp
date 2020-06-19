@@ -1507,9 +1507,10 @@ namespace matching
 			}
 			auto& ori_odr = it->second;
 			ori_odr.order_action = o.order_action;
+			auto client_order_id = ori_odr.client_order_id;
 			if (order::can_amend(o, ori_odr))
 			{
-				ori_odr.client_order_id = o.client_order_id;
+				//ori_odr.client_order_id = o.client_order_id;
 				ori_odr.quantity = o.quantity;
 				ori_odr.display_quantity = o.display_quantity;
 				ori_odr.remain_quantity = ori_odr.quantity;
@@ -1518,6 +1519,8 @@ namespace matching
 			}
 			else if (handle_cancel(o))
 			{
+				o.client_order_id = client_order_id;
+				o.order_id = 0;
 				handle_new(o);
 			}
 		}
@@ -1636,7 +1639,9 @@ namespace matching
 				for (long long i = _cb_records.size() - 1; i >= 0; --i)
 				{
 					const auto& o = _cb_records[i];
-					if (order::order_status_type::CANCELED_ALL_BY_AUCTION != o.order_state || order::order_status_type::CANCELED_PARTIAL_BY_AUCTION != o.order_state)
+					if (order::order_status_type::CANCELED_ALL_BY_AUCTION != o.order_state
+							&& order::order_status_type::CANCELED_PARTIAL_BY_AUCTION != o.order_state
+							&& -1 == last_idx)
 					{
 						last_idx = i;
 						last_match_price = o.last_match_price;
@@ -1648,17 +1653,31 @@ namespace matching
 					{
 						if (last_match_price < 0)
 						{
-							last_match_price = 0;
+							if (0 != o.remain_quantity)
+							{
+								last_match_price = o.buy_stop_limited_price;
+							}
+							else
+							{
+								last_match_price = 0;
+							}
 						}
 					}
 					else if (order::order_side::SELL == o.side)
 					{
 						if (last_match_price > 0)
 						{
-							last_match_price = 0;
+							if (0 != o.remain_quantity)
+							{
+								last_match_price = o.sell_stop_limited_price;
+							}
+							else
+							{
+								last_match_price = 0;
+							}
 						}
 					}
-					for (long long i = 0; i < last_idx; ++i)
+					for (std::size_t i = 0; i < _cb_records.size(); ++i)
 					{
 						_cb_records[i].last_match_price = last_match_price;
 					}
