@@ -1507,6 +1507,7 @@ namespace matching
 			}
 			auto& ori_odr = it->second;
 			ori_odr.order_action = o.order_action;
+			auto client_order_id = ori_odr.client_order_id;
 			if (order::can_amend(o, ori_odr))
 			{
 				//ori_odr.client_order_id = o.client_order_id;
@@ -1518,6 +1519,7 @@ namespace matching
 			}
 			else if (handle_cancel(o))
 			{
+				o.client_order_id = client_order_id;
 				handle_new(o);
 			}
 		}
