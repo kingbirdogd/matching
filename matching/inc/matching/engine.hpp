@@ -1368,6 +1368,7 @@ namespace matching
 				ori_odr.client_order_id = o.client_order_id;
 				ori_odr.order_state = order::order_status_type::CANCELED_BY_USER;
 				ori_odr.remain_quantity = 0;
+				ori_odr.client_order_id = o.client_order_id;
 				callback(ori_odr);
 			}
 			if (order::order_side::BUY == ori_odr.side)
@@ -1513,6 +1514,7 @@ namespace matching
 				ori_odr.quantity = o.quantity;
 				ori_odr.display_quantity = o.display_quantity;
 				ori_odr.remain_quantity = ori_odr.quantity;
+				ori_odr.client_order_id = o.client_order_id;
 				callback(ori_odr);
 				return;
 			}
