@@ -1636,7 +1636,7 @@ namespace matching
 				for (long long i = _cb_records.size() - 1; i >= 0; --i)
 				{
 					const auto& o = _cb_records[i];
-					if (order::order_status_type::CANCELED_ALL_BY_AUCTION != o.order_state || order::order_status_type::CANCELED_PARTIAL_BY_AUCTION != o.order_state)
+					if (order::order_status_type::CANCELED_ALL_BY_AUCTION != o.order_state && order::order_status_type::CANCELED_PARTIAL_BY_AUCTION != o.order_state)
 					{
 						if (-1 == last_idx)
 							last_idx = i;
