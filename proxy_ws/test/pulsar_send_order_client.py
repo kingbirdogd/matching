@@ -57,11 +57,12 @@ co.OrderAddPrice(builder, 102)
 co.OrderAddQuantity(builder, 2000)
 co.OrderAddDisplayQuantity(builder, 2000)
 
-#co.OrderAddOrderId(builder,160039206495859630)
+co.OrderAddOrderId(builder,160041304405855872)
+co.OrderAddOrderAction(builder, CoinflexV2.order_action_type.order_action_type.AMEND)
+#co.OrderAddOrderAction(builder, CoinflexV2.order_action_type.order_action_type.NEW)
 
 co.OrderAddClientOrderId(builder, 1322)
 co.OrderAddSide(builder, CoinflexV2.order_side.order_side.BUY)
-co.OrderAddOrderAction(builder, CoinflexV2.order_action_type.order_action_type.NEW)
 co.OrderAddType(builder, CoinflexV2.order_type.order_type.LIMITED)
 
 order = co.OrderEnd(builder)
@@ -83,6 +84,7 @@ while True:
     except Exception as e:
         print("Failed to send message: %s", e)
     producer.flush()
+    break
     time.sleep(1)
 
 producer.close()
