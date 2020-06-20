@@ -45,6 +45,13 @@ def placeOrder(side,quantity,price):
     client_order_id = client_order_id + 1
     return send_order
 
+def amendOrder(side,quantity,price, order_id):
+    global client_order_id
+    send_order = {"op": "modifyorder","data": {"orderId": order_id, "marketCode": market, "side": str(side),"orderType": "LIMIT", "quantity": quantity, "timeInForce": "GTC", "price": price}}
+    print(f'{dt.datetime.now()} {send_order}')
+    client_order_id = client_order_id + 1
+    return send_order
+
 async def get_reply_notice(sleep_s, bPrint=True):
     global ws, logined
     while not logined:
@@ -72,12 +79,15 @@ async def call_api():
             print(msg)
             if "nonce" in msg:
               await websocket.send(json.dumps({"op":"login","data":{"x-cf-token":str(cf_token)}}))
-              await websocket.send(json.dumps({"op": "subscribe", "args": ["futures/depth:" + market]}))
+              #await websocket.send(json.dumps({"op": "subscribe", "args": ["futures/depth:" + market]}))
               logined =True
+              stopped =False
         if ("event" in msg and msg["event"]=="login") or logined :
             print("________inputs______________________________________")
             print("______________________________________________")
-            # await websocket.send(json.dumps(placeOrder( "BUY",  1100, -0.000800000)))
+            if not stopped:
+              #await websocket.send(json.dumps(placeOrder( "BUY",  1200, -0.000800000))) ; stopped = True
+              await websocket.send(json.dumps(amendOrder("BUY", 1100, -0.000800000, 160041304405855875)));    stopped = True
             # await websocket.send(json.dumps(placeOrder( "BUY", 1100, 0.0001)))
             # await websocket.send(json.dumps(placeOrder( "BUY",  1300, -0.000500000)))
             # await websocket.send(json.dumps(placeOrder( "SELL", 1400, 0.002200000)))
@@ -90,6 +100,7 @@ async def call_api():
             #
             # await websocket.send(json.dumps(placeOrder( "BUY",  rnd_bid_qty, rnd_bid_px)))
             # await websocket.send(json.dumps(placeOrder( "SELL", rnd_ask_qty, rnd_ask_px)))
+        break
         await asyncio.sleep(2)
 
 def main():

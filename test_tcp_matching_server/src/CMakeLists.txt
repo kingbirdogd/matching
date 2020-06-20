@@ -1,4 +1,6 @@
 add_executable(test_tcp_matching_server test_tcp_matching_server.cpp)
+target_compile_definitions(test_tcp_matching_server PRIVATE VERSION="${VERSION}")
+target_compile_definitions(test_tcp_matching_server PRIVATE SUBMODULE_VERSION="${SUBMODULE_VERSION}")
 target_include_directories(test_tcp_matching_server PUBLIC ${CMAKE_SOURCE_DIR}/matching_tcp_service/inc)
 target_include_directories(test_tcp_matching_server PUBLIC ${CMAKE_SOURCE_DIR}/matching/inc)
 target_include_directories(test_tcp_matching_server PUBLIC ${CMAKE_SOURCE_DIR}/matching/order/inc)

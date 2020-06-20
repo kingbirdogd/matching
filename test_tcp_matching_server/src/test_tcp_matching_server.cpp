@@ -13,6 +13,11 @@
 
 int main(int iArgc, char** pszArgv)
 {
+
+  std::clog << pszArgv[0] << "\n";
+  std::clog << "==== VERSION ====\n" << VERSION << "\n=================\n" << std::endl;
+  std::clog << "==== SUBMODULE_VERSION ====\n" << SUBMODULE_VERSION << "\n===========================\n" << std::endl;
+
 	matching::engine::set_node_id(1);
 	if (12 != iArgc)
 	{

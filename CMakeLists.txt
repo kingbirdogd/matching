@@ -1,6 +1,15 @@
 cmake_minimum_required (VERSION 2.8.11)
 set(CMAKE_CXX_STANDARD 17)
+
 set(VERSION dev)
+set(SUBMODULE_VERSION dev)
+execute_process(COMMAND git describe --always --dirty OUTPUT_VARIABLE VERSION)
+string(STRIP "${VERSION}" VERSION)
+message("VERSION = ${VERSION}")
+
+execute_process(COMMAND git submodule status --recursive OUTPUT_VARIABLE SUBMODULE_VERSION)
+string(STRIP "${SUBMODULE_VERSION}" SUBMODULE_VERSION)
+message("SUBMODULE_VERSION = ${SUBMODULE_VERSION}")
 
 find_package(PkgConfig REQUIRED)
 include_directories(SYSTEM $ENV{HOME}/usr/local/include)
