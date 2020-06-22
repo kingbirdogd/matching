@@ -737,7 +737,6 @@ namespace matching
 							o.order_state = order::order_status_type::CANCELED_ALL_BY_IOC;
 						else
 							o.order_state = order::order_status_type::CANCELED_PARTIAL_BY_IOC;
-						o.remain_quantity = 0;
 						_local._e->callback(o);
 						return;
 					}
@@ -797,7 +796,6 @@ namespace matching
 				if (0 != remain_quantity)
 				{
 					o.order_state = order::order_status_type::CANCELED_BY_FOK;
-					o.remain_quantity = 0;
 					_local._e->callback(o);
 					return;
 				}
