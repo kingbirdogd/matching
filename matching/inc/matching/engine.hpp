@@ -697,7 +697,6 @@ namespace matching
 						else if (order::order_time_condition::MAKER_ONLY == o.time_condition)
 						{
 							o.order_state = order::order_status_type::CANCELED_BY_MAKER_ONLY;
-							o.remain_quantity = 0;
 							_local._e->callback(o);
 							return;
 						}
@@ -762,7 +761,6 @@ namespace matching
 						if (order::MARKET_PRICE == o.price)
 						{
 							o.order_state = order::order_status_type::CANCELED_BY_MARKET_ORDER_NOTHING_MATCH;
-							o.remain_quantity = 0;
 							_local._e->callback(o);
 							return;
 						}
@@ -1364,7 +1362,6 @@ namespace matching
 			{
 				ori_odr.client_order_id = o.client_order_id;
 				ori_odr.order_state = order::order_status_type::CANCELED_BY_USER;
-				ori_odr.remain_quantity = 0;
 				callback(ori_odr);
 			}
 			if (order::order_side::BUY == ori_odr.side)
