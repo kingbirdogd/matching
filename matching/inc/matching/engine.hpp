@@ -747,7 +747,6 @@ namespace matching
 							o.order_state = order::order_status_type::CANCELED_ALL_BY_AUCTION;
 						else
 							o.order_state = order::order_status_type::CANCELED_PARTIAL_BY_AUCTION;
-						o.remain_quantity = 0;
 						_local._e->callback(o);
 						return;
 					}
