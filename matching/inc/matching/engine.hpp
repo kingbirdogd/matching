@@ -1647,28 +1647,22 @@ namespace matching
 					{
 						if (last_match_price < 0)
 						{
-							if (0 != o.remain_quantity)
-							{
-								last_match_price = o.buy_stop_limited_price;
-							}
-							else
-							{
-								last_match_price = 0;
-							}
+							last_match_price = 0;
+						}
+						if (0 != o.remain_quantity)
+						{
+							last_match_price = o.buy_stop_limited_price;
 						}
 					}
 					else if (order::order_side::SELL == o.side)
 					{
 						if (last_match_price > 0)
 						{
-							if (0 != o.remain_quantity)
-							{
-								last_match_price = o.sell_stop_limited_price;
-							}
-							else
-							{
-								last_match_price = 0;
-							}
+							last_match_price = 0;
+						}
+						if (0 != o.remain_quantity)
+						{
+							last_match_price = o.sell_stop_limited_price;
 						}
 					}
 					for (std::size_t i = 0; i < _cb_records.size(); ++i)
