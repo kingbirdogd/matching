@@ -19,11 +19,14 @@ market = "BTC-USD-200626-LIN"
 #market = 'BTC-USD-SPR-QP-LIN'
 #market = 'BTC-USD-REPO-LIN'
 
-
 login = 'peter.chan+v2_test1@coinflex.com'
 passwd= 'peter.test'
 #login = "siang.xu+test1@coinflex.com"
 #passwd ="coinflex"
+# Dev env
+#API Key   = 'cfcee81f-715c-400c-af5b-1e21a89f31b9'
+#API Secret= 'bd62afef-2765-4855-a678-432541ee66a2'
+# Test env
 #API    key: 3b207a63-b872-47f3-a85b-ba95fafc8b51
 #API Secret: 73f1982f-cde5-44d6-b236-e65466377d3c
 
