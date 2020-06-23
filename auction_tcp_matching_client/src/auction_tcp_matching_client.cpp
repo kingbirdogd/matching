@@ -241,6 +241,13 @@ int main(int iArgc, char** pszArgv)
 	o.price            = px_factor*px;
   o.client_order_id  = 1;
   o.time_condition   = matching::order::order_time_condition::AUCTION;
+
+  // Use xxx_stop_limited_price to set lower/upper price band for auction
+  if (o.side == matching::order::BUY)
+    o.buy_stop_limited_price = buy_upper_band;
+  else if (o.side == matching::order::SELL)
+    o.sell_stop_limited_price = sell_lower_band;
+
 	c.send(o);
 
 	sleep(3);

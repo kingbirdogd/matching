@@ -27,7 +27,9 @@ aliyun_test_url = '172.21.21.221:6650'
 topic_prefix = aliyuen_dev_prefix
 host_url = aliyun_test_url
 
-market_id = '2001031000000'
+#market_id = '2001031000000'  # Repo
+#market_id = '2001011000000'
+market_id = '2001021200626'  #Perp
 name = 'peter'
 # ==========================================
 

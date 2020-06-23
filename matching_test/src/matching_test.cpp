@@ -805,8 +805,10 @@ void test_case_2()
 }
 
 void auction_test_auction_buy1() {
+  printf("====== %s ======\n", __FUNCTION__);
   unsigned long long factor = 100000000;
-  matching::engine e(handle_order, factor);
+  matching::order output_order;
+  matching::engine e([&](const matching::order& o) { handle_order(o);output_order = o; }, factor);
   matching::order o;
 
   o.side = matching::order::order_side::SELL;
@@ -822,14 +824,20 @@ void auction_test_auction_buy1() {
   o.quantity = 2000;
   o.display_quantity = 2000;
   o.time_condition = matching::order::AUCTION;
+  o.buy_stop_limited_price = std::round(0.01 * factor);
   e.handle(o);
+
+  assert(output_order.remain_quantity   == 1994);
+  assert(output_order.last_match_price  == std::round(0.01 * factor));
 
   return;
 }
 
 void auction_test_auction_buy2() {
+  printf("====== %s ======\n", __FUNCTION__);
   unsigned long long factor = 100000000;
-  matching::engine e(handle_order, factor);
+  matching::order output_order;
+  matching::engine e([&](const matching::order& o) { handle_order(o);output_order = o; }, factor);
   matching::order o;
 
   o.side = matching::order::order_side::SELL;
@@ -852,14 +860,20 @@ void auction_test_auction_buy2() {
   o.quantity = 2000;
   o.display_quantity = 2000;
   o.time_condition = matching::order::AUCTION;
+  o.buy_stop_limited_price = std::round(0.01 * factor);
   e.handle(o);
+
+  assert(output_order.remain_quantity   == 1987);
+  assert(output_order.last_match_price  == std::round(0.01 * factor));
 
   return;
 }
 
 void auction_test_auction_buy3() {
+  printf("====== %s ======\n", __FUNCTION__);
   unsigned long long factor = 100000000;
-  matching::engine e(handle_order, factor);
+  matching::order output_order;
+  matching::engine e([&](const matching::order& o) { handle_order(o);output_order = o; }, factor);
   matching::order o;
 
   o.side = matching::order::order_side::SELL;
@@ -882,14 +896,92 @@ void auction_test_auction_buy3() {
   o.quantity = 2000;
   o.display_quantity = 2000;
   o.time_condition = matching::order::AUCTION;
+  o.buy_stop_limited_price = std::round(0.01 * factor);
   e.handle(o);
+
+  assert(output_order.remain_quantity   == 1987);
+  assert(output_order.last_match_price  == std::round(0.01 * factor));
+
+  return;
+}
+
+void auction_test_auction_buy4() {   // FULL FILLED, last match price set to final matched price level
+  printf("====== %s ======\n", __FUNCTION__);
+  unsigned long long factor = 100000000;
+  matching::order output_order;
+  matching::engine e([&](const matching::order& o) { handle_order(o);output_order = o; }, factor);
+  matching::order o;
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 30020;
+  o.price =  std::round(0.0001 * factor);
+  o.quantity = 600;
+  o.display_quantity = 600;
+  e.handle(o);
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 30021;
+  o.price =  std::round(0.00015 * factor);
+  o.quantity = 700;
+  o.display_quantity = 700;
+  e.handle(o);
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 11111;
+  o.price =  std::round(98 * factor);
+  o.quantity = 1000;
+  o.display_quantity = 1000;
+  o.time_condition = matching::order::AUCTION;
+  o.buy_stop_limited_price = std::round(0.01 * factor);
+  e.handle(o);
+
+  assert(output_order.remain_quantity   == 0);
+  assert(output_order.last_match_price  == std::round(0.00015 * factor));
+
+  return;
+}
+
+void auction_test_auction_buy5() {   // FULL FILLED, last match price set to 0
+  printf("====== %s ======\n", __FUNCTION__);
+  unsigned long long factor = 100000000;
+  matching::order output_order;
+  matching::engine e([&](const matching::order& o) { handle_order(o);output_order = o; }, factor);
+  matching::order o;
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 30020;
+  o.price =  std::round(-0.0001 * factor);
+  o.quantity = 600;
+  o.display_quantity = 600;
+  e.handle(o);
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 30021;
+  o.price =  std::round(-0.00015 * factor);
+  o.quantity = 700;
+  o.display_quantity = 700;
+  e.handle(o);
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 11111;
+  o.price =  std::round(98 * factor);
+  o.quantity = 1000;
+  o.display_quantity = 1000;
+  o.time_condition = matching::order::AUCTION;
+  o.buy_stop_limited_price = std::round(0.01 * factor);
+  e.handle(o);
+
+  assert(output_order.remain_quantity   == 0);
+  assert(output_order.last_match_price  == std::round(0 * factor));
 
   return;
 }
 
 void auction_test_auction_sell1() {
+  printf("====== %s ======\n", __FUNCTION__);
   unsigned long long factor = 100000000;
-  matching::engine e(handle_order, factor);
+  matching::order output_order;
+  matching::engine e([&](const matching::order& o) { handle_order(o);output_order = o; }, factor);
   matching::order o;
 
   o.side = matching::order::order_side::BUY;
@@ -905,14 +997,21 @@ void auction_test_auction_sell1() {
   o.quantity = 2000;
   o.display_quantity = 2000;
   o.time_condition = matching::order::AUCTION;
+  o.sell_stop_limited_price = std::round(-0.01 * factor);
   e.handle(o);
+
+  assert(output_order.remain_quantity   == 1994);
+  assert(output_order.last_match_price  == std::round(-0.01 * factor));
+
 
   return;
 }
 
 void auction_test_auction_sell2() {
+  printf("====== %s ======\n", __FUNCTION__);
   unsigned long long factor = 100000000;
-  matching::engine e(handle_order, factor);
+  matching::order output_order;
+  matching::engine e([&](const matching::order& o) { handle_order(o);output_order = o; }, factor);
   matching::order o;
 
   o.side = matching::order::order_side::BUY;
@@ -935,216 +1034,330 @@ void auction_test_auction_sell2() {
   o.quantity = 2000;
   o.display_quantity = 2000;
   o.time_condition = matching::order::AUCTION;
+  o.sell_stop_limited_price = std::round(-0.01 * factor);
   e.handle(o);
+
+  assert(output_order.remain_quantity   == 1987);
+  assert(output_order.last_match_price  == std::round(-0.01 * factor));
 
   return;
 }
 
+void auction_test_auction_sell3() {
+  printf("====== %s ======\n", __FUNCTION__);
+  unsigned long long factor = 100000000;
+  matching::order output_order;
+  matching::engine e([&](const matching::order& o) { handle_order(o);output_order = o; }, factor);
+  matching::order o;
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 30020;
+  o.price =  std::round(0.0001 * factor);
+  o.quantity = 6;
+  o.display_quantity = 6;
+  e.handle(o);
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 30021;
+  o.price =  std::round(0.00015 * factor);
+  o.quantity = 7;
+  o.display_quantity = 7;
+  e.handle(o);
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 11111;
+  o.price =  std::round(-98 * factor);
+  o.quantity = 2000;
+  o.display_quantity = 2000;
+  o.time_condition = matching::order::AUCTION;
+  o.sell_stop_limited_price = std::round(-0.01 * factor);
+  e.handle(o);
+
+  assert(output_order.remain_quantity   == 1987);
+  assert(output_order.last_match_price  == std::round(-0.01 * factor));
+
+  return;
+}
+
+void auction_test_auction_sell4() {   // FULL FILLED, last match price set to final matched price level
+  printf("====== %s ======\n", __FUNCTION__);
+  unsigned long long factor = 100000000;
+  matching::order output_order;
+  matching::engine e([&](const matching::order& o) { handle_order(o);output_order = o; }, factor);
+  matching::order o;
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 30020;
+  o.price =  std::round(-0.0001 * factor);
+  o.quantity = 600;
+  o.display_quantity = 600;
+  e.handle(o);
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 30021;
+  o.price =  std::round(-0.00015 * factor);
+  o.quantity = 700;
+  o.display_quantity = 700;
+  e.handle(o);
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 11111;
+  o.price =  std::round(-98 * factor);
+  o.quantity = 1000;
+  o.display_quantity = 1000;
+  o.time_condition = matching::order::AUCTION;
+  o.sell_stop_limited_price = std::round(-0.01 * factor);
+  e.handle(o);
+
+  assert(output_order.remain_quantity   == 0);
+  assert(output_order.last_match_price  == std::round(-0.00015 * factor));
+
+  return;
+}
+
+void auction_test_auction_sell5() {   // FULL FILLED, last match price set to 0
+  printf("====== %s ======\n", __FUNCTION__);
+  unsigned long long factor = 100000000;
+  matching::order output_order;
+  matching::engine e([&](const matching::order& o) { handle_order(o);output_order = o; }, factor);
+  matching::order o;
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 30020;
+  o.price =  std::round(0.0001 * factor);
+  o.quantity = 600;
+  o.display_quantity = 600;
+  e.handle(o);
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 30021;
+  o.price =  std::round(0.00015 * factor);
+  o.quantity = 700;
+  o.display_quantity = 700;
+  e.handle(o);
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 11111;
+  o.price =  std::round(-98 * factor);
+  o.quantity = 1000;
+  o.display_quantity = 1000;
+  o.time_condition = matching::order::AUCTION;
+  o.sell_stop_limited_price = std::round(0.01 * factor);
+  e.handle(o);
+
+  assert(output_order.remain_quantity   == 0);
+  assert(output_order.last_match_price  == std::round(0 * factor));
+
+  return;
+}
 
 int main()
 {
   matching::engine e(handle_order);
   matching::order o;
-  //auction_test_auction_buy1();
-  //auction_test_auction_buy2();
-  //auction_test_auction_buy3();
-  //auction_test_auction_sell1();
+  auction_test_auction_buy1();
+  auction_test_auction_buy2();
+  auction_test_auction_buy3();
+  auction_test_auction_buy4();
+  auction_test_auction_buy5();
+  auction_test_auction_sell1();
   auction_test_auction_sell2();
+  auction_test_auction_sell3();
+  auction_test_auction_sell4();
+  auction_test_auction_sell5();
+
   //implied_test_md_tick_size();
   //implied_test_remain_qty_overflow();
 	//implied_test();
 	//implied_test_case_5();
-//  /*
-//  test_case_2();
-//	test_case_1();
-//	implied_test();
-//	stop_test();
-//	stop_test_by_cancel();
-//
-//	o.side = matching::order::order_side::BUY;
-//	o.client_order_id = 1;
-//	o.price = 100;
-//	o.quantity = 6000;
-//	o.display_quantity = 1000;
-//	e.handle(o);
-//
-//
-//	o.side = matching::order::order_side::BUY;
-//	o.client_order_id = 2;
-//	o.price = 99;
-//	o.quantity = 1200;
-//	o.display_quantity = 1200;
-//	e.handle(o);
-//
-//	o.side = matching::order::order_side::BUY;
-//	o.client_order_id = 3;
-//	o.price = 98;
-//	o.quantity = 800;
-//	o.display_quantity = 800;
-//	e.handle(o);
-//
-//	o.side = matching::order::order_side::BUY;
-//	o.client_order_id = 4;
-//	o.price = 97;
-//	o.quantity = 3200;
-//	o.display_quantity = 3200;
-//	e.handle(o);
-//
-//	o.side = matching::order::order_side::BUY;
-//	o.client_order_id = 5;
-//	o.price = 96;
-//	o.quantity = 500;
-//	o.display_quantity = 500;
-//	e.handle(o);
-//
-//	o.side = matching::order::order_side::BUY;
-//	o.client_order_id = 6;
-//	o.price = 96;
-//	o.quantity = 800;
-//	o.display_quantity = 800;
-//	e.handle(o);
-//*/
-//	o.side = matching::order::order_side::BUY;
-//	o.client_order_id = 7;
-//	o.price = 95;
-//	o.quantity = 8000;
-//	o.display_quantity = 8000;
-//	e.handle(o);
-///*
-//	std::cout << "First recovery start" << std::endl;
-//	e.recovery(handle_order);
-//	std::cout << "First recovery end" << std::endl;
-//
-//	o.side = matching::order::order_side::SELL;
-//	o.time_condition = matching::order::order_time_condition::FOK;
-//	o.client_order_id = 200;
-//	o.price = 99;
-//	o.quantity = 8000;
-//	o.display_quantity = 8000;
-//	e.handle(o);
-//	//recovery GTC
-//	o.time_condition = matching::order::order_time_condition::GTC;
-//
-//	std::cout << "FOK recovery start" << std::endl;
-//	e.recovery(handle_order);
-//	std::cout << "FOK recovery end" << std::endl;
-//
-//	o.side = matching::order::order_side::SELL;
-//	o.time_condition = matching::order::order_time_condition::FOK;
-//	o.client_order_id = 201;
-//	o.price = 99;
-//	o.quantity = 10;
-//	o.display_quantity = 5;
-//	e.handle(o);
-//	//recovery GTC
-//	o.time_condition = matching::order::order_time_condition::GTC;
-//
-//	std::cout << "FOK success recovery start" << std::endl;
-//	e.recovery(handle_order);
-//	std::cout << "FOK success recovery end" << std::endl;
-//
-//
-//	o.side = matching::order::order_side::SELL;
-//	o.time_condition = matching::order::order_time_condition::IOC;
-//	o.client_order_id = 300;
-//	o.price = 99;
-//	o.quantity = 8000;
-//	o.display_quantity = 8000;
-//	e.handle(o);
-//	//recovery GTC
-//	o.time_condition = matching::order::order_time_condition::GTC;
-//
-//	std::cout << "IOC recovery start" << std::endl;
-//	e.recovery(handle_order);
-//	std::cout << "IOC recovery end" << std::endl;
-//
-//
-//	o.side = matching::order::order_side::SELL;
-//	o.time_condition = matching::order::order_time_condition::MAKER_ONLY;
-//	o.client_order_id = 400;
-//	o.price = 92;
-//	o.quantity = 8000;
-//	o.display_quantity = 8000;
-//	e.handle(o);
-//	//recovery GTC
-//	o.time_condition = matching::order::order_time_condition::GTC;
-//
-//	std::cout << "MAKER_ONLY cancel recovery start" << std::endl;
-//	e.recovery(handle_order);
-//	std::cout << "MAKER_ONLY cancel recovery end" << std::endl;
-//
-//
-//	o.side = matching::order::order_side::SELL;
-//	o.time_condition = matching::order::order_time_condition::MAKER_ONLY;
-//	o.client_order_id = 500;
-//	o.price = 101;
-//	o.quantity = 8000;
-//	o.display_quantity = 8000;
-//	e.handle(o);
-//	//recovery GTC
-//	o.time_condition = matching::order::order_time_condition::GTC;
-//
-//	std::cout << "MAKER_ONLY place recovery start" << std::endl;
-//	e.recovery(handle_order);
-//	std::cout << "MAKER_ONLY place recovery end" << std::endl;
-//*/
-//	o.side = matching::order::order_side::SELL;
-//	o.client_order_id = 8;
-//	o.price = 96;
-//	o.quantity = 10000;
-//	o.display_quantity = 10000;
-//	e.handle(o);
-//
-//	std::cout << "Second recovery start" << std::endl;
-//	e.recovery(handle_order);
-//	std::cout << "Second recovery end" << std::endl;
-//
-//	o.order_action = matching::order::order_action_type::CANCEL;
-//	o.client_order_id = 7;
-//	o.order_id = client_to_engine_id_map[7];
-//	e.handle(o);
-///*
-//	std::cout << "Thrid recovery start" << std::endl;
-//	e.recovery(handle_order);
-//	std::cout << "Thrid recovery end" << std::endl;
-//
-//
-//	o.order_action = matching::order::order_action_type::AMEND;
-//	o.client_order_id = 8;
-//	o.order_id = client_to_engine_id_map[8];
-//	o.quantity = 1500;
-//	o.display_quantity = 1500;
-//	e.handle(o);
-//
-//	std::cout << "4th recovery start" << std::endl;
-//	e.recovery(handle_order);
-//	std::cout << "4th recovery end" << std::endl;
-//
-//	o.order_action = matching::order::order_action_type::AMEND;
-//	o.client_order_id = 8;
-//	o.order_id = client_to_engine_id_map[8];
-//	o.quantity = 1800;
-//	o.display_quantity = 1800;
-//	e.handle(o);
-//
-//	std::cout << "5th recovery start" << std::endl;
-//	e.recovery(handle_order);
-//	std::cout << "5th recovery end" << std::endl;
-//
-//	o.order_action = matching::order::order_action_type::AMEND;
-//	o.side = matching::order::order_side::BUY;
-//	o.client_order_id = 8;
-//	o.order_id = client_to_engine_id_map[8];
-//	o.quantity = 200;
-//	o.display_quantity = 200;
-//	e.handle(o);
-//
-//	std::cout << "6th recovery start" << std::endl;
-//	e.recovery(handle_order);
-//	std::cout << "6th recovery end" << std::endl;
-//
-//	test_object_pool();
-//*/
+  /*
+  test_case_2();
+	test_case_1();
+	implied_test();
+	stop_test();
+	stop_test_by_cancel();
+
+	o.side = matching::order::order_side::BUY;
+	o.client_order_id = 1;
+	o.price = 100;
+	o.quantity = 6000;
+	o.display_quantity = 1000;
+	e.handle(o);
+
+
+	o.side = matching::order::order_side::BUY;
+	o.client_order_id = 2;
+	o.price = 99;
+	o.quantity = 1200;
+	o.display_quantity = 1200;
+	e.handle(o);
+
+	o.side = matching::order::order_side::BUY;
+	o.client_order_id = 3;
+	o.price = 98;
+	o.quantity = 800;
+	o.display_quantity = 800;
+	e.handle(o);
+
+	o.side = matching::order::order_side::BUY;
+	o.client_order_id = 4;
+	o.price = 97;
+	o.quantity = 3200;
+	o.display_quantity = 3200;
+	e.handle(o);
+
+	o.side = matching::order::order_side::BUY;
+	o.client_order_id = 5;
+	o.price = 96;
+	o.quantity = 500;
+	o.display_quantity = 500;
+	e.handle(o);
+
+	o.side = matching::order::order_side::BUY;
+	o.client_order_id = 6;
+	o.price = 96;
+	o.quantity = 800;
+	o.display_quantity = 800;
+	e.handle(o);
+
+	o.side = matching::order::order_side::BUY;
+	o.client_order_id = 7;
+	o.price = 95;
+	o.quantity = 8000;
+	o.display_quantity = 8000;
+	e.handle(o);
+
+	std::cout << "First recovery start" << std::endl;
+	e.recovery(handle_order);
+	std::cout << "First recovery end" << std::endl;
+
+	o.side = matching::order::order_side::SELL;
+	o.time_condition = matching::order::order_time_condition::FOK;
+	o.client_order_id = 200;
+	o.price = 99;
+	o.quantity = 8000;
+	o.display_quantity = 8000;
+	e.handle(o);
+	//recovery GTC
+	o.time_condition = matching::order::order_time_condition::GTC;
+
+	std::cout << "FOK recovery start" << std::endl;
+	e.recovery(handle_order);
+	std::cout << "FOK recovery end" << std::endl;
+
+	o.side = matching::order::order_side::SELL;
+	o.time_condition = matching::order::order_time_condition::FOK;
+	o.client_order_id = 201;
+	o.price = 99;
+	o.quantity = 10;
+	o.display_quantity = 5;
+	e.handle(o);
+	//recovery GTC
+	o.time_condition = matching::order::order_time_condition::GTC;
+
+	std::cout << "FOK success recovery start" << std::endl;
+	e.recovery(handle_order);
+	std::cout << "FOK success recovery end" << std::endl;
+
+	o.side = matching::order::order_side::SELL;
+	o.time_condition = matching::order::order_time_condition::IOC;
+	o.client_order_id = 300;
+	o.price = 99;
+	o.quantity = 8000;
+	o.display_quantity = 8000;
+	e.handle(o);
+	//recovery GTC
+	o.time_condition = matching::order::order_time_condition::GTC;
+
+	std::cout << "IOC recovery start" << std::endl;
+	e.recovery(handle_order);
+	std::cout << "IOC recovery end" << std::endl;
+
+
+	o.side = matching::order::order_side::SELL;
+	o.time_condition = matching::order::order_time_condition::MAKER_ONLY;
+	o.client_order_id = 400;
+	o.price = 92;
+	o.quantity = 8000;
+	o.display_quantity = 8000;
+	e.handle(o);
+	//recovery GTC
+	o.time_condition = matching::order::order_time_condition::GTC;
+
+	std::cout << "MAKER_ONLY cancel recovery start" << std::endl;
+	e.recovery(handle_order);
+	std::cout << "MAKER_ONLY cancel recovery end" << std::endl;
+
+	o.side = matching::order::order_side::SELL;
+	o.time_condition = matching::order::order_time_condition::MAKER_ONLY;
+	o.client_order_id = 500;
+	o.price = 101;
+	o.quantity = 8000;
+	o.display_quantity = 8000;
+	e.handle(o);
+	//recovery GTC
+	o.time_condition = matching::order::order_time_condition::GTC;
+
+	std::cout << "MAKER_ONLY place recovery start" << std::endl;
+	e.recovery(handle_order);
+	std::cout << "MAKER_ONLY place recovery end" << std::endl;
+
+	o.side = matching::order::order_side::SELL;
+	o.client_order_id = 8;
+	o.price = 96;
+	o.quantity = 10000;
+	o.display_quantity = 10000;
+	e.handle(o);
+
+	std::cout << "Second recovery start" << std::endl;
+	e.recovery(handle_order);
+	std::cout << "Second recovery end" << std::endl;
+
+	o.order_action = matching::order::order_action_type::CANCEL;
+	o.client_order_id = 7;
+	o.order_id = client_to_engine_id_map[7];
+	e.handle(o);
+
+	std::cout << "Thrid recovery start" << std::endl;
+	e.recovery(handle_order);
+	std::cout << "Thrid recovery end" << std::endl;
+
+	o.order_action = matching::order::order_action_type::AMEND;
+	o.client_order_id = 0;
+	o.order_id = client_to_engine_id_map[8];
+	o.quantity = 15000;
+	o.display_quantity = 15000;
+	e.handle(o);
+
+	std::cout << "4th recovery start" << std::endl;
+	e.recovery(handle_order);
+	std::cout << "4th recovery end" << std::endl;
+
+	o.order_action = matching::order::order_action_type::AMEND;
+	o.client_order_id = 8;
+	o.order_id = client_to_engine_id_map[8];
+	o.quantity = 1800;
+	o.display_quantity = 1800;
+	e.handle(o);
+
+	std::cout << "5th recovery start" << std::endl;
+	e.recovery(handle_order);
+	std::cout << "5th recovery end" << std::endl;
+
+	o.order_action = matching::order::order_action_type::AMEND;
+	o.side = matching::order::order_side::BUY;
+	o.client_order_id = 8;
+	o.order_id = client_to_engine_id_map[8];
+	o.quantity = 200;
+	o.display_quantity = 200;
+	e.handle(o);
+/*
+	std::cout << "6th recovery start" << std::endl;
+	e.recovery(handle_order);
+	std::cout << "6th recovery end" << std::endl;
+
+	test_object_pool();
+*/
 	return 0;
 }
 

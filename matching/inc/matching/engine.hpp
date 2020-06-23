@@ -697,7 +697,6 @@ namespace matching
 						else if (order::order_time_condition::MAKER_ONLY == o.time_condition)
 						{
 							o.order_state = order::order_status_type::CANCELED_BY_MAKER_ONLY;
-							o.remain_quantity = 0;
 							_local._e->callback(o);
 							return;
 						}
@@ -737,7 +736,6 @@ namespace matching
 							o.order_state = order::order_status_type::CANCELED_ALL_BY_IOC;
 						else
 							o.order_state = order::order_status_type::CANCELED_PARTIAL_BY_IOC;
-						o.remain_quantity = 0;
 						_local._e->callback(o);
 						return;
 					}
@@ -747,7 +745,6 @@ namespace matching
 							o.order_state = order::order_status_type::CANCELED_ALL_BY_AUCTION;
 						else
 							o.order_state = order::order_status_type::CANCELED_PARTIAL_BY_AUCTION;
-						o.remain_quantity = 0;
 						_local._e->callback(o);
 						return;
 					}
@@ -764,7 +761,6 @@ namespace matching
 						if (order::MARKET_PRICE == o.price)
 						{
 							o.order_state = order::order_status_type::CANCELED_BY_MARKET_ORDER_NOTHING_MATCH;
-							o.remain_quantity = 0;
 							_local._e->callback(o);
 							return;
 						}
@@ -798,7 +794,6 @@ namespace matching
 				if (0 != remain_quantity)
 				{
 					o.order_state = order::order_status_type::CANCELED_BY_FOK;
-					o.remain_quantity = 0;
 					_local._e->callback(o);
 					return;
 				}
@@ -1367,7 +1362,6 @@ namespace matching
 			{
 				ori_odr.client_order_id = o.client_order_id;
 				ori_odr.order_state = order::order_status_type::CANCELED_BY_USER;
-				ori_odr.remain_quantity = 0;
 				callback(ori_odr);
 			}
 			if (order::order_side::BUY == ori_odr.side)
@@ -1653,28 +1647,22 @@ namespace matching
 					{
 						if (last_match_price < 0)
 						{
-							if (0 != o.remain_quantity)
-							{
-								last_match_price = o.buy_stop_limited_price;
-							}
-							else
-							{
-								last_match_price = 0;
-							}
+							last_match_price = 0;
+						}
+						if (0 != o.remain_quantity)
+						{
+							last_match_price = o.buy_stop_limited_price;
 						}
 					}
 					else if (order::order_side::SELL == o.side)
 					{
 						if (last_match_price > 0)
 						{
-							if (0 != o.remain_quantity)
-							{
-								last_match_price = o.sell_stop_limited_price;
-							}
-							else
-							{
-								last_match_price = 0;
-							}
+							last_match_price = 0;
+						}
+						if (0 != o.remain_quantity)
+						{
+							last_match_price = o.sell_stop_limited_price;
 						}
 					}
 					for (std::size_t i = 0; i < _cb_records.size(); ++i)
