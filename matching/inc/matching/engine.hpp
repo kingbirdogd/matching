@@ -1360,7 +1360,7 @@ namespace matching
 			auto& ori_odr = it->second;
 			if (order::order_action_type::CANCEL == o.order_action)
 			{
-				ori_odr.client_order_id = o.client_order_id;
+				//ori_odr.client_order_id = o.client_order_id;
 				ori_odr.order_state = order::order_status_type::CANCELED_BY_USER;
 				callback(ori_odr);
 			}
