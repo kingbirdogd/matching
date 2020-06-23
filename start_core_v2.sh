@@ -132,15 +132,15 @@ ${CORE_LOCATION}/zmq_proxy 127.0.0.1 34675 22051 22052 >> ${LOG_LOCATION}/zmq_pr
 sleep 1
 
 # WSS Proxy for testing
-${CORE_LOCATION}/proxy_lws -M 34671 -P 8081 --skipAuth --oneQueue -v localhost >> ${LOG_LOCATION}/proxy_lws1.out.log 2>> ${LOG_LOCATION}/proxy_lws1.err.log &
+${CORE_LOCATION}/proxy_lws -M 34671 -P 8081 --skipAuth --oneQueue -v localhost >> ${LOG_LOCATION}/proxy_lws1.out.log & #2>> ${LOG_LOCATION}/proxy_lws1.err.log &
 sleep 1
-${CORE_LOCATION}/proxy_lws -M 34672 -P 8082 --skipAuth --oneQueue -v localhost >> ${LOG_LOCATION}/proxy_lws2.out.log 2>> ${LOG_LOCATION}/proxy_lws2.err.log &
+${CORE_LOCATION}/proxy_lws -M 34672 -P 8082 --skipAuth --oneQueue -v localhost >> ${LOG_LOCATION}/proxy_lws2.out.log & #2>> ${LOG_LOCATION}/proxy_lws2.err.log &
 sleep 1
-${CORE_LOCATION}/proxy_lws -M 34673 -P 8083 --skipAuth --oneQueue -v localhost >> ${LOG_LOCATION}/proxy_lws3.out.log 2>> ${LOG_LOCATION}/proxy_lws3.err.log &
+${CORE_LOCATION}/proxy_lws -M 34673 -P 8083 --skipAuth --oneQueue -v localhost >> ${LOG_LOCATION}/proxy_lws3.out.log & #2>> ${LOG_LOCATION}/proxy_lws3.err.log &
 sleep 1
-${CORE_LOCATION}/proxy_lws -M 34674 -P 8084 --skipAuth --oneQueue -v localhost >> ${LOG_LOCATION}/proxy_lws4.out.log 2>> ${LOG_LOCATION}/proxy_lws4.err.log &
+${CORE_LOCATION}/proxy_lws -M 34674 -P 8084 --skipAuth --oneQueue -v localhost >> ${LOG_LOCATION}/proxy_lws4.out.log & #2>> ${LOG_LOCATION}/proxy_lws4.err.log &
 sleep 1
-${CORE_LOCATION}/proxy_lws -M 34675 -P 8085 --skipAuth --oneQueue -v localhost >> ${LOG_LOCATION}/proxy_lws5.out.log 2>> ${LOG_LOCATION}/proxy_lws5.err.log &
+${CORE_LOCATION}/proxy_lws -M 34675 -P 8085 --skipAuth --oneQueue -v localhost >> ${LOG_LOCATION}/proxy_lws5.out.log & #2>> ${LOG_LOCATION}/proxy_lws5.err.log &
 sleep 1
 
 tail -f /dev/null
