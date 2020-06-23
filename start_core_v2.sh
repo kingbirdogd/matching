@@ -83,15 +83,16 @@ ${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34675        ""     0   
 sleep 1
 
 # MD Orderbook Server
-${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B 500 -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001021200626 -F persistent://CF-V2/ME-WS/MD-DIFF-2001021200626 -G 7081 -X 35671 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar1.out.log 2>> ${LOG_LOCATION}/proxy_md_pulsar1.err.log &
+PUB_TIME_MS=100
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001021200626 -F persistent://CF-V2/ME-WS/MD-DIFF-2001021200626 -G 7081 -X 35671 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar1.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar1.err.log &
 sleep 1
-${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B 500 -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001011000000 -F persistent://CF-V2/ME-WS/MD-DIFF-2001011000000 -G 7082 -X 35672 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar2.out.log 2>> ${LOG_LOCATION}/proxy_md_pulsar2.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001011000000 -F persistent://CF-V2/ME-WS/MD-DIFF-2001011000000 -G 7082 -X 35672 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar2.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar2.err.log &
 sleep 1
-${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B 500 -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001051000000 -F persistent://CF-V2/ME-WS/MD-DIFF-2001051000000 -G 7083 -X 35673 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar3.out.log 2>> ${LOG_LOCATION}/proxy_md_pulsar3.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001051000000 -F persistent://CF-V2/ME-WS/MD-DIFF-2001051000000 -G 7083 -X 35673 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar3.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar3.err.log &
 sleep 1
-${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B 500 -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001000000000 -F persistent://CF-V2/ME-WS/MD-DIFF-2001000000000 -G 7084 -X 35674 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar4.out.log 2>> ${LOG_LOCATION}/proxy_md_pulsar4.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001000000000 -F persistent://CF-V2/ME-WS/MD-DIFF-2001000000000 -G 7084 -X 35674 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar4.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar4.err.log &
 sleep 1
-${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B 500 -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001031000000 -F persistent://CF-V2/ME-WS/MD-DIFF-2001031000000 -G 7085 -X 35675 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar5.out.log 2>> ${LOG_LOCATION}/proxy_md_pulsar5.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001031000000 -F persistent://CF-V2/ME-WS/MD-DIFF-2001031000000 -G 7085 -X 35675 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar5.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar5.err.log &
 sleep 1
 
 # Pulsar Proxy
