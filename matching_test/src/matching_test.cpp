@@ -1155,16 +1155,16 @@ int main()
 {
   matching::engine e(handle_order);
   matching::order o;
-  auction_test_auction_buy1();
-  auction_test_auction_buy2();
-  auction_test_auction_buy3();
-  auction_test_auction_buy4();
-  auction_test_auction_buy5();
-  auction_test_auction_sell1();
-  auction_test_auction_sell2();
-  auction_test_auction_sell3();
-  auction_test_auction_sell4();
-  auction_test_auction_sell5();
+//  auction_test_auction_buy1();
+//  auction_test_auction_buy2();
+//  auction_test_auction_buy3();
+//  auction_test_auction_buy4();
+//  auction_test_auction_buy5();
+//  auction_test_auction_sell1();
+//  auction_test_auction_sell2();
+//  auction_test_auction_sell3();
+//  auction_test_auction_sell4();
+//  auction_test_auction_sell5();
 
   //implied_test_md_tick_size();
   //implied_test_remain_qty_overflow();
@@ -1219,14 +1219,14 @@ int main()
 	o.quantity = 800;
 	o.display_quantity = 800;
 	e.handle(o);
-
+*/
 	o.side = matching::order::order_side::BUY;
 	o.client_order_id = 7;
 	o.price = 95;
 	o.quantity = 8000;
 	o.display_quantity = 8000;
 	e.handle(o);
-
+/*
 	std::cout << "First recovery start" << std::endl;
 	e.recovery(handle_order);
 	std::cout << "First recovery end" << std::endl;
@@ -1312,12 +1312,13 @@ int main()
 	std::cout << "Second recovery start" << std::endl;
 	e.recovery(handle_order);
 	std::cout << "Second recovery end" << std::endl;
-
+*/
 	o.order_action = matching::order::order_action_type::CANCEL;
 	o.client_order_id = 7;
 	o.order_id = client_to_engine_id_map[7];
+  o.client_order_id = 0;
 	e.handle(o);
-
+/*
 	std::cout << "Thrid recovery start" << std::endl;
 	e.recovery(handle_order);
 	std::cout << "Thrid recovery end" << std::endl;
