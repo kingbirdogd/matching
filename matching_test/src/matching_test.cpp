@@ -1151,10 +1151,37 @@ void auction_test_auction_sell5() {   // FULL FILLED, last match price set to 0
   return;
 }
 
+void test_reprice1() {
+  printf("====== %s ======\n", __FUNCTION__);
+  unsigned long long factor  = 10000000;
+  unsigned long long tick_sz = 1;
+  matching::order output_order;
+  matching::engine e([&](const matching::order& o) { handle_order(o);output_order = o; }, factor*tick_sz);
+  matching::order o;
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 1001;
+  o.price = 950000000000; //  std::round(0.0001 * factor);
+  o.quantity = 5000000000;
+  o.display_quantity = 5000000000;
+  e.handle(o);
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 1002;
+  o.price = 915500000000; //  std::round(0.0001 * factor);
+  o.quantity = 2000000000;
+  o.display_quantity = 2000000000;
+  o.time_condition = matching::order::MAKER_ONLY_REPRICE;
+  e.handle(o);
+
+}
+
 int main()
 {
   matching::engine e(handle_order);
   matching::order o;
+  test_reprice1();
+  /*
 //  auction_test_auction_buy1();
 //  auction_test_auction_buy2();
 //  auction_test_auction_buy3();
@@ -1170,7 +1197,6 @@ int main()
   //implied_test_remain_qty_overflow();
 	//implied_test();
 	//implied_test_case_5();
-  /*
   test_case_2();
 	test_case_1();
 	implied_test();
@@ -1219,14 +1245,14 @@ int main()
 	o.quantity = 800;
 	o.display_quantity = 800;
 	e.handle(o);
-*/
+
 	o.side = matching::order::order_side::BUY;
 	o.client_order_id = 7;
 	o.price = 95;
 	o.quantity = 8000;
 	o.display_quantity = 8000;
 	e.handle(o);
-/*
+
 	std::cout << "First recovery start" << std::endl;
 	e.recovery(handle_order);
 	std::cout << "First recovery end" << std::endl;
@@ -1289,12 +1315,13 @@ int main()
 	std::cout << "MAKER_ONLY cancel recovery end" << std::endl;
 
 	o.side = matching::order::order_side::SELL;
-	o.time_condition = matching::order::order_time_condition::MAKER_ONLY;
+	o.time_condition = matching::order::order_time_condition::MAKER_ONLY_REPRICE;
 	o.client_order_id = 500;
-	o.price = 101;
+	o.price = 90;
 	o.quantity = 8000;
 	o.display_quantity = 8000;
 	e.handle(o);
+
 	//recovery GTC
 	o.time_condition = matching::order::order_time_condition::GTC;
 
@@ -1312,13 +1339,11 @@ int main()
 	std::cout << "Second recovery start" << std::endl;
 	e.recovery(handle_order);
 	std::cout << "Second recovery end" << std::endl;
-*/
-	o.order_action = matching::order::order_action_type::CANCEL;
-	o.client_order_id = 7;
-	o.order_id = client_to_engine_id_map[7];
-  o.client_order_id = 0;
-	e.handle(o);
-/*
+//	o.order_action = matching::order::order_action_type::CANCEL;
+//	o.client_order_id = 7;
+//	o.order_id = client_to_engine_id_map[7];
+//  o.client_order_id = 0;
+//	e.handle(o);
 	std::cout << "Thrid recovery start" << std::endl;
 	e.recovery(handle_order);
 	std::cout << "Thrid recovery end" << std::endl;
@@ -1352,7 +1377,6 @@ int main()
 	o.quantity = 200;
 	o.display_quantity = 200;
 	e.handle(o);
-/*
 	std::cout << "6th recovery start" << std::endl;
 	e.recovery(handle_order);
 	std::cout << "6th recovery end" << std::endl;
