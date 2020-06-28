@@ -84,7 +84,7 @@ sleep 1
 
 # MD Orderbook Server
 PUB_TIME_MS=50
-${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001021200626 -F persistent://CF-V2/ME-WS/MD-DIFF-2001021200626 -G 7081 -X 35671 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar1.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar1.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001021200925 -F persistent://CF-V2/ME-WS/MD-DIFF-2001021200925 -G 7081 -X 35671 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar1.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar1.err.log &
 sleep 1
 ${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-2001011000000 -F persistent://CF-V2/ME-WS/MD-DIFF-2001011000000 -G 7082 -X 35672 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar2.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar2.err.log &
 sleep 1
@@ -96,7 +96,7 @@ ${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R p
 sleep 1
 
 # Pulsar Proxy
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34671 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-2001021200626 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-2001021200626 >> ${LOG_LOCATION}/pulsar_proxy1.out.log 2>> ${LOG_LOCATION}/pulsar_proxy1.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34671 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-2001021200925 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-2001021200925 >> ${LOG_LOCATION}/pulsar_proxy1.out.log 2>> ${LOG_LOCATION}/pulsar_proxy1.err.log &
 sleep 1
 ${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34672 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-2001011000000 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-2001011000000 >> ${LOG_LOCATION}/pulsar_proxy2.out.log 2>> ${LOG_LOCATION}/pulsar_proxy2.err.log &
 sleep 1
