@@ -1153,8 +1153,8 @@ void auction_test_auction_sell5() {   // FULL FILLED, last match price set to 0
 
 void test_reprice1() {
   printf("====== %s ======\n", __FUNCTION__);
-  unsigned long long factor  = 100000000;
-  unsigned long long tick_sz = 0.1;
+  unsigned long long factor  = 10000000;
+  unsigned long long tick_sz = 1;
   matching::order output_order;
   matching::engine e([&](const matching::order& o) { handle_order(o);output_order = o; }, factor*tick_sz);
   matching::order o;
@@ -1181,6 +1181,7 @@ int main()
   matching::engine e(handle_order);
   matching::order o;
   test_reprice1();
+  /*
 //  auction_test_auction_buy1();
 //  auction_test_auction_buy2();
 //  auction_test_auction_buy3();
@@ -1196,7 +1197,6 @@ int main()
   //implied_test_remain_qty_overflow();
 	//implied_test();
 	//implied_test_case_5();
-  /*
   test_case_2();
 	test_case_1();
 	implied_test();
@@ -1339,13 +1339,11 @@ int main()
 	std::cout << "Second recovery start" << std::endl;
 	e.recovery(handle_order);
 	std::cout << "Second recovery end" << std::endl;
-*/
 //	o.order_action = matching::order::order_action_type::CANCEL;
 //	o.client_order_id = 7;
 //	o.order_id = client_to_engine_id_map[7];
 //  o.client_order_id = 0;
 //	e.handle(o);
-/*
 	std::cout << "Thrid recovery start" << std::endl;
 	e.recovery(handle_order);
 	std::cout << "Thrid recovery end" << std::endl;
@@ -1379,7 +1377,6 @@ int main()
 	o.quantity = 200;
 	o.display_quantity = 200;
 	e.handle(o);
-/*
 	std::cout << "6th recovery start" << std::endl;
 	e.recovery(handle_order);
 	std::cout << "6th recovery end" << std::endl;

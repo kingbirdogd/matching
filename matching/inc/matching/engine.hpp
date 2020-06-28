@@ -1364,6 +1364,11 @@ namespace matching
 				ori_odr.order_state = order::order_status_type::CANCELED_BY_USER;
 				callback(ori_odr);
 			}
+			else if (order::order_action_type::AMEND == o.order_action)
+			{
+				ori_odr.order_state = order::order_status_type::CANCELED_BY_AMEND;
+				callback(ori_odr);
+			}
 			if (order::order_side::BUY == ori_odr.side)
 			{
 				bool trigger = false;
