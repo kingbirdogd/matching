@@ -142,10 +142,28 @@ void handle_order(const matching::order& o)
 	{
 		status = "REJECT_QUANTITY_ZERO";
 	}
-	else
+	else if (o.order_state == matching::order::order_status_type::REJECT_LIMITE_ORDER_WITH_MARKET_PRICE)
 	{
 		status = "REJECT_LIMITE_ORDER_WITH_MARKET_PRICE";
 	}
+  else if (o.order_state == matching::order::order_status_type::CANCELED_ALL_BY_AUCTION)
+  {
+    status = "CANCELED_ALL_BY_AUCTION";
+  }
+  else if (o.order_state == matching::order::order_status_type::CANCELED_PARTIAL_BY_AUCTION)
+  {
+    status = "CANCELED_PARTIAL_BY_AUCTION";
+  }
+  else if (o.order_state == matching::order::order_status_type::REJECT_AUCTION_SUPPORT_BUY_SELL_ONLY)
+  {
+    status = "REJECT_AUCTION_SUPPORT_BUY_SELL_ONLY";
+  }
+  else
+  {
+    status = "CANCELED_BY_AMEND";
+  }
+
+
 	if (matching::order::order_time_condition::GTC == o.time_condition)
 	{
 		time_condition = "GTC";
@@ -287,6 +305,10 @@ int main(int iArgc, char** pszArgv)
 	});
 	c.set_on_order([&](const matching::order& o) {
     handle_order(o);
+    if (o.order_state == matching::order::CANCELED_BY_AMEND) {
+      elog.info() << "Not pushing CANCELED_BY_AMEND" << std::endl;
+      return;
+    }
     auto fbs_buf = order_to_fbs_msg(o);  // (*buf, buf_sz)
 
 //    auto now = std::chrono::system_clock::now();
