@@ -329,9 +329,11 @@ void test_object_pool()
 
 void implied_test_md_tick_size()
 {
-  unsigned long long  march_tick_size = 5;
-  unsigned long long  june_tick_size = 5;
-  unsigned long long  spread_tick_size = 10;
+  unsigned long long  march_tick_size  =  50000000;
+  unsigned long long  june_tick_size   =  50000000;
+  unsigned long long  spread_tick_size = 100000000;
+                                   // 905199990000
+                                   // 905100000000
   add_bid_implier abi(0);
   add_ask_implier aai(0);
   minus_bid_implier mbi(0);
@@ -423,14 +425,14 @@ void implied_test_md_tick_size()
 
   o.side = matching::order::order_side::BUY;   // Maker remain qty overflow
   o.client_order_id = 2;
-  o.price            =   800;
+  o.price            =   905100000000;
   o.quantity         =   200;
   o.display_quantity =   200;
   June.handle(o);
 
   o.side = matching::order::order_side::SELL;   // Maker remain qty overflow
   o.client_order_id = 3;
-  o.price            =   800;
+  o.price            =   900100000000;
   o.quantity         =   300;
   o.display_quantity =   300;
   o.time_condition   = matching::order::MAKER_ONLY_REPRICE;
@@ -1153,8 +1155,8 @@ void auction_test_auction_sell5() {   // FULL FILLED, last match price set to 0
 
 void test_reprice1() {
   printf("====== %s ======\n", __FUNCTION__);
-  unsigned long long factor  = 10000000;
-  unsigned long long tick_sz = 1;
+  unsigned long long factor  = 100000000;
+  double tick_sz = 0.1;
   matching::order output_order;
   matching::engine e([&](const matching::order& o) { handle_order(o);output_order = o; }, factor*tick_sz);
   matching::order o;
@@ -1180,7 +1182,8 @@ int main()
 {
   matching::engine e(handle_order);
   matching::order o;
-  test_reprice1();
+  implied_test_md_tick_size();
+  //test_reprice1();
   /*
 //  auction_test_auction_buy1();
 //  auction_test_auction_buy2();
