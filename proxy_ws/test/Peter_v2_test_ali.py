@@ -29,6 +29,11 @@ passwd= 'peter.test'
 # Test env
 #API    key: 3b207a63-b872-47f3-a85b-ba95fafc8b51
 #API Secret: 73f1982f-cde5-44d6-b236-e65466377d3c
+# v2 env
+login = 'peter.chan+v2@coinflex.com'
+passwd= 'peter.test'
+key    = 'Zga78+ieqM4JfWaX4XKs0JKN3D8gn8b4rFwVmm4V6bM='
+secret = 'rN2pjmVBD41Fvr+IHy6ruRtDWW+LOip4k79mC6z8xng='
 
 client_order_id = int(time.time()) * 1000 + 1
 headers = {'content-type': 'application/json'}

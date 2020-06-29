@@ -10,7 +10,6 @@
 #include <matching/implied_repo_out_bid.hpp>
 #include <matching/implied_repo_out_ask.hpp>
 
-
 int main(int iArgc, char** pszArgv)
 {
 
@@ -19,7 +18,7 @@ int main(int iArgc, char** pszArgv)
   std::clog << "==== SUBMODULE_VERSION ====\n" << SUBMODULE_VERSION << "\n===========================\n" << std::endl;
 
 	matching::engine::set_node_id(1);
-	if (12 != iArgc)
+	if (14 != iArgc)
 	{
 		std::cout << "usage: test_tcp_matching_server <factor> <port1[1,65535]> <port2[1,65535]> <port3[1,65535]> <port4[1,65535]> <port5[1,65535]>" << std::endl;
 		return -1;
@@ -30,13 +29,15 @@ int main(int iArgc, char** pszArgv)
 	int iPort3 = std::atoi(pszArgv[4]);
 	int iPort4 = std::atoi(pszArgv[5]);
 	int iPort5 = std::atoi(pszArgv[6]);
+  int iPort6 = std::atoi(pszArgv[7]);
 
 	char *ptr;
-  unsigned long long iTickSz1 = factor * strtod(pszArgv[7] , &ptr); printf("iTickSz: %llu\n", iTickSz1);
-  unsigned long long iTickSz2 = factor * strtod(pszArgv[8] , &ptr); printf("iTickSz: %llu\n", iTickSz2);
-  unsigned long long iTickSz3 = factor * strtod(pszArgv[9] , &ptr); printf("iTickSz: %llu\n", iTickSz3);
-  unsigned long long iTickSz4 = factor * strtod(pszArgv[10], &ptr); printf("iTickSz: %llu\n", iTickSz4);
-  unsigned long long iTickSz5 = factor * strtod(pszArgv[11], &ptr); printf("iTickSz: %llu\n", iTickSz5);
+  unsigned long long iTickSz1 = factor * strtod(pszArgv[8] , &ptr); printf("iTickSz: %llu\n", iTickSz1);
+  unsigned long long iTickSz2 = factor * strtod(pszArgv[9] , &ptr); printf("iTickSz: %llu\n", iTickSz2);
+  unsigned long long iTickSz3 = factor * strtod(pszArgv[10] ,&ptr); printf("iTickSz: %llu\n", iTickSz3);
+  unsigned long long iTickSz4 = factor * strtod(pszArgv[11], &ptr); printf("iTickSz: %llu\n", iTickSz4);
+  unsigned long long iTickSz5 = factor * strtod(pszArgv[12], &ptr); printf("iTickSz: %llu\n", iTickSz5);
+  unsigned long long iTickSz6 = factor * strtod(pszArgv[13], &ptr); printf("iTickSz: %llu\n", iTickSz6);
   fflush(stdout);
 
 	if (iPort1 < 1 || iPort1 > 65535)
@@ -59,16 +60,19 @@ int main(int iArgc, char** pszArgv)
 	auto sPort3 = static_cast<unsigned short int>(iPort3);
 	auto sPort4 = static_cast<unsigned short int>(iPort4);
 	auto sPort5 = static_cast<unsigned short int>(iPort5);
+  auto sPort6 = static_cast<unsigned short int>(iPort6);
 	matching_tcp_service s1(iTickSz1, sPort1);
 	matching_tcp_service s2(iTickSz2, sPort2);
 	matching_tcp_service s3(iTickSz3, sPort3);
 	matching_tcp_service s4(iTickSz4, sPort4);
 	matching_tcp_service s5(iTickSz5, sPort5);
-	auto& ABook = s1.get_engine();
-	auto& BBook = s2.get_engine();
+  matching_tcp_service s6(iTickSz5, sPort6);
+	auto& ABook  = s1.get_engine();
+	auto& BBook  = s2.get_engine();
 	auto& Spread = s3.get_engine();
-	auto& Spot = s4.get_engine();
-	auto& Repo = s5.get_engine();
+	auto& Spot   = s4.get_engine();
+	auto& Repo   = s5.get_engine();
+  auto& Flex   = s6.get_engine();
 	matching::implied_spread_in_bid spread_bid_implier(1, &ABook, &BBook);
 	matching::implied_spread_in_ask spread_ask_implier(1, &ABook, &BBook);
 	matching::implied_spread_a_out_bid a_bid_implier(1, &Spread, &BBook);
@@ -92,6 +96,7 @@ int main(int iArgc, char** pszArgv)
 		s3.run();
 		s4.run();
 		s5.run();
+    s6.run();
 	}
 	return 0;
 }
