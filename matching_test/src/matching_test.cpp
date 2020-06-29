@@ -394,7 +394,6 @@ void implied_test_md_tick_size()
             June_Book.handle_outright(odr);
             March_Book.handle_b(odr);
             Spread_Book.handle_b(odr);
-
           },
           june_tick_size
       );
@@ -425,26 +424,28 @@ void implied_test_md_tick_size()
 
   o.side = matching::order::order_side::BUY;   // Maker remain qty overflow
   o.client_order_id = 2;
-  o.price            =   905100000000;
+  o.price            =   905111111111;
+  //o.price          =   905100000000;
   o.quantity         =   200;
   o.display_quantity =   200;
-  June.handle(o);
+  March.handle(o);
 
   o.side = matching::order::order_side::SELL;   // Maker remain qty overflow
   o.client_order_id = 3;
-  o.price            =   900100000000;
+  o.price            =   900199999999;
+  //o.price          =   900100000000;
   o.quantity         =   300;
   o.display_quantity =   300;
   o.time_condition   = matching::order::MAKER_ONLY_REPRICE;
   June.handle(o);
 
-  o.side = matching::order::order_side::BUY;   // Maker remain qty overflow
+  o.side = matching::order::order_side::SELL;   // Maker remain qty overflow
   o.client_order_id = 4;
   o.price            =   900;
   o.quantity         =   400;
   o.display_quantity =   400;
   o.time_condition   = matching::order::MAKER_ONLY_REPRICE;
-  June.handle(o);
+  Spread.handle(o);
 
 }
 
