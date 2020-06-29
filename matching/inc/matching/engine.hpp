@@ -1125,7 +1125,7 @@ namespace matching
 			}
 			else if (order::order_side::BUY_STOP == o.side)
 			{
-				o.price = 0;
+				o.price = order::STOP_PRICE;
 				auto best_a = best_ask();
 				if (order::order_type::MARKET == o.type)
 				{
@@ -1180,7 +1180,7 @@ namespace matching
 			}
 			else if (order::order_side::SELL_STOP == o.side)
 			{
-				o.price = 0;
+				o.price = order::STOP_PRICE;
 				auto best_b = best_bid();
 				if (order::order_type::MARKET == o.type)
 				{
@@ -1235,7 +1235,7 @@ namespace matching
 			}
 			else if (order::order_side::BUY_SELL_STOP == o.side)
 			{
-				o.price = 0;
+				o.price = order::STOP_PRICE;
 				auto best_a = best_ask();
 				auto best_b = best_bid();
 				if (order::order_type::MARKET == o.type)
@@ -1399,7 +1399,7 @@ namespace matching
 			}
 			else if (order::order_side::BUY_STOP == ori_odr.side)
 			{
-				if (0 == ori_odr.price)
+				if (order::STOP_PRICE == ori_odr.price)
 				{
 					erase_buy_stop(ori_odr);
 				}
@@ -1420,7 +1420,7 @@ namespace matching
 			}
 			else if (order::order_side::SELL_STOP == ori_odr.side)
 			{
-				if (0 == ori_odr.price)
+				if (order::STOP_PRICE == ori_odr.price)
 				{
 					erase_sell_stop(ori_odr);
 				}
@@ -1441,7 +1441,7 @@ namespace matching
 			}
 			else
 			{
-				if (0 == ori_odr.price)
+				if (order::STOP_PRICE == ori_odr.price)
 				{
 					erase_buy_stop(ori_odr);
 					erase_sell_stop(ori_odr);

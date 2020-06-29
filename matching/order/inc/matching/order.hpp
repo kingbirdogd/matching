@@ -10,6 +10,7 @@ namespace matching
 	{
 	public:
 		const static long long MARKET_PRICE = std::numeric_limits<long long>::max();
+		const static long long STOP_PRICE = std::numeric_limits<long long>::min();
 	public:
 		enum order_side : unsigned char
 		{
