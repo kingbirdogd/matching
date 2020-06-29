@@ -46,7 +46,7 @@ book_item basic_book::reduce_ask_quantity(long long price, unsigned long long qu
 
 book_item basic_book::handle_odr(const matching::order& odr)
 {
-	if (matching::order::order_side::BUY != odr.side && matching::order::order_side::SELL != odr.side)
+	if (matching::order::STOP_PRICE == odr.price)
 		return book_item();
 	else
 	{
