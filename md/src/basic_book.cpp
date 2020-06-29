@@ -46,9 +46,9 @@ book_item basic_book::reduce_ask_quantity(long long price, unsigned long long qu
 
 book_item basic_book::handle_odr(const matching::order& odr)
 {
-	if (0 == odr.price)
-		return book_item();
-	else
+//	if (0 == odr.price)
+//		return book_item();
+//	else
 	{
 		auto calc_remain_quantity = odr.remain_quantity;
 		if (matching::order::order_status_type::OPEN != odr.order_state
