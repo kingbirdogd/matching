@@ -24,11 +24,11 @@ aliyun_dev_prefix = 'persistent://CF-V2/PRETRADE-ME'
 aliyun_test_url = '172.21.21.221:6650'
 
 # ==== Change the following as you need ====
-host_url = aliyun_dev_url
-topic_prefix = aliyun_dev_prefix
+host_url = local_url
+topic_prefix = local_topic_prefix
 
 #market_id = '2001031000000'
-market_id = '2001021200626'  #Perp
+market_id = '2001021200626'  # Quarterly Futures
 name = 'peter'
 # ==========================================
 
@@ -58,10 +58,10 @@ co.OrderAddPrice(builder, 102000000)
 co.OrderAddQuantity(builder, 20000000)
 co.OrderAddDisplayQuantity(builder, 20000000)
 
-#co.OrderAddOrderId(builder,160041423495855872)
+co.OrderAddOrderId(builder,160048318485855872)
 #co.OrderAddOrderAction(builder, CoinflexV2.order_action_type.order_action_type.AMEND)
-co.OrderAddOrderAction(builder, CoinflexV2.order_action_type.order_action_type.NEW)
-#co.OrderAddOrderAction(builder, CoinflexV2.order_action_type.order_action_type.CANCEL)
+#co.OrderAddOrderAction(builder, CoinflexV2.order_action_type.order_action_type.NEW)
+co.OrderAddOrderAction(builder, CoinflexV2.order_action_type.order_action_type.CANCEL)
 
 co.OrderAddClientOrderId(builder, 1322)
 co.OrderAddSide(builder, CoinflexV2.order_side.order_side.BUY)
@@ -86,7 +86,6 @@ while True:
     except Exception as e:
         print("Failed to send message: %s", e)
     producer.flush()
-    #break
     time.sleep(1)
-
+    break
 producer.close()

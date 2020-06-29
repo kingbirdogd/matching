@@ -1153,8 +1153,8 @@ void auction_test_auction_sell5() {   // FULL FILLED, last match price set to 0
 
 void test_reprice1() {
   printf("====== %s ======\n", __FUNCTION__);
-  unsigned long long factor  = 10000000;
-  unsigned long long tick_sz = 1;
+  unsigned long long factor  = 100000000;
+  double tick_sz = 0.1;
   matching::order output_order;
   matching::engine e([&](const matching::order& o) { handle_order(o);output_order = o; }, factor*tick_sz);
   matching::order o;

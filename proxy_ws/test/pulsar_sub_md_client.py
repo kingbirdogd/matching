@@ -13,6 +13,7 @@ aliyuen_dev_prefix = 'persistent://CF-V2/ME-WS'
 local_url       = 'localhost:6650'
 aliyuen_dev_url = "172.21.21.79:6650"
 aliyun_test_url = '172.21.21.221:6650'
+
 aliyun_stg_url  = '172.42.13.79:6650'
 
 # ==== Change the following as you need ====
