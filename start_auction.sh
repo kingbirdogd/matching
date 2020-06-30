@@ -1,8 +1,24 @@
 #~/bin/bash
 
+if [ "$#" -ne 10 ]; then
+    echo "./auction_tcp_matching_client 127.0.0.1 MARKETPORT QTYFACTOR PXFACTOR ACCOUNTID MARKETID QTY PX SIDE BUY_UPPER_BAND SELL_LOWER_BAND"
+    exit 2
+fi
+
+MARKETPORT=$1
+QTYFACTOR=$2
+PXFACTOR=$3
+ACCOUNTID=$4
+MARKETID=$5
+QTY=$6
+PX=$7  # ARBITRARILY BIG INTEGER
+SIDE=$8
+BUY_UPPER_BAND=$9   # +1%
+SELL_LOWER_BAND=${10} # -1%
+
 #MARKETPORT=34675
-#PXFACTOR=100000000
 #QTYFACTOR=100000000
+#PXFACTOR=100000000
 #ACCOUNTID=9999999992
 #MARKETID=2001031000000
 #QTY=2000
@@ -11,9 +27,9 @@
 #BUY_UPPER_BAND=1000000   # +1%
 #SELL_LOWER_BAND=-1000000 # -1%
 
-# ==== Pause Receiving Orders ====
-echo "Pause Receiving Orders"
-sudo kill -s SIGUSR1 `pgrep -f "pulsar_proxy.*ORDER-IN-$MARKETID"`
+## ==== Pause Receiving Orders ====
+#echo "Pause Receiving Orders"
+#sudo kill -s SIGUSR1 `pgrep -f "pulsar_proxy.*ORDER-IN-$MARKETID"`
 
 echo "MARKETPORT=$MARKETPORT"
 echo "PXFACTOR=$PXFACTOR"
@@ -28,8 +44,8 @@ echo "SELL_LOWER_BAND=$SELL_LOWER_BAND"
 
 ./auction_tcp_matching_client 127.0.0.1 $MARKETPORT $QTYFACTOR $PXFACTOR $ACCOUNTID $MARKETID $QTY $PX $SIDE $BUY_UPPER_BAND $SELL_LOWER_BAND
 
-sleep 6
-
-# ==== Resume Receiving Orders ====
-echo "Resume Receiving Orders"
-sudo kill -s SIGUSR1 `pgrep -f "pulsar_proxy.*ORDER-IN-$MARKETID"`
+#sleep 6
+#
+## ==== Resume Receiving Orders ====
+#echo "Resume Receiving Orders"
+#sudo kill -s SIGUSR1 `pgrep -f "pulsar_proxy.*ORDER-IN-$MARKETID"`
