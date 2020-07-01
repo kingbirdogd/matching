@@ -96,6 +96,7 @@ namespace matching
 		order_status_type order_state;
 		order_matched_type matched_type;
     unsigned long long timestamp_epoch_ms;
+    unsigned long long request_id;
 	private:
 		inline unsigned int _get_flag_value() const
 		{
@@ -127,7 +128,8 @@ namespace matching
 			order_action(order_action_type::NEW),
 			order_state(order_status_type::OPEN),
 			matched_type(order_matched_type::MAKER),
-      timestamp_epoch_ms(0)
+      timestamp_epoch_ms(0),
+      request_id(0)
 		{
 		}
 		order(const order&) = default;
