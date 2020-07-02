@@ -1,5 +1,5 @@
 add_executable(zmq_proxy zmq_proxy.cpp)
 target_include_directories(zmq_proxy PUBLIC ${CMAKE_SOURCE_DIR}/coinflex_v2_common)
 target_link_directories(zmq_proxy PUBLIC $ENV{HOME}/usr/local/lib $ENV{HOME}/usr/local/lib64)
-target_link_libraries(zmq_proxy matching_tcp_client tcp_client pthread zmq)
+target_link_libraries(zmq_proxy matching_tcp_client tcp_client pthread zmq stdc++)
 install(TARGETS zmq_proxy DESTINATION ${CMAKE_INSTALL_PREFIX})
