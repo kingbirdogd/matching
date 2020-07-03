@@ -2,9 +2,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(ENV{PKG_CONFIG_PATH} "$ENV{HOME}/usr/local/lib64/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 
 add_executable(proxy_md_pulsar proxy_lws.cpp ./transceiver.cpp ./workqueue.cpp
-               proxy_lws_protocol.hpp Uplink.cpp Client.cpp ./core.cpp
+               #proxy_lws_protocol.hpp
+               Uplink.cpp
+               Client.cpp
+               ./core.cpp
                OrderBook.cpp
-               proxy_lws_utils.cpp proxy_lws_protocol.cpp)
+               #proxy_lws_utils.cpp
+               #proxy_lws_protocol.cpp
+        )
 target_compile_definitions(proxy_md_pulsar PRIVATE VERSION="${VERSION}")
 target_include_directories(proxy_md_pulsar PUBLIC
         ${CMAKE_SOURCE_DIR}/matching/order/inc/
@@ -15,7 +20,9 @@ target_include_directories(proxy_md_pulsar PUBLIC
         )
 target_link_directories(proxy_md_pulsar PUBLIC $ENV{HOME}/usr/local/lib64 $ENV{HOME}/usr/local/lib)
 target_link_libraries(proxy_md_pulsar common pthread gmp websockets ssl
-                      crypto glog folly dl double-conversion flatbuffers pulsar)
+                      crypto glog dl double-conversion flatbuffers pulsarwithdeps z curl
+                      protobuf-lite
+        )
 # tcmalloc_minimal
 install(TARGETS proxy_md_pulsar DESTINATION ${CMAKE_INSTALL_PREFIX})
 

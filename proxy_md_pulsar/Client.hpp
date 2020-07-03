@@ -18,14 +18,14 @@
 #include "Uplink.hpp"
 #include "proxy_lws_utils.hpp"
 #include "libwebsockets.h"
-#include "proxy_lws_struct.hpp"
+//#include "proxy_lws_struct.hpp"
 //#include "contrib/concurrentqueue/concurrentqueue.h"
 #include <shared_mutex>
 #include <list>
 #include <set>
 #include <thread>
 #include <sys/ioctl.h>
-#include "folly/concurrency/UnboundedQueue.h"
+//#include "folly/concurrency/UnboundedQueue.h"
 
 extern Log elog;
 //using namespace moodycamel;
@@ -53,7 +53,7 @@ class Client : public Selectable, public WorkQueue { //, public std::enable_shar
     static std::multimap<id_t, Client *> users_clients;
 
   public:
-    folly::UMPSCQueue<json::Object, true, 10>  reply_queue;
+    //folly::UMPSCQueue<json::Object, true, 10>  reply_queue;
     //ConcurrentQueue<                json::Object>  reply_queue;
     //ConcurrentQueue<std::shared_ptr<std::string_view>> broadcast_queue;
     struct per_vhost_data__minimal *vhd;
@@ -165,8 +165,8 @@ class Client : public Selectable, public WorkQueue { //, public std::enable_shar
           if (elog.debug()) elog.debug() << std::hex << "enqueuing wsi " <<  itr->second->wsi << std::endl;
           //itr->second->reply_queue.enqueue(itr->second->ptok,msg);
           //itr->second->vhd->wsi_queue.enqueue(itr->second->ptok,itr->second->wsi);
-          itr->second->reply_queue.enqueue(msg);
-          itr->second->vhd->wsi_queue->enqueue(itr->second->wsi);
+          //itr->second->reply_queue.enqueue(msg);
+          //itr->second->vhd->wsi_queue->enqueue(itr->second->wsi);
           lws_cancel_service(lws_get_context(itr->second->wsi));
           //lws_cancel_service(itr->second->vhd->context);
           //lws_callback_on_writable(itr->second->wsi);
@@ -218,8 +218,8 @@ class Client : public Selectable, public WorkQueue { //, public std::enable_shar
             if (elog.debug()) elog.debug() << std::hex << "enqueuing wsi " <<  client_ptr->wsi << std::endl;
 //            client_ptr->reply_queue.enqueue(client_ptr->ptok,msg);
 //            client_ptr->vhd->wsi_queue.enqueue(client_ptr->ptok,client_ptr->wsi);
-            client_ptr->reply_queue.enqueue(msg);
-            client_ptr->vhd->wsi_queue->enqueue(client_ptr->wsi);
+            //client_ptr->reply_queue.enqueue(msg);
+            //client_ptr->vhd->wsi_queue->enqueue(client_ptr->wsi);
             lws_cancel_service(lws_get_context(client_ptr->wsi));
             //lws_cancel_service(client_ptr->vhd->context);
             //lws_callback_on_writable(client_ptr->wsi);
@@ -235,11 +235,11 @@ class Client : public Selectable, public WorkQueue { //, public std::enable_shar
         try {
           if (!client_ptr->wsi) continue;
           if (elog.debug()) elog.debug() << std::hex << "enqueuing wsi " <<  client_ptr->wsi << std::endl;
-          if (client_ptr->snapshot_sent)
-            client_ptr->reply_queue.enqueue(delta);
-          else
-            client_ptr->reply_queue.enqueue(snapshot);
-          client_ptr->vhd->wsi_queue->enqueue(client_ptr->wsi);
+          //if (client_ptr->snapshot_sent)
+            //client_ptr->reply_queue.enqueue(delta);
+          //else
+            //client_ptr->reply_queue.enqueue(snapshot);
+          //lient_ptr->vhd->wsi_queue->enqueue(client_ptr->wsi);
           lws_cancel_service(lws_get_context(client_ptr->wsi));
           client_ptr->snapshot_sent = true;
         }
@@ -257,8 +257,8 @@ class Client : public Selectable, public WorkQueue { //, public std::enable_shar
             if (elog.debug()) elog.debug() << std::hex << "enqueuing wsi " <<  client_ptr->wsi << std::endl;
 //            client_ptr->reply_queue.enqueue(client_ptr->ptok,msg);
 //            client_ptr->vhd->wsi_queue.enqueue(client_ptr->ptok,client_ptr->wsi);
-            client_ptr->reply_queue.enqueue(msg);
-            client_ptr->vhd->wsi_queue->enqueue(client_ptr->wsi);
+            //client_ptr->reply_queue.enqueue(msg);
+            //client_ptr->vhd->wsi_queue->enqueue(client_ptr->wsi);
             lws_cancel_service(lws_get_context(client_ptr->wsi));
             //lws_cancel_service(client_ptr->vhd->context);
             //lws_callback_on_writable(client_ptr->wsi);
@@ -278,8 +278,8 @@ class Client : public Selectable, public WorkQueue { //, public std::enable_shar
             if (elog.debug()) elog.debug() << std::hex << "enqueuing wsi " <<  client_ptr->wsi << std::endl;
 //            client_ptr->reply_queue.enqueue(client_ptr->ptok,msg);
 //            client_ptr->vhd->wsi_queue.enqueue(client_ptr->ptok,client_ptr->wsi);
-            client_ptr->reply_queue.enqueue(msg);
-            client_ptr->vhd->wsi_queue->enqueue(client_ptr->wsi);
+            //client_ptr->reply_queue.enqueue(msg);
+            //client_ptr->vhd->wsi_queue->enqueue(client_ptr->wsi);
             lws_cancel_service(lws_get_context(client_ptr->wsi));
             //lws_cancel_service(client_ptr->vhd->context);
             //lws_callback_on_writable(client_ptr->wsi);
@@ -552,8 +552,8 @@ class Client : public Selectable, public WorkQueue { //, public std::enable_shar
     void send_message(const json::Object &msg) {
       if (!wsi) return;
       if (elog.debug()) elog.debug() << std::hex << "enqueuing wsi " << wsi << std::endl;
-      reply_queue.enqueue(msg);
-      vhd->wsi_queue->enqueue(wsi);
+      //reply_queue.enqueue(msg);
+      //vhd->wsi_queue->enqueue(wsi);
 //      if (elog.debug_enabled()) {
 //        elog.debug() << "Calling lws_cancel_service" << std::endl;
 //      }

@@ -1,5 +1,5 @@
 add_executable(pulsar_proxy pulsar_proxy.cpp)
 target_include_directories(pulsar_proxy PUBLIC ${CMAKE_SOURCE_DIR}/coinflex_v2_common ${CMAKE_SOURCE_DIR}/pulsar ${CMAKE_SOURCE_DIR})
 target_link_directories(pulsar_proxy PUBLIC $ENV{HOME}/usr/local/lib $ENV{HOME}/usr/local/lib64)
-target_link_libraries(pulsar_proxy matching_tcp_client tcp_client pthread pulsar common)
+target_link_libraries(pulsar_proxy matching_tcp_client tcp_client pthread common pulsarwithdeps ssl crypto dl z curl protobuf-lite)
 install(TARGETS pulsar_proxy DESTINATION ${CMAKE_INSTALL_PREFIX})
