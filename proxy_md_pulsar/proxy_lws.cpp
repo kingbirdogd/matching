@@ -239,6 +239,9 @@ int main(int argc, const char **argv)
   }
   std::thread(&Selectable::pump, std::ref(selector_out)).detach();
   std::thread(&decltype(proxy::scheduler)::run, std::ref(proxy::scheduler)).detach();
+  while (true) {
+    sleep(1);
+  }
 
 //  // ==== libwebsocket setup ====
 //  struct lws_context_creation_info info;
