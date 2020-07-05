@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+if [ -f /etc/crontab ]; then
+  crontab /etc/crontab
+fi
 
 # aliyun-test: 172.21.21.221:6650
 # aliyun-dev : 172.21.11.79:6650
