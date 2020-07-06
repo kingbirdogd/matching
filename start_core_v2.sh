@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 if [ -f /etc/crontab ]; then
+  crond
   crontab /etc/crontab
 fi
 
