@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8.11)
+cmake_minimum_required (VERSION 3.13)
 set(CMAKE_CXX_STANDARD 17)
 
 set(VERSION dev)
@@ -34,7 +34,7 @@ add_subdirectory(net)
 
 #add_subdirectory(proxy_ws)
 #add_subdirectory(proxy_md_ws)
-add_subdirectory(zmq_proxy)
+#add_subdirectory(zmq_proxy)
 
 #add_subdirectory(test_tcp_matching_client)
 add_subdirectory(auction_tcp_matching_client)

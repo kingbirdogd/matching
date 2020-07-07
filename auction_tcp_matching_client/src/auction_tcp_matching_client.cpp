@@ -203,11 +203,11 @@ int main(int iArgc, char** pszArgv)
   unsigned long long px_factor  = strtoull(pszArgv[4], nullptr, 10);
 	unsigned long long account_id = strtoull(pszArgv[5], nullptr, 10);
   unsigned long long market_id  = strtoull(pszArgv[6], nullptr, 10);
-  double             qty        = strtod(  pszArgv[7], nullptr, 10);
-  double             px         = strtod(  pszArgv[8], nullptr, 10);
+  double             qty        = strtod(  pszArgv[7], nullptr);
+  double             px         = strtod(  pszArgv[8], nullptr);
   matching::order::order_side side = (strcmp(pszArgv[9], "SELL") == 0) ? matching::order::order_side::SELL : matching::order::order_side::BUY;
-  long long buy_upper_band  = strtoll(pszArgv[10], nullptr, 10);
-  long long sell_lower_band = strtoll(pszArgv[11], nullptr, 10);
+  long long buy_upper_band  = strtod(pszArgv[10], nullptr);
+  long long sell_lower_band = strtod(pszArgv[11], nullptr);
 
   matching_tcp_client c(host, sPort);
 	c.set_connected([&]()
