@@ -206,8 +206,8 @@ int main(int iArgc, char** pszArgv)
   double             qty        = strtod(  pszArgv[7], nullptr);
   double             px         = strtod(  pszArgv[8], nullptr);
   matching::order::order_side side = (strcmp(pszArgv[9], "SELL") == 0) ? matching::order::order_side::SELL : matching::order::order_side::BUY;
-  long long buy_upper_band  = strtod(pszArgv[10], nullptr);
-  long long sell_lower_band = strtod(pszArgv[11], nullptr);
+  double buy_upper_band  = strtod(pszArgv[10], nullptr);
+  double sell_lower_band = strtod(pszArgv[11], nullptr);
 
   matching_tcp_client c(host, sPort);
 	c.set_connected([&]()
