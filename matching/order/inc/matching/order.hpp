@@ -29,7 +29,11 @@ namespace matching
 		{
 			NEW = 0x00,
 			AMEND = 0x01,
-			CANCEL = 0x02
+			CANCEL = 0x02,
+			DUMP = 0x03,
+			DUMP_END = 0x04,
+			INSERT_NEW = 0x05,
+			INSERT_AMEND = 0x06
 		};
 		enum order_time_condition : unsigned char
 		{

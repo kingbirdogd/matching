@@ -344,7 +344,7 @@ void implied_test_md_tick_size()
   md::md_book March_Book
       (
           //handle_md,
-          [](const md::book_item& item){},
+          [](const md::book_item&){},
           march_tick_size,
           md::md_book::implier_type::a_bid_b_bid,
           md::md_book::implier_type::a_ask_b_ask,
@@ -369,7 +369,7 @@ void implied_test_md_tick_size()
   md::md_book Spread_Book
       (
           //handle_md,
-          [](const md::book_item& item){},
+          [](const md::book_item&){},
           spread_tick_size,
           md::md_book::implier_type::a_bid_b_ask,
           md::md_book::implier_type::a_ask_b_bid,
