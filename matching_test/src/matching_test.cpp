@@ -452,8 +452,8 @@ void implied_test_md_tick_size()
   June.handle(o);
 
   o.side = matching::order::order_side::SELL;   // Maker remain qty overflow
-  o.client_order_id = 3;
-  o.price            =   960199999999;
+  o.client_order_id = 5;
+  o.price            =   960100000000;
   o.quantity         =   300;
   o.display_quantity =   300;
   o.time_condition   = matching::order::MAKER_ONLY_REPRICE;
