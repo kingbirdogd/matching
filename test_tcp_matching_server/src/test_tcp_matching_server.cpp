@@ -66,7 +66,7 @@ int main(int iArgc, char** pszArgv)
 	matching_tcp_service s3(iTickSz3, sPort3);
 	matching_tcp_service s4(iTickSz4, sPort4);
 	matching_tcp_service s5(iTickSz5, sPort5);
-  matching_tcp_service s6(iTickSz5, sPort6);
+  matching_tcp_service s6(iTickSz6, sPort6);
 	auto& ABook  = s1.get_engine();
 	auto& BBook  = s2.get_engine();
 	auto& Spread = s3.get_engine();
