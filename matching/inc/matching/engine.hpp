@@ -836,7 +836,7 @@ namespace matching
 		matcher _ask_book_matcher;
 		callback_records _cb_records;
 		callback_type _callback;
-		unsigned long long _mini_tick;
+		long long _mini_tick;
 		bool _is_auction;
 	public:
 		inline static void set_node_id(unsigned long long node_id)
@@ -1524,7 +1524,7 @@ namespace matching
 			}
 		}
 	public:
-		engine(callback_type&& callback, unsigned long long mini_tick = 1):
+		engine(callback_type&& callback, long long mini_tick = 1):
 			_mutex(),
 			_mutex_set(),
 			_odr_map(),

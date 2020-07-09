@@ -11,7 +11,7 @@ public:
 	{
 	}
 	virtual ~implier() = default;
-	virtual long long matchd_price(long long leg1_price, long long leg2_price, unsigned long long mini_tick) = 0;
+	virtual long long matchd_price(long long leg1_price, long long leg2_price, long long mini_tick) = 0;
 };
 
 

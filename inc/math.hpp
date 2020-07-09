@@ -1,7 +1,7 @@
 #ifndef INC_MATH_HPP_
 #define INC_MATH_HPP_
 
-inline long long round_down(long long price, unsigned long long mini_tick)
+inline long long round_down(long long price, long long mini_tick)
 {
 	long long mod = price % mini_tick;
 	if (mod >= 0)
@@ -10,7 +10,7 @@ inline long long round_down(long long price, unsigned long long mini_tick)
 		return price - mod - mini_tick;
 }
 
-inline long long round_up(long long price, unsigned long long mini_tick)
+inline long long round_up(long long price, long long mini_tick)
 {
 	long long mod = price % mini_tick;
 	if (mod == 0)
