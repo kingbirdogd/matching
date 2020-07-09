@@ -16,7 +16,7 @@ namespace md
 		long long price;
 		unsigned long long quantity;
 		book_side side;
-    unsigned long long market_id ;
+		unsigned long long market_id;
 		book_item():
 			price(0),
 			quantity(0),

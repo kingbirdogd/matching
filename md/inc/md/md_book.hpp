@@ -22,7 +22,7 @@ namespace md
 		};
 	private:
 		callback cb;
-		unsigned long long mini_tick;
+		long long mini_tick;
 		basic_book outright;
 		basic_book::bid_book implied_bid;
 		basic_book::ask_book implied_ask;
@@ -36,7 +36,7 @@ namespace md
 		md_book
 		(
 			callback&& c,
-			unsigned long long mtick = 1,
+			long long mtick = 1,
 			implier_type bt = implier_type::a_bid_b_bid,
 			implier_type at = implier_type::a_bid_b_bid,
 			implier* bi = nullptr,

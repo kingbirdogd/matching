@@ -836,7 +836,7 @@ namespace matching
 		matcher _ask_book_matcher;
 		callback_records _cb_records;
 		callback_type _callback;
-		unsigned long long _mini_tick;
+		long long _mini_tick;
 		bool _is_auction;
 	public:
 		inline static void set_node_id(unsigned long long node_id)
@@ -1524,7 +1524,7 @@ namespace matching
 			}
 		}
 	public:
-		engine(callback_type&& callback, unsigned long long mini_tick = 1):
+		engine(callback_type&& callback, long long mini_tick = 1):
 			_mutex(),
 			_mutex_set(),
 			_odr_map(),
@@ -1629,6 +1629,59 @@ namespace matching
 			else if (order::order_action_type::AMEND == o.order_action)
 			{
 				handle_amend(o);
+			}
+			else if (order::order_action_type::DUMP == o.order_action)
+			{
+				for (const auto& item: _odr_map)
+				{
+					auto out_odr = item.second;
+					if (order::order_action_type::NEW == out_odr.order_action)
+					{
+						out_odr.order_action = order::order_action_type::INSERT_NEW;
+					}
+					else if (order::order_action_type::AMEND == out_odr.order_action)
+					{
+						out_odr.order_action = order::order_action_type::INSERT_AMEND;
+					}
+					_callback(out_odr);
+				}
+				order end_odr;
+				end_odr.order_action = order::order_action_type::DUMP_END;
+				_callback(end_odr);
+			}
+			else
+			{
+				if (order::order_action_type::INSERT_NEW == o.order_action)
+				{
+					o.order_action = order::order_action_type::NEW;
+				}
+				else if (order::order_action_type::INSERT_AMEND == o.order_action)
+				{
+					o.order_action = order::order_action_type::AMEND;
+				}
+				if (order::order_side::BUY == o.side)
+				{
+					_bid_book[o.price][o.order_id] = &((_odr_map.emplace(o.order_id, o).first)->second);
+				}
+				else if (order::order_side::SELL == o.side)
+				{
+					_ask_book[o.price][o.order_id] = &((_odr_map.emplace(o.order_id, o).first)->second);
+				}
+				else if (order::order_side::BUY_STOP == o.side)
+				{
+					_bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+				}
+				else if (order::order_side::SELL_STOP == o.side)
+				{
+					_bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+				}
+				else if (order::order_side::BUY_SELL_STOP == o.side)
+				{
+					auto ptr = &((_odr_map.emplace(o.order_id, o).first)->second);
+					_bid_stop_book[o.buy_stop_trigger_price].insert(ptr);
+					_ask_stop_book[o.sell_stop_trigger_price].insert(ptr);
+				}
+				_callback(o);
 			}
 			if (_is_auction)
 			{

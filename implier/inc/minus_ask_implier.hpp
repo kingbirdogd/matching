@@ -12,7 +12,7 @@ public:
 	{
 	}
 	virtual ~minus_ask_implier() = default;
-	virtual long long matchd_price(long long leg1_price, long long leg2_price, unsigned long long mini_tick)
+	virtual long long matchd_price(long long leg1_price, long long leg2_price, long long mini_tick)
 	{
 		return round_up(leg1_price - leg2_price + 2 * _pips, mini_tick);
 	}

@@ -16,7 +16,7 @@ public:
 	{
 	}
 	virtual ~repo_out_bid_implier() = default;
-	virtual long long matchd_price(long long leg1_price, long long leg2_price, unsigned long long mini_tick)
+	virtual long long matchd_price(long long leg1_price, long long leg2_price, long long mini_tick)
 	{
 		return round_down(leg1_price * (double(factor_) + leg2_price) / factor_ -  2 * _pips, mini_tick);
 	}
