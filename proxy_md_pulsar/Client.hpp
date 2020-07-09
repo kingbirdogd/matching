@@ -16,8 +16,8 @@
 //#include "Book.hpp"
 #include "User.hpp"
 #include "Uplink.hpp"
-#include "proxy_lws_utils.hpp"
-#include "libwebsockets.h"
+//#include "proxy_lws_utils.hpp"
+//#include "libwebsockets.h"
 //#include "proxy_lws_struct.hpp"
 //#include "contrib/concurrentqueue/concurrentqueue.h"
 #include <shared_mutex>
@@ -167,7 +167,7 @@ class Client : public Selectable, public WorkQueue { //, public std::enable_shar
           //itr->second->vhd->wsi_queue.enqueue(itr->second->ptok,itr->second->wsi);
           //itr->second->reply_queue.enqueue(msg);
           //itr->second->vhd->wsi_queue->enqueue(itr->second->wsi);
-          lws_cancel_service(lws_get_context(itr->second->wsi));
+          //lws_cancel_service(lws_get_context(itr->second->wsi));
           //lws_cancel_service(itr->second->vhd->context);
           //lws_callback_on_writable(itr->second->wsi);
         }
@@ -220,7 +220,7 @@ class Client : public Selectable, public WorkQueue { //, public std::enable_shar
 //            client_ptr->vhd->wsi_queue.enqueue(client_ptr->ptok,client_ptr->wsi);
             //client_ptr->reply_queue.enqueue(msg);
             //client_ptr->vhd->wsi_queue->enqueue(client_ptr->wsi);
-            lws_cancel_service(lws_get_context(client_ptr->wsi));
+            //lws_cancel_service(lws_get_context(client_ptr->wsi));
             //lws_cancel_service(client_ptr->vhd->context);
             //lws_callback_on_writable(client_ptr->wsi);
         }
@@ -240,7 +240,7 @@ class Client : public Selectable, public WorkQueue { //, public std::enable_shar
           //else
             //client_ptr->reply_queue.enqueue(snapshot);
           //lient_ptr->vhd->wsi_queue->enqueue(client_ptr->wsi);
-          lws_cancel_service(lws_get_context(client_ptr->wsi));
+          //lws_cancel_service(lws_get_context(client_ptr->wsi));
           client_ptr->snapshot_sent = true;
         }
         catch (...) {
@@ -259,7 +259,7 @@ class Client : public Selectable, public WorkQueue { //, public std::enable_shar
 //            client_ptr->vhd->wsi_queue.enqueue(client_ptr->ptok,client_ptr->wsi);
             //client_ptr->reply_queue.enqueue(msg);
             //client_ptr->vhd->wsi_queue->enqueue(client_ptr->wsi);
-            lws_cancel_service(lws_get_context(client_ptr->wsi));
+            //lws_cancel_service(lws_get_context(client_ptr->wsi));
             //lws_cancel_service(client_ptr->vhd->context);
             //lws_callback_on_writable(client_ptr->wsi);
           }
@@ -280,7 +280,7 @@ class Client : public Selectable, public WorkQueue { //, public std::enable_shar
 //            client_ptr->vhd->wsi_queue.enqueue(client_ptr->ptok,client_ptr->wsi);
             //client_ptr->reply_queue.enqueue(msg);
             //client_ptr->vhd->wsi_queue->enqueue(client_ptr->wsi);
-            lws_cancel_service(lws_get_context(client_ptr->wsi));
+            //lws_cancel_service(lws_get_context(client_ptr->wsi));
             //lws_cancel_service(client_ptr->vhd->context);
             //lws_callback_on_writable(client_ptr->wsi);
           }
@@ -364,7 +364,7 @@ class Client : public Selectable, public WorkQueue { //, public std::enable_shar
           num_queue(num_queue), _ip_address(ip_address),
           _client_connections_map(client_connections_map), _client_connections_map_mutex(client_connections_map_mutex)
           {
-      random_fill(nonce);
+      //random_fill(nonce);
       {
 //        json::Object notice;
 //        notice.insert("notice", json::String("Welcome"));
@@ -557,7 +557,7 @@ class Client : public Selectable, public WorkQueue { //, public std::enable_shar
 //      if (elog.debug_enabled()) {
 //        elog.debug() << "Calling lws_cancel_service" << std::endl;
 //      }
-      lws_cancel_service(lws_get_context(wsi));
+      //lws_cancel_service(lws_get_context(wsi));
       //lws_cancel_service(vhd->context);
       //lws_callback_on_writable(wsi);
     }

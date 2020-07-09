@@ -1,1 +1,1 @@
-1  *  *  *  * logrotate -f /app/logrotate.conf
+1  *  *  *  * logrotate /app/logrotate.conf

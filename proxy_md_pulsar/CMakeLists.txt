@@ -19,9 +19,11 @@ target_include_directories(proxy_md_pulsar PUBLIC
         $ENV{HOME}/usr/local/include
         )
 target_link_directories(proxy_md_pulsar PUBLIC $ENV{HOME}/usr/local/lib64 $ENV{HOME}/usr/local/lib)
-target_link_libraries(proxy_md_pulsar common pthread gmp websockets ssl
+target_link_libraries(proxy_md_pulsar common pthread gmp
+                      #websockets
+                      ssl
                       crypto glog dl double-conversion flatbuffers pulsarwithdeps z curl
-                      protobuf-lite
+                      protobuf-lite protobuf
         )
 # tcmalloc_minimal
 install(TARGETS proxy_md_pulsar DESTINATION ${CMAKE_INSTALL_PREFIX})

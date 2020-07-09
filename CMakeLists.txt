@@ -34,7 +34,7 @@ add_subdirectory(net)
 
 #add_subdirectory(proxy_ws)
 #add_subdirectory(proxy_md_ws)
-#add_subdirectory(zmq_proxy)
+add_subdirectory(zmq_proxy)
 
 #add_subdirectory(test_tcp_matching_client)
 add_subdirectory(auction_tcp_matching_client)
