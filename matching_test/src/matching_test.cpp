@@ -343,8 +343,8 @@ void implied_test_md_tick_size()
   //LONG A(implied OUT, ASK_A) <- (ASK_PRICE_AB + ASK_PRICE_B) @ MIN(ASK_QUANTITY_AB, ASK_QUANTITY_B)
   md::md_book March_Book
       (
-          //handle_md,
-          [](const md::book_item&){},
+          handle_md,
+          //[](const md::book_item&){},
           march_tick_size,
           md::md_book::implier_type::a_bid_b_bid,
           md::md_book::implier_type::a_ask_b_ask,
@@ -368,8 +368,8 @@ void implied_test_md_tick_size()
   //LONG AB (implied IN, ASK_AB) <- (ASK_PRICE_A - BID_PRICE_B) @ MIN(ASK_QUANTITY_A, BID_QUANTITY_B)
   md::md_book Spread_Book
       (
-          //handle_md,
-          [](const md::book_item&){},
+          handle_md,
+          //[](const md::book_item&){},
           spread_tick_size,
           md::md_book::implier_type::a_bid_b_ask,
           md::md_book::implier_type::a_ask_b_bid,
@@ -426,38 +426,36 @@ void implied_test_md_tick_size()
 
   o.side = matching::order::order_side::BUY;   // Maker remain qty overflow
   o.client_order_id = 2;
-  o.price            =   965355117777;
-                       //   777777770;
-  //o.price          =   905100000000;
+  o.price            =   944900000000;
   o.quantity         =   200;
   o.display_quantity =   200;
   March.handle(o);
 
-  o.side = matching::order::order_side::SELL;   // Maker remain qty overflow
-  o.client_order_id = 4;
-  o.price            = 777777770;
-  o.quantity         =   400;
-  o.display_quantity =   400;
-  //o.time_condition   = matching::order::MAKER_ONLY_REPRICE;
-  Spread.handle(o);
+//  o.side = matching::order::order_side::SELL;   // Maker remain qty overflow
+//  o.client_order_id = 4;
+//  o.price            = 777777770;
+//  o.quantity         =   400;
+//  o.display_quantity =   400;
+//  //o.time_condition   = matching::order::MAKER_ONLY_REPRICE;
+//  Spread.handle(o);
 
   std::cout << std::endl;
 
-  o.side = matching::order::order_side::BUY;   // Maker remain qty overflow
+  o.side = matching::order::order_side::SELL;   // Maker remain qty overflow
   o.client_order_id = 3;
-  o.price            =   967199999999;
+  o.price            =   947000000000;
   o.quantity         =   300;
   o.display_quantity =   300;
   o.time_condition   = matching::order::MAKER_ONLY_REPRICE;
   June.handle(o);
 
-  o.side = matching::order::order_side::SELL;   // Maker remain qty overflow
-  o.client_order_id = 5;
-  o.price            =   960100000000;
-  o.quantity         =   300;
-  o.display_quantity =   300;
-  o.time_condition   = matching::order::MAKER_ONLY_REPRICE;
-  June.handle(o);
+//  o.side = matching::order::order_side::SELL;   // Maker remain qty overflow
+//  o.client_order_id = 5;
+//  o.price            =   960100000000;
+//  o.quantity         =   300;
+//  o.display_quantity =   300;
+//  o.time_condition   = matching::order::MAKER_ONLY_REPRICE;
+//  June.handle(o);
 
 }
 
