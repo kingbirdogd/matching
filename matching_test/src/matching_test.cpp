@@ -334,10 +334,10 @@ void implied_test_md_tick_size()
   unsigned long long  spread_tick_size = 100000000;
                                    // 905199990000
                                    // 905100000000
-  add_bid_implier abi(0);
-  add_ask_implier aai(0);
-  minus_bid_implier mbi(0);
-  minus_ask_implier mai(0);
+  add_bid_implier abi(2);
+  add_ask_implier aai(2);
+  minus_bid_implier mbi(2);
+  minus_ask_implier mai(2);
 
   //SHORT A(implied OUT, BID_A) <- (BID_PRICE_AB + BID_PRICE_B) @ MIN(BID_QUANTITY_AB, BID_QUANTITY_B)
   //LONG A(implied OUT, ASK_A) <- (ASK_PRICE_AB + ASK_PRICE_B) @ MIN(ASK_QUANTITY_AB, ASK_QUANTITY_B)
@@ -426,7 +426,7 @@ void implied_test_md_tick_size()
 
   o.side = matching::order::order_side::BUY;   // Maker remain qty overflow
   o.client_order_id = 2;
-  o.price            =   944900000000;
+  o.price            =   930000000000;
   o.quantity         =   200;
   o.display_quantity =   200;
   March.handle(o);
@@ -443,7 +443,7 @@ void implied_test_md_tick_size()
 
   o.side = matching::order::order_side::SELL;   // Maker remain qty overflow
   o.client_order_id = 3;
-  o.price            =   947000000000;
+  o.price            =   950000000000;
   o.quantity         =   300;
   o.display_quantity =   300;
   o.time_condition   = matching::order::MAKER_ONLY_REPRICE;
@@ -1193,13 +1193,13 @@ int main()
 {
   matching::engine e(handle_order);
   matching::order o;
-  //implied_test_md_tick_size();
+  implied_test_md_tick_size();
   //test_reprice1();
 
 //  auction_test_auction_buy1();
 //  auction_test_auction_buy2();
 //  auction_test_auction_buy3();
-  auction_test_auction_buy4();
+  //auction_test_auction_buy4();
   /*
 //  auction_test_auction_buy5();
 //  auction_test_auction_sell1();
