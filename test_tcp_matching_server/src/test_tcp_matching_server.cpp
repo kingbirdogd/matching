@@ -18,7 +18,7 @@ int main(int iArgc, char** pszArgv)
   std::clog << "==== SUBMODULE_VERSION ====\n" << SUBMODULE_VERSION << "\n===========================\n" << std::endl;
 
 	matching::engine::set_node_id(1);
-	if (14 != iArgc)
+	if (15 != iArgc)
 	{
 		std::cout << "usage: test_tcp_matching_server <factor> <port1[1,65535]> <port2[1,65535]> <port3[1,65535]> <port4[1,65535]> <port5[1,65535]>" << std::endl;
 		return -1;
@@ -38,6 +38,8 @@ int main(int iArgc, char** pszArgv)
   unsigned long long iTickSz4 = factor * strtod(pszArgv[11], &ptr); printf("iTickSz: %llu\n", iTickSz4);
   unsigned long long iTickSz5 = factor * strtod(pszArgv[12], &ptr); printf("iTickSz: %llu\n", iTickSz5);
   unsigned long long iTickSz6 = factor * strtod(pszArgv[13], &ptr); printf("iTickSz: %llu\n", iTickSz6);
+
+  unsigned long long bps      =          strtoll(pszArgv[14], &ptr, 10); printf("maker fees: %llu bps\n"  , bps);
   fflush(stdout);
 
 	if (iPort1 < 1 || iPort1 > 65535)
@@ -73,14 +75,14 @@ int main(int iArgc, char** pszArgv)
 	auto& Spot   = s4.get_engine();
 	auto& Repo   = s5.get_engine();
   auto& Flex   = s6.get_engine();
-	matching::implied_spread_in_bid spread_bid_implier(1, &ABook, &BBook);
-	matching::implied_spread_in_ask spread_ask_implier(1, &ABook, &BBook);
-	matching::implied_spread_a_out_bid a_bid_implier(1, &Spread, &BBook);
-	matching::implied_spread_a_out_ask a_ask_implier(1, &Spread, &BBook);
-	matching::implied_spread_b_out_bid b_bid_implier(1, &ABook, &Spread);
-	matching::implied_spread_b_out_ask b_ask_implier(1, &ABook, &Spread);
-	matching::implied_repo_out_bid spot_bid_implier(1, &BBook, &Repo, 0, factor);
-	matching::implied_repo_out_ask spot_ask_implier(1, &BBook, &Repo, 0, factor);
+	matching::implied_spread_in_bid spread_bid_implier(1, &ABook , &BBook , bps);
+	matching::implied_spread_in_ask spread_ask_implier(1, &ABook , &BBook , bps);
+	matching::implied_spread_a_out_bid a_bid_implier(  1, &Spread, &BBook , bps);
+	matching::implied_spread_a_out_ask a_ask_implier(  1, &Spread, &BBook , bps);
+	matching::implied_spread_b_out_bid b_bid_implier(  1, &ABook , &Spread, bps);
+	matching::implied_spread_b_out_ask b_ask_implier(  1, &ABook , &Spread, bps);
+	matching::implied_repo_out_bid spot_bid_implier(   1, &BBook , &Repo  , bps, factor);
+	matching::implied_repo_out_ask spot_ask_implier(   1, &BBook , &Repo  , bps, factor);
 	Spread.set_bid_implier(&spread_bid_implier);
 	Spread.set_ask_implier(&spread_ask_implier);
 	ABook.set_bid_implier(&a_bid_implier);
