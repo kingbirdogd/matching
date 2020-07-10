@@ -12,7 +12,7 @@
 
 int main(int iArgc, char** pszArgv)
 {
-	if (iArgc < 13 || iArgc > 15)
+	if (iArgc < 14 || iArgc > 16)
 	{
 		std::cerr << "usage test_md_tcp_server "
         "<factor> "
@@ -29,6 +29,7 @@ int main(int iArgc, char** pszArgv)
 				"<bind_port> "
 				"[bind_ip] "
 				"[mini_tick] "
+        "[maker_fees] "
 				<< std::endl;
 		return -2;
 	}
@@ -98,29 +99,53 @@ int main(int iArgc, char** pszArgv)
 	implier* ask_implier = nullptr;
 	std::string str_bid_implier = pszArgv[10];
 	std::string str_ask_implier = pszArgv[11];
+  unsigned short int bind_port = static_cast<unsigned short int>(std::stoi(pszArgv[12]));
+  std::string bind_ip = "";
+  unsigned long long mini_tick = 1;
+  unsigned long long bps       = 0;
+  if (iArgc > 13)
+  {
+    bind_ip = pszArgv[13];
+  }
+  if (iArgc > 14)
+  {
+    char *ptr;
+    mini_tick = factor * strtod(pszArgv[14], &ptr) ;
+    printf("tick size: %llu\n", mini_tick);
+    fflush(stdout);
+  }
+  if (iArgc > 15)
+  {
+    char *ptr;
+    bps = strtoll(pszArgv[15], &ptr, 10) ;
+    printf("maker fees: %llu\n", bps);
+    fflush(stdout);
+  }
+
+
 	if (str_bid_implier == "add_bid_implier")
 	{
-		bid_implier = new add_bid_implier(0);
+		bid_implier = new add_bid_implier(bps);
 	}
 	else if (str_bid_implier == "add_ask_implier")
 	{
-		bid_implier = new add_ask_implier(0);
+		bid_implier = new add_ask_implier(bps);
 	}
 	else if (str_bid_implier == "minus_bid_implier")
 	{
-		bid_implier = new minus_bid_implier(0);
+		bid_implier = new minus_bid_implier(bps);
 	}
 	else if (str_bid_implier == "minus_ask_implier")
 	{
-		bid_implier = new minus_ask_implier(0);
+		bid_implier = new minus_ask_implier(bps);
 	}
 	else if (str_bid_implier == "repo_out_bid_implier")
 	{
-		bid_implier = new repo_out_bid_implier(0, factor);
+		bid_implier = new repo_out_bid_implier(bps, factor);
 	}
 	else if (str_bid_implier == "repo_out_ask_implier")
 	{
-		bid_implier = new repo_out_ask_implier(0, factor);
+		bid_implier = new repo_out_ask_implier(bps, factor);
 	}
 	else if (str_bid_implier == "none")
 	{
@@ -133,27 +158,27 @@ int main(int iArgc, char** pszArgv)
 	}
 	if (str_ask_implier == "add_bid_implier")
 	{
-		ask_implier = new add_bid_implier(0);
+		ask_implier = new add_bid_implier(bps);
 	}
 	else if (str_ask_implier == "add_ask_implier")
 	{
-		ask_implier = new add_ask_implier(0);
+		ask_implier = new add_ask_implier(bps);
 	}
 	else if (str_ask_implier == "minus_bid_implier")
 	{
-		ask_implier = new minus_bid_implier(0);
+		ask_implier = new minus_bid_implier(bps);
 	}
 	else if (str_ask_implier == "minus_ask_implier")
 	{
-		ask_implier = new minus_ask_implier(0);
+		ask_implier = new minus_ask_implier(bps);
 	}
 	else if (str_bid_implier == "repo_out_bid_implier")
 	{
-		ask_implier = new repo_out_bid_implier(0, factor);
+		ask_implier = new repo_out_bid_implier(bps, factor);
 	}
 	else if (str_bid_implier == "repo_out_ask_implier")
 	{
-		ask_implier = new repo_out_ask_implier(0, factor);
+		ask_implier = new repo_out_ask_implier(bps, factor);
 	}
 	else if (str_bid_implier == "none")
 	{
@@ -164,21 +189,7 @@ int main(int iArgc, char** pszArgv)
 		std::cerr << "ask_implier type not support:" << str_ask_implier << std::endl;
 		return -3;
 	}
-	unsigned short int bind_port = static_cast<unsigned short int>(std::stoi(pszArgv[12]));
-	std::string bind_ip = "";
-	unsigned long long mini_tick = 1;
-	if (iArgc > 13)
-	{
-		bind_ip = pszArgv[13];
-	}
-	if (iArgc > 14)
-	{
-		//mini_tick = std::stoull(pszArgv[14]);
-		char *ptr;
-    mini_tick = factor * strtod(pszArgv[14], &ptr) ;
-    printf("tick size: %llu\n", mini_tick);
-    fflush(stdout);
-	}
+
 
 	md_tcp_service srv
 	(
