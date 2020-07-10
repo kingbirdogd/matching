@@ -21,5 +21,15 @@ inline long long round_up(long long price, long long mini_tick)
 		return price - mod;
 }
 
+inline long long handle_pips(long long price, long long pips)
+{
+	auto commission = price;
+	if (commission < 0)
+		commission = 0 - commission;
+	commission *= pips;
+	commission /= 10000;
+	return price + commission;
+}
+
 
 #endif /* INC_MATH_HPP_ */
