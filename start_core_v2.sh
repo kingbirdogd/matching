@@ -77,17 +77,17 @@ mkdir -p ${LOG_LOCATION}
 ${CORE_LOCATION}/test_tcp_matching_server 100000000 34671 34672 34673 34674 34675 34676 0.5 0.5 1 0.1 0.00005 0.005 2 >> ${LOG_LOCATION}/matching_server.out.log 2>> ${LOG_LOCATION}/matching_server.err.log &
 sleep 2
 # MD Implied Server
-${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34671 127.0.0.1 34673 127.0.0.1 34672 a_bid_b_bid   a_ask_b_ask   add_bid_implier      add_ask_implier      35671 127.0.0.1 0.5 >> ${LOG_LOCATION}/md_tcp1.out.log 2>> ${LOG_LOCATION}/md_tcp1.err.log &
+${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34671 127.0.0.1 34673 127.0.0.1 34672 a_bid_b_bid   a_ask_b_ask   add_bid_implier      add_ask_implier      35671 127.0.0.1 0.5 2 >> ${LOG_LOCATION}/md_tcp1.out.log 2>> ${LOG_LOCATION}/md_tcp1.err.log &
 sleep 1
-${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34672 127.0.0.1 34671 127.0.0.1 34673 a_bid_b_ask   a_ask_b_bid   minus_bid_implier    minus_ask_implier    35672 127.0.0.1 0.5 >> ${LOG_LOCATION}/md_tcp2.out.log 2>> ${LOG_LOCATION}/md_tcp2.err.log &
+${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34672 127.0.0.1 34671 127.0.0.1 34673 a_bid_b_ask   a_ask_b_bid   minus_bid_implier    minus_ask_implier    35672 127.0.0.1 0.5 2 >> ${LOG_LOCATION}/md_tcp2.out.log 2>> ${LOG_LOCATION}/md_tcp2.err.log &
 sleep 1
-${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34673 127.0.0.1 34671 127.0.0.1 34672 a_bid_b_ask   a_ask_b_bid   minus_bid_implier    minus_ask_implier    35673 127.0.0.1 1   >> ${LOG_LOCATION}/md_tcp3.out.log 2>> ${LOG_LOCATION}/md_tcp3.err.log &
+${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34673 127.0.0.1 34671 127.0.0.1 34672 a_bid_b_ask   a_ask_b_bid   minus_bid_implier    minus_ask_implier    35673 127.0.0.1 1   2 >> ${LOG_LOCATION}/md_tcp3.out.log 2>> ${LOG_LOCATION}/md_tcp3.err.log &
 sleep 1
-${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34674 127.0.0.1 34672 127.0.0.1 34675 a_bid_b_bid   a_ask_b_ask   repo_out_bid_implier repo_out_ask_implier 35674 127.0.0.1 0.1 >> ${LOG_LOCATION}/md_tcp4.out.log 2>> ${LOG_LOCATION}/md_tcp4.err.log &
+${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34674 127.0.0.1 34672 127.0.0.1 34675 a_bid_b_bid   a_ask_b_ask   repo_out_bid_implier repo_out_ask_implier 35674 127.0.0.1 0.1 2 >> ${LOG_LOCATION}/md_tcp4.out.log 2>> ${LOG_LOCATION}/md_tcp4.err.log &
 sleep 1
-${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34675        ""     0        ""     0 a_none_b_none a_none_b_none none                 none                 35675 127.0.0.1 0.00005 >> ${LOG_LOCATION}/md_tcp5.out.log 2>> ${LOG_LOCATION}/md_tcp5.err.log &
+${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34675        ""     0        ""     0 a_none_b_none a_none_b_none none                 none                 35675 127.0.0.1 0.00005 2 >> ${LOG_LOCATION}/md_tcp5.out.log 2>> ${LOG_LOCATION}/md_tcp5.err.log &
 sleep 1
-${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34676        ""     0        ""     0 a_none_b_none a_none_b_none none                 none                 35676 127.0.0.1 0.005   >> ${LOG_LOCATION}/md_tcp6.out.log 2>> ${LOG_LOCATION}/md_tcp6.err.log &
+${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34676        ""     0        ""     0 a_none_b_none a_none_b_none none                 none                 35676 127.0.0.1 0.005   2 >> ${LOG_LOCATION}/md_tcp6.out.log 2>> ${LOG_LOCATION}/md_tcp6.err.log &
 sleep 1
 
 # MD Orderbook Server
