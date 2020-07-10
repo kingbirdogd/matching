@@ -28,7 +28,7 @@ inline long long handle_pips(long long price, long long pips)
 		commission = 0 - commission;
 	commission *= pips;
 	commission /= 10000;
-	return price + commission;
+	return commission;
 }
 
 
