@@ -1193,13 +1193,14 @@ int main()
 {
   matching::engine e(handle_order);
   matching::order o;
-  implied_test_md_tick_size();
+  //implied_test_md_tick_size();
   //test_reprice1();
-  /*
+
 //  auction_test_auction_buy1();
 //  auction_test_auction_buy2();
 //  auction_test_auction_buy3();
-//  auction_test_auction_buy4();
+  auction_test_auction_buy4();
+  /*
 //  auction_test_auction_buy5();
 //  auction_test_auction_sell1();
 //  auction_test_auction_sell2();
