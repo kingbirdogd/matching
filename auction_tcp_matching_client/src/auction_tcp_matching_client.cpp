@@ -4,8 +4,38 @@
 #include <string>
 #include <thread>
 #include <unistd.h>
+#include <cmath>
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include "fbs_helper.hpp"
 
 std::unordered_map<unsigned long long, unsigned long long> client_to_engine_id_map;
+
+std::string time_in_HH_MM_SS_MMM()
+{
+  using namespace std::chrono;
+
+  // get current time
+  auto now = system_clock::now();
+
+  // get number of milliseconds for the current second
+  // (remainder after division into seconds)
+  auto us = duration_cast<microseconds>(now.time_since_epoch()) % 1000000;
+
+  // convert to std::time_t in order to convert to std::tm (broken time)
+  auto timer = system_clock::to_time_t(now);
+
+  // convert to broken time
+  std::tm bt = *std::localtime(&timer);
+
+  std::ostringstream oss;
+
+  oss << std::put_time(&bt, "%Y-%m-%d %H:%M:%S"); // HH:MM:SS
+  oss << '.' << std::setfill('0') << std::setw(6) << us.count();
+
+  return oss.str();
+}
 
 void handle_order(const matching::order& o)
 {
@@ -236,11 +266,13 @@ int main(int iArgc, char** pszArgv)
 	o.account_id       = account_id;
 	o.market_id        = market_id;
 	o.side             = side;
-	o.quantity         = qty_factor*qty;
-	o.display_quantity = qty_factor*qty;
-	o.price            = px_factor*px;
+	o.quantity         = round(qty_factor*qty + 0.5);
+	o.display_quantity = o.quantity;
+  o.price            = px_factor*px;
   o.client_order_id  = 1;
   o.time_condition   = matching::order::order_time_condition::AUCTION;
+
+  std::cout << time_in_HH_MM_SS_MMM() << " " << CoinflexV2::get_order_as_string(o) << std::endl;
 
   // Use xxx_stop_limited_price to set lower/upper price band for auction
   if (o.side == matching::order::BUY)
