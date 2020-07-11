@@ -1,4 +1,4 @@
-#~/bin/bash
+#!/bin/bash
 
 if [ "$#" -ne 10 ]; then
     echo "./auction_tcp_matching_client 127.0.0.1 MARKETPORT QTYFACTOR PXFACTOR ACCOUNTID MARKETID QTY PX SIDE BUY_UPPER_BAND SELL_LOWER_BAND"

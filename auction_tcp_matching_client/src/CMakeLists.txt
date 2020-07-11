@@ -1,3 +1,4 @@
 add_executable(auction_tcp_matching_client auction_tcp_matching_client.cpp)
+target_include_directories(auction_tcp_matching_client PUBLIC ${CMAKE_SOURCE_DIR}/coinflex_v2_common)
 target_link_libraries(auction_tcp_matching_client matching_tcp_client tcp_client pthread)
 install(TARGETS auction_tcp_matching_client DESTINATION ${CMAKE_INSTALL_PREFIX})
