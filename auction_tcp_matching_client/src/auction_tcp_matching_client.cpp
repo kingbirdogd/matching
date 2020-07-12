@@ -266,7 +266,7 @@ int main(int iArgc, char** pszArgv)
 	o.account_id       = account_id;
 	o.market_id        = market_id;
 	o.side             = side;
-	o.quantity         = round(qty_factor*qty + 0.5);
+	o.quantity         = round(qty_factor*qty );
 	o.display_quantity = o.quantity;
   o.price            = px_factor*px;
   o.client_order_id  = 1;
