@@ -28,7 +28,7 @@ namespace proxy {
     void update(const book_item& bi);
     //json::Object get_orderbook_snapshot(book_map_t &bids, book_map_t &asks, uint32_t max_enteries=400);
     json::Object get_orderbook_snapshot(uint32_t max_enteries=400);
-    json::Object get_orderbook_diff(uint32_t max_enteries=400);
+    std::pair<bool, json::Object> get_orderbook_diff(uint32_t max_enteries=400);
 //    json::Object get_orderbook_diff(book_map_t &bids     , book_map_t &asks,
 //                                    book_map_t &last_bids, book_map_t &last_asks,
 //                                    uint32_t max_enteries=400);
