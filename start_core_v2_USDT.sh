@@ -8,7 +8,7 @@ fi
 # aliyun-dev : 172.21.11.79:6650
 #PLSR_URL="172.21.11.79:6650"
 
-
+NODE_ID=3
 
 if [ $# -eq 1 ]; then
   if [ $1 = "aliyun-test" ] ; then
@@ -74,7 +74,7 @@ mkdir -p ${LOG_LOCATION}
 #${CORE_LOCATION}/xpubxsub 14001 14002 >> ${LOG_LOCATION}/xpubxsub.out.log 2>> ${LOG_LOCATION}/xpubxsub.err.log &
 
 # Matching server
-${CORE_LOCATION}/test_tcp_matching_server 100000000 34671 34672 34673 34674 34675 34676 1 0.0001 1 0.0001 0.00005 1 2 >> ${LOG_LOCATION}/matching_server.out.log 2>> ${LOG_LOCATION}/matching_server.err.log &
+${CORE_LOCATION}/test_tcp_matching_server ${NODE_ID} 100000000 34671 34672 34673 34674 34675 34676 1 0.0001 1 0.0001 0.00005 1 2 >> ${LOG_LOCATION}/matching_server.out.log 2>> ${LOG_LOCATION}/matching_server.err.log &
 sleep 2
 # MD Implied Server
 #${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34671 127.0.0.1 34673 127.0.0.1 34672 a_bid_b_bid   a_ask_b_ask   add_bid_implier      add_ask_implier      35671 127.0.0.1 0.01 0 >> ${LOG_LOCATION}/md_tcp1.out.log 2>> ${LOG_LOCATION}/md_tcp1.err.log &
