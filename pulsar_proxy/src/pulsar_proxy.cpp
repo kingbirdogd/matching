@@ -321,9 +321,9 @@ int main(int iArgc, char** pszArgv)
       std::lock_guard<std::mutex> lockGuard(iomutex);
       elog.info() << "size: " << fbs_buf.second  << std::endl;
       if (fbs_buf.second > 0)
-        elog.info() << "Pulsar pushing:" << get_fbs_msg_order_as_string(fbs_buf.first) << std::endl;
+        elog.info() << "Pulsar pushing:" << get_fbs_msg_order_as_string(fbs_buf.first.get()) << std::endl;
     }
-    Message msg = MessageBuilder().setContent(fbs_buf.first, fbs_buf.second).build();
+    Message msg = MessageBuilder().setContent(fbs_buf.first.get(), fbs_buf.second).build();
     Result res = producer.send(msg);
     //LOG_INFO("Message sent: " << res);
     //order_status_pub_sock.send(zmq::const_buffer(fbs_buf.first, fbs_buf.second), zmq::send_flags::none);

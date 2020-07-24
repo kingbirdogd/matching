@@ -67,7 +67,7 @@ namespace matching
 			CANCELED_ALL_BY_AUCTION = 0x17,
 			CANCELED_PARTIAL_BY_AUCTION = 0x18,
 			REJECT_AUCTION_SUPPORT_BUY_SELL_ONLY = 0x19,
-			CANCELED_BY_AMEND = 0x19
+			CANCELED_BY_AMEND = 0x20
 		};
 		enum order_matched_type : unsigned char
 		{
