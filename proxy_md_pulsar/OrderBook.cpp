@@ -186,7 +186,8 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
   return snapshot;
 }
 
-json::Object OrderBook::get_orderbook_diff(//book_map_t &bids,
+std::pair<bool, json::Object> OrderBook::get_orderbook_diff(//book_map_t &bids,
+//json::Object OrderBook::get_orderbook_diff(//book_map_t &bids,
                                            //book_map_t &asks,
                                            //book_map_t &last_bids,
                                            //book_map_t &last_asks,
@@ -292,7 +293,9 @@ json::Object OrderBook::get_orderbook_diff(//book_map_t &bids,
   if (elog.debug_enabled()) {
     elog.debug() << "update  :" << delta << std::endl;
   }
-  return delta;
+  bool any_diff = !bids_pxLevels->empty() || !asks_pxLevels->empty();
+  return std::make_pair(any_diff, delta);
+  //return delta;
 
 }
 

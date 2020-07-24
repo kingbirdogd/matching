@@ -735,20 +735,22 @@ namespace proxy {
 //      response.insert("Testing", json::String("TestValue"));
 //      Client::multicast(Client::all_clients, response);
       json::Object ob_snapshot, ob_diff;
+      bool any_diff;
       {
         std::lock_guard ob_guard(ob.ob_mutex);
-        ob_snapshot = this->ob.get_orderbook_snapshot();
-        ob_diff     = this->ob.get_orderbook_diff();
+        ob_snapshot              = this->ob.get_orderbook_snapshot();
+        auto [any_diff, ob_diff ] = this->ob.get_orderbook_diff();
         this->ob.clear_unused_bids_asks();
         //this->ob.print_bids_asks(ob.last_valid_bids, ob.last_valid_asks);
       }
-      Client::multicast_orderbook(Client::all_clients, ob_snapshot, ob_diff);
-      pulsar_broadcast(ob_snapshot, prd_snapshot);
-      pulsar_broadcast(ob_diff    , prd_diff);
+      if (any_diff) {
+        Client::multicast_orderbook(Client::all_clients, ob_snapshot, ob_diff);
+        pulsar_broadcast(ob_snapshot, prd_snapshot);
+        pulsar_broadcast(ob_diff, prd_diff);
 
-      this->next_broadcast_time = std::chrono::steady_clock::now() + broadcast_interval;
-      this->schedule_broadcast();
-
+        this->next_broadcast_time = std::chrono::steady_clock::now() + broadcast_interval;
+        this->schedule_broadcast();
+      }
     });
   }
 
