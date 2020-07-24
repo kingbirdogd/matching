@@ -279,6 +279,7 @@ std::pair<bool, json::Object> OrderBook::get_orderbook_diff(//book_map_t &bids,
 
   auto now = std::chrono::system_clock::now();
   auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+  bool any_diff = !bids_pxLevels->empty() || !asks_pxLevels->empty();
 
   data_item.insert("instrument_id", json::Integer(market_id));
   data_item.insert("bids", std::move(bids_pxLevels));
@@ -293,7 +294,6 @@ std::pair<bool, json::Object> OrderBook::get_orderbook_diff(//book_map_t &bids,
   if (elog.debug_enabled()) {
     elog.debug() << "update  :" << delta << std::endl;
   }
-  bool any_diff = !bids_pxLevels->empty() || !asks_pxLevels->empty();
   return std::make_pair(any_diff, delta);
   //return delta;
 
