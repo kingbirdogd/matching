@@ -747,10 +747,9 @@ namespace proxy {
         Client::multicast_orderbook(Client::all_clients, ob_snapshot, ob_diff);
         pulsar_broadcast(ob_snapshot, prd_snapshot);
         pulsar_broadcast(ob_diff, prd_diff);
-
-        this->next_broadcast_time = std::chrono::steady_clock::now() + broadcast_interval;
-        this->schedule_broadcast();
       }
+      this->next_broadcast_time = std::chrono::steady_clock::now() + broadcast_interval;
+      this->schedule_broadcast();
     });
   }
 
