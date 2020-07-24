@@ -10,8 +10,13 @@
 #include <csignal>
 #include <fbs_helper.hpp>
 #include <pulsar/Client.h>
+#include <fstream>
 //#include <lib/LogUtils.h>
 #include "common/log.h"
+#include <flatbuffers/idl.h>
+#include "json.hpp"
+
+using nlohmann::json;
 
 Log elog(Log::INFO);
 
@@ -235,26 +240,25 @@ void handle_order(const matching::order& o)
   }
 }
 
-int main(int iArgc, char** pszArgv)
-{
+int main(int iArgc, char** pszArgv) {
   signal(SIGUSR1, signal_handler);
-	if (6 != iArgc)
-	{
-		//std::cout << "usage: " << pszArgv[0] << " host <port[1,65535]> <zmq_port[1,65535]> <order_status_pub_port[1,65535]>" << std::endl;
+  flatbuffers::Parser parser;
+  if (7 != iArgc) {
+    //std::cout << "usage: " << pszArgv[0] << " host <port[1,65535]> <zmq_port[1,65535]> <order_status_pub_port[1,65535]>" << std::endl;
     elog.info() << "usage: " << pszArgv[0] << " host <port[1,65535]> pulsar_url order_in_url order_out_url" << std::endl;
-		return -1;
-	}
-	std::string host = pszArgv[1];
-	int iPort = std::atoi(pszArgv[2]);
-	if (iPort < 1 || iPort > 65535)
-	{
+    return -1;
+  }
+  std::string host = pszArgv[1];
+  int iPort = std::atoi(pszArgv[2]);
+  if (iPort < 1 || iPort > 65535) {
     elog.info() << "usage: " << pszArgv[0] << " host <port[1,65535]> <zmq_port[1,65535]> <order_status_pub_port[1,65535]>" << std::endl;
-		return -2;
-	}
+    return -2;
+  }
 
-  std::string pulsar_host   = pszArgv[3];
-  std::string order_in_url  = pszArgv[4];
+  std::string pulsar_host = pszArgv[3];
+  std::string order_in_url = pszArgv[4];
   std::string order_out_url = pszArgv[5];
+  std::string md_schema_file = pszArgv[6];
   //unsigned long long market_id = std::atoi(pszArgv[4]);
 
   Client client(pulsar_host.c_str());
@@ -272,6 +276,7 @@ int main(int iArgc, char** pszArgv)
     }
   }
 
+/*
   result = ResultUnknownError;
   Consumer consumer;
   std::string market_id_str = order_in_url.substr(order_in_url.find_last_of('-') + 1);
@@ -286,12 +291,6 @@ int main(int iArgc, char** pszArgv)
       sleep(1);
     }
   }
-
-//  zmq::context_t ctx;
-//  zmq::socket_t order_status_pub_sock(ctx, ZMQ_PUSH);
-//  std::string order_status_pub_url = std::string("tcp://*:") + std::to_string(order_status_pub_port);
-//  order_status_pub_sock.bind(order_status_pub_url);
-//  std::cout << "order status publish bind to " << order_status_pub_url << std::endl;
 
 	auto sPort = static_cast<unsigned short int>(iPort);
 	matching_tcp_client c(host, sPort);
@@ -321,9 +320,9 @@ int main(int iArgc, char** pszArgv)
       std::lock_guard<std::mutex> lockGuard(iomutex);
       elog.info() << "size: " << fbs_buf.second  << std::endl;
       if (fbs_buf.second > 0)
-        elog.info() << "Pulsar pushing:" << get_fbs_msg_order_as_string(fbs_buf.first.get()) << std::endl;
+        elog.info() << "Pulsar pushing:" << get_fbs_msg_order_as_string(fbs_buf.first) << std::endl;
     }
-    Message msg = MessageBuilder().setContent(fbs_buf.first.get(), fbs_buf.second).build();
+    Message msg = MessageBuilder().setContent(fbs_buf.first, fbs_buf.second).build();
     Result res = producer.send(msg);
     //LOG_INFO("Message sent: " << res);
     //order_status_pub_sock.send(zmq::const_buffer(fbs_buf.first, fbs_buf.second), zmq::send_flags::none);
@@ -335,8 +334,112 @@ int main(int iArgc, char** pszArgv)
 			c.run();
 		}
 	});
+*/
+
+  matching::order o;
+  o.account_id = 541799;
+  o.market_id = 2001011000000;
+  o.price = 929050000000;
+  o.quantity = 5000000000;
+  o.display_quantity = 4900000000;
+  o.remain_quantity = 4900000000;
+  o.last_match_price = 929050000000;
+  o.last_match_quantity = 100000000;
+  o.order_id = 160063394736209069;
+  o.client_order_id = 20000000005;
+  o.last_matched_order_id = 160063394736209071;
+  o.last_matched_order_id2 = 160063394736209012;
+  o.matched_id = 160063394736209072;
+  o.buy_stop_trigger_price = 0;
+  o.buy_stop_limited_price = 929050000000;
+  o.sell_stop_trigger_price = 0;
+  o.sell_stop_limited_price = 929050000000;
+  o.side = matching::order::order_side::BUY;
+  o.type = matching::order::order_type::LIMITED;
+  //o.time_condition=matching::order::order_time_condition::AUCTION;
+  o.time_condition = matching::order::order_time_condition::MAKER_ONLY_REPRICE;
+  o.order_action = matching::order::order_action_type::NEW;
+  o.order_state = matching::order::order_status_type::PARTIAL_FILL;
+  o.matched_type = matching::order::order_matched_type::MAKER;
+  o.timestamp_epoch_ms = 1595404588821;
+  o.request_id = 464412;
+
+  auto fbs_buf = order_to_fbs_msg(o);  // (*buf, buf_sz)
+
+  {
+    std::lock_guard<std::mutex> lockGuard(iomutex);
+    elog.info() << "size: " << fbs_buf.second << std::endl;
+    if (fbs_buf.second > 0)
+      elog.info() << "Pulsar pushing:" << get_fbs_msg_order_as_string(fbs_buf.first.get()) << std::endl;
+
+    std::ofstream ofile("/tmp/data.bin", std::ios::binary);
+    //ofile.write((char *) fbs_buf.first.get(), fbs_buf.second);
+
+    char tmp[1024];
+    for (int i = 0; i < fbs_buf.second; ++i) {
+      //elog.info() << std::hex << std::setfill('0') << std::setw(2) << *(fbs_buf.first.get() + i) << " ";
+      sprintf(tmp + 3*i, "%02X ", *(fbs_buf.first.get() + i));
+      ofile.write((char *) fbs_buf.first.get() + i, 1);
+    }
+    //std::fflush(stdout);
+    elog.info() << std::endl << tmp  << std::endl;
+
+    ofile.close();
+
+    for (int i = 0; i < fbs_buf.second; ++i) {
+      //elog.info() << std::hex << std::setfill('0') << std::setw(2) << *(fbs_buf.first.get() + i) << " ";
+      sprintf(tmp + 3*i, "%02X ", *(fbs_buf.first.get() + i));
+    }
+    //std::fflush(stdout);
+    elog.info() << std::endl << tmp  << std::endl;
+
+  }
+
+  {
+    const std::string inputFile = "/tmp/data.bin";
+    std::ifstream infile(inputFile, std::ios_base::binary);
+    //std::vector<unsigned char> buf;
+    uint8_t buf[1024];
+//    buf.insert(buf.begin(), std::istream_iterator<unsigned char>(infile),
+//                       std::istream_iterator<unsigned char>());
+    infile.read((char*)buf, 232);
+    infile.close();
+
+    //elog.info() << "From .bin: size=" << buf.size() << std::endl;
+    elog.info() << "From .bin: size=" << std::endl;
+    for (int i = 0; i < 232; ++i) {
+      printf("%02X ", buf[i]);
+    }
+    fflush(stdout);
+
+    auto ord = fbs_msg_to_order((const void *)(&buf[0]));
+    elog.info() << "Pulsar pushing:" << get_fbs_msg_order_as_string((void *)&buf) << std::endl;
+    elog.info() << "Order:" << get_order_as_string(ord) << std::endl;
+  }
+
+  Message msg = MessageBuilder().setContent(fbs_buf.first.get(), fbs_buf.second).build();
+  //Result res = producer.send(msg);
+
+  // Read schema
+  std::string schema_ok_file;
+  bool ok = flatbuffers::LoadFile(md_schema_file.c_str(), false, &schema_ok_file);
+  if (!ok) {
+    std::cout << "load file failed!" << std::endl;
+    return -1;
+  }
+  parser.Parse(schema_ok_file.c_str());
+
+  std::string jsongen;
+  if (!GenerateText(parser, fbs_buf.first.get(), &jsongen)) {
+    std::cout << "Couldn't serialize parsed data to JSON!" << std::endl;
+    return -1;
+  }
+
+  std::cout << "output json" << std::endl
+            << jsongen << std::endl;
+
 /*
-	matching::order o;
+	o.account_id=
 	o.side = matching::order::order_side::SELL;
 	o.client_order_id = 1;
 	o.quantity = 1000;
@@ -352,6 +455,7 @@ int main(int iArgc, char** pszArgv)
 	c.send(o);
 */
 
+/*
   while (true) {
     if (bPause) {
       elog.info() << "Sleeping for 2s..." << std::endl;
@@ -370,6 +474,7 @@ int main(int iArgc, char** pszArgv)
     c.send(o);
   }
 	th.join();
+*/
   client.close();
 	return 0;
 }

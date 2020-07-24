@@ -17,29 +17,31 @@ int main(int iArgc, char** pszArgv)
   std::clog << "==== VERSION ====\n" << VERSION << "\n=================\n" << std::endl;
   std::clog << "==== SUBMODULE_VERSION ====\n" << SUBMODULE_VERSION << "\n===========================\n" << std::endl;
 
-	matching::engine::set_node_id(1);
-	if (15 != iArgc)
+	if (16 != iArgc)
 	{
 		std::cout << "usage: test_tcp_matching_server <factor> <port1[1,65535]> <port2[1,65535]> <port3[1,65535]> <port4[1,65535]> <port5[1,65535]>" << std::endl;
 		return -1;
 	}
-  unsigned long long factor = strtoull(pszArgv[1], NULL, 10);
-	int iPort1 = std::atoi(pszArgv[2]);
-	int iPort2 = std::atoi(pszArgv[3]);
-	int iPort3 = std::atoi(pszArgv[4]);
-	int iPort4 = std::atoi(pszArgv[5]);
-	int iPort5 = std::atoi(pszArgv[6]);
-  int iPort6 = std::atoi(pszArgv[7]);
+
+  unsigned long long node_id = strtoull(pszArgv[1], NULL, 10);
+  matching::engine::set_node_id(node_id);
+  unsigned long long factor = strtoull(pszArgv[2], NULL, 10);
+	int iPort1 = std::atoi(pszArgv[3]);
+	int iPort2 = std::atoi(pszArgv[4]);
+	int iPort3 = std::atoi(pszArgv[5]);
+	int iPort4 = std::atoi(pszArgv[6]);
+	int iPort5 = std::atoi(pszArgv[7]);
+  int iPort6 = std::atoi(pszArgv[8]);
 
 	char *ptr;
-  unsigned long long iTickSz1 = factor * strtod(pszArgv[8] , &ptr); printf("iTickSz: %llu\n", iTickSz1);
-  unsigned long long iTickSz2 = factor * strtod(pszArgv[9] , &ptr); printf("iTickSz: %llu\n", iTickSz2);
-  unsigned long long iTickSz3 = factor * strtod(pszArgv[10] ,&ptr); printf("iTickSz: %llu\n", iTickSz3);
-  unsigned long long iTickSz4 = factor * strtod(pszArgv[11], &ptr); printf("iTickSz: %llu\n", iTickSz4);
-  unsigned long long iTickSz5 = factor * strtod(pszArgv[12], &ptr); printf("iTickSz: %llu\n", iTickSz5);
-  unsigned long long iTickSz6 = factor * strtod(pszArgv[13], &ptr); printf("iTickSz: %llu\n", iTickSz6);
+  unsigned long long iTickSz1 = factor * strtod(pszArgv[9] , &ptr); printf("iTickSz: %llu\n", iTickSz1);
+  unsigned long long iTickSz2 = factor * strtod(pszArgv[10], &ptr); printf("iTickSz: %llu\n", iTickSz2);
+  unsigned long long iTickSz3 = factor * strtod(pszArgv[11], &ptr); printf("iTickSz: %llu\n", iTickSz3);
+  unsigned long long iTickSz4 = factor * strtod(pszArgv[12], &ptr); printf("iTickSz: %llu\n", iTickSz4);
+  unsigned long long iTickSz5 = factor * strtod(pszArgv[13], &ptr); printf("iTickSz: %llu\n", iTickSz5);
+  unsigned long long iTickSz6 = factor * strtod(pszArgv[14], &ptr); printf("iTickSz: %llu\n", iTickSz6);
 
-  unsigned long long bps      =          strtoll(pszArgv[14], &ptr, 10); printf("maker fees: %llu bps\n"  , bps);
+  unsigned long long bps      =          strtoll(pszArgv[15], &ptr, 10); printf("maker fees: %llu bps\n"  , bps);
   fflush(stdout);
 
 	if (iPort1 < 1 || iPort1 > 65535)
