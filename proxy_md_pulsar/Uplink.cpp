@@ -739,7 +739,7 @@ namespace proxy {
       {
         std::lock_guard ob_guard(ob.ob_mutex);
         ob_snapshot              = this->ob.get_orderbook_snapshot();
-        auto [any_diff, ob_diff ] = this->ob.get_orderbook_diff();
+        std::tie(any_diff, ob_diff) = this->ob.get_orderbook_diff();
         this->ob.clear_unused_bids_asks();
         //this->ob.print_bids_asks(ob.last_valid_bids, ob.last_valid_asks);
       }
