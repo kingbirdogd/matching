@@ -107,17 +107,17 @@ ${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R p
 sleep 1
 
 # Pulsar Proxy
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34671 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-2001021200925 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-2001021200925 ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy1.out.log 2>> ${LOG_LOCATION}/pulsar_proxy1.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34671 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-2001021200925 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-TEST-2001021200925 ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy1.out.log 2>> ${LOG_LOCATION}/pulsar_proxy1.err.log &
 sleep 1
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34672 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-2001011000000 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-2001011000000 ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy2.out.log 2>> ${LOG_LOCATION}/pulsar_proxy2.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34672 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-2001011000000 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-TEST-2001011000000 ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy2.out.log 2>> ${LOG_LOCATION}/pulsar_proxy2.err.log &
 sleep 1
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34673 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-2001051000000 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-2001051000000 ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy3.out.log 2>> ${LOG_LOCATION}/pulsar_proxy3.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34673 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-2001051000000 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-TEST-2001051000000 ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy3.out.log 2>> ${LOG_LOCATION}/pulsar_proxy3.err.log &
 sleep 1
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34674 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-2001000000000 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-2001000000000 ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy4.out.log 2>> ${LOG_LOCATION}/pulsar_proxy4.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34674 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-2001000000000 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-TEST-2001000000000 ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy4.out.log 2>> ${LOG_LOCATION}/pulsar_proxy4.err.log &
 sleep 1
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34675 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-2001031000000 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-2001031000000 ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy5.out.log 2>> ${LOG_LOCATION}/pulsar_proxy5.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34675 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-2001031000000 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-TEST-2001031000000 ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy5.out.log 2>> ${LOG_LOCATION}/pulsar_proxy5.err.log &
 sleep 1
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34676 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-3001000000000 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-3001000000000 ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy6.out.log 2>> ${LOG_LOCATION}/pulsar_proxy6.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34676 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-3001000000000 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-TEST-3001000000000 ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy6.out.log 2>> ${LOG_LOCATION}/pulsar_proxy6.err.log &
 sleep 1
 
 ## MD Orderbook Server
