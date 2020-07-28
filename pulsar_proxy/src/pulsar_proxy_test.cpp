@@ -441,6 +441,7 @@ int main(int iArgc, char** pszArgv) {
     std::cout << "Couldn't serialize parsed data to JSON!" << std::endl;
     return -1;
   }
+  jsongen.erase(std::remove(jsongen.begin(), jsongen.end(), '\n'), jsongen.end());
 
   std::cout << "output json" << std::endl
             << jsongen << std::endl;

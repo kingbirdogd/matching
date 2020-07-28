@@ -5,46 +5,72 @@ import requests
 import time
 import random
 import datetime as dt
+import base64
+import hmac
+import hashlib
 
-# test env
+# # test env
 wss_url   = 'wss://api-test-v2.coinflex-cn.com/v2/websocket'
 https_url = 'https://api-test-v2.coinflex-cn.com/v2/account/auth/trading/login'
+api_key    = '3b207a63-b872-47f3-a85b-ba95fafc8b51'
+api_secret = '73f1982f-cde5-44d6-b236-e65466377d3c'
 
 # # dev env
 # wss_url   = 'wss://api-dev-v2.coinflex-cn.com/v2/websocket'
 # https_url = 'https://api-dev-v2.coinflex-cn.com/v2/account/auth/trading/login'
+# api_key    = 'ZeCafws/E911MGSa16+jCObJIIO33ZOx9Kv/ZeovTsk='
+# api_secret = 'LS7wkx3K4pnJGIecuX44Y+R0iXZjmZ/E5Nqmjgjiutw='
 
-market = "BTC-USD-200626-LIN"
-#market = "BTC-USD-SWAP-LIN"
+# # stage env
+# wss_url   = 'wss://v2stgapi.coinflex.com/v2/websocket'
+# https_url = 'https://v2stgapi.coinflex.com/v2/account/auth/trading/login'
+
+# # v2
+# wss_url   = 'wss://v2api.coinflex.com/v2/websocket'
+# https_url = 'https://v2api.coinflex.com/v2/account/auth/trading/login'
+# 'https://v2api.coinflex.com/v2/markets/public/markets/'
+
+#market = "BTC-USD-200925-LIN"
+market = "BTC-USD-SWAP-LIN"
 #market = 'BTC-USD-SPR-QP-LIN'
 #market = 'BTC-USD-REPO-LIN'
+#market = 'FLEX-USD'#
 
-login = 'peter.chan+v2_test1@coinflex.com'
-passwd= 'peter.test'
+# login = 'peter.chan+v2_test1@coinflex.com'
+# passwd= 'peter.test'
 #login = "siang.xu+test1@coinflex.com"
 #passwd ="coinflex"
 # Dev env
-#API Key   = 'cfcee81f-715c-400c-af5b-1e21a89f31b9'
-#API Secret= 'bd62afef-2765-4855-a678-432541ee66a2'
 # Test env
-#API    key: 3b207a63-b872-47f3-a85b-ba95fafc8b51
-#API Secret: 73f1982f-cde5-44d6-b236-e65466377d3c
 # v2 env
-login = 'peter.chan+v2@coinflex.com'
-passwd= 'peter.test'
-key    = 'Zga78+ieqM4JfWaX4XKs0JKN3D8gn8b4rFwVmm4V6bM='
-secret = 'rN2pjmVBD41Fvr+IHy6ruRtDWW+LOip4k79mC6z8xng='
+#login = 'peter.chan+v2_dev1@coinflex.com'
+#passwd= 'peter.test'
 
 client_order_id = int(time.time()) * 1000 + 1
 headers = {'content-type': 'application/json'}
-data={"email":login, "password": passwd}
+#data={"email":login, "password": passwd}
 
 ws = None
 logined = False
 
-#res=requests.post("https://api-dev-v2.coinflex-cn.com/v2/account/auth/trading/login",headers=headers,data=json.dumps(data))
-res=requests.post(https_url, headers=headers,data=json.dumps(data))
-cf_token=res.json()["data"]["token"]
+# res=requests.post(https_url, headers=headers,data=json.dumps(data))
+# cf_token=res.json()["data"]["token"]
+
+ts = str(int(time.time() * 1000))
+sig_payload = (ts+'GET/auth/self/verify').encode('utf-8')
+signature = base64.b64encode(hmac.new(api_secret.encode('utf-8'), sig_payload, hashlib.sha256).digest()).decode('utf-8')
+
+msg_auth = \
+{
+  "op": "login",
+  "tag": 1,
+  "data": {
+           "apiKey": api_key,
+           "timestamp": ts,
+           "signature": signature
+          }
+}
+
 
 def placeOrder(side,quantity,price):
     global client_order_id
@@ -86,7 +112,8 @@ async def call_api():
             msg=json.loads(response)
             print(msg)
             if "nonce" in msg:
-              await websocket.send(json.dumps({"op":"login","data":{"x-cf-token":str(cf_token)}}))
+              await websocket.send(json.dumps(msg_auth))
+              #await websocket.send(json.dumps({"op": "login", "data": {"x-cf-token": str(cf_token)}}))
               #await websocket.send(json.dumps({"op": "subscribe", "args": ["futures/depth:" + market]}))
               logined =True
               stopped =False
@@ -103,8 +130,8 @@ async def call_api():
             # await websocket.send(json.dumps(placeOrder( "SELL", 1600,  0.0021300000)))
             # await websocket.send(json.dumps(placeOrder( "BUY",  1700, -0.0007)))
 
-            rnd_bid_px = random.randint(8700, 8800);             rnd_ask_px = random.randint(8700, 8800)
-            rnd_bid_qty = random.randint(1000, 9000);            rnd_ask_qty = random.randint(1000, 9000)
+            rnd_bid_px  = random.randint(10600, 10800);          rnd_ask_px  = random.randint(10600, 10800)
+            rnd_bid_qty = random.randint(1, 3);                  rnd_ask_qty = random.randint(1, 3)
 
             await websocket.send(json.dumps(placeOrder( "BUY",  rnd_bid_qty, rnd_bid_px)))
             await websocket.send(json.dumps(placeOrder( "SELL", rnd_ask_qty, rnd_ask_px)))

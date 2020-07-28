@@ -17,6 +17,7 @@ import CoinflexV2.order_type
 
 local_topic_prefix = 'persistent://prop/r1/ns1'
 aliyun_dev_prefix  = 'persistent://CF-V2/ME-WS'
+posttrade_prefix   = 'persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-TEST-'
 
 local_url       = 'localhost:6650'
 aliyun_dev_url  = "172.21.11.79:6650"
@@ -24,12 +25,12 @@ aliyun_test_url = '172.21.21.221:6650'
 aliyun_stg_url  = '172.42.13.79:6650'
 
 # ==== Change the following as you need ====
-topic_prefix = aliyun_dev_prefix
-host_url     = aliyun_dev_url
+topic_prefix = posttrade_prefix
+host_url     = aliyun_test_url
 
 #market_id = '2001021200925' # Futures
-#market_id = '2001011000000' # Perp
-market_id = '2001051000000' # Spread
+market_id = '2001011000000' # Perp
+#market_id = '2001051000000' # Spread
 #market_id = '2001000000000' # Spot
 #market_id = '2001031000000' # #Repo
 name = 'peter'
@@ -40,7 +41,8 @@ producer_id_name = "producer-id-" + name
 
 client = pulsar.Client('pulsar://' + host_url )
 
-producer = client.create_producer(topic_prefix + '/ORDER-IN-' + market_id,
+producer = client.create_producer( #topic_prefix + '/ORDER-IN-' + market_id,
+                    topic_prefix + market_id,
                     block_if_queue_full=True,
                     batching_enabled=True,
                     batching_max_publish_delay_ms=10,
@@ -79,13 +81,47 @@ msg = cm.MsgEnd(builder)
 builder.Finish(msg)
 buf = builder.Output()
 # ============================================
+json_msg = r'''
+{
+  "payload_type": "Order",
+  "payload": {
+    "account_id": 541799,
+    "market_id": 2001011000000,
+    "price": 929050000000,
+    "quantity": 5000000000,
+    "display_quantity": 4900000000,
+    "remain_quantity": 4900000000,
+    "last_match_price": 929050000000,
+    "last_match_quantity": 100000000,
+    "order_id": 160063394736209069,
+    "client_order_id": 20000000005,
+    "last_matched_order_id": 160063394736209071,
+    "last_matched_order_id2": 160063394736209012,
+    "matched_id": 160063394736209072,
+    "buy_stop_trigger_price": 0,
+    "buy_stop_limited_price": 929050000000,
+    "sell_stop_trigger_price": 0,
+    "sell_stop_limited_price": 929050000000,
+    "side": "BUY",
+    "type": "LIMITED",
+    "time_condition": "MAKER_ONLY_REPRICE",
+    "order_action": "NEW",
+    "order_state": "PARTIAL_FILL",
+    "order_matched_type": "MAKER",
+    "timestamp_epoch_ms": 1595404588821,
+    "request_id": 464412
+  }
+}'''
+
+
 
 cnt = 1
 while True:
     workload = random.randint(1, 100)
     try:
         print(f'Sending Order...{cnt}'); cnt += 1
-        producer.send(bytes(buf), None)
+        producer.send(json_msg.replace('\n', '').encode('utf-8'), None)
+        #producer.send(bytes(buf), None)
     except Exception as e:
         print("Failed to send message: %s", e)
     producer.flush()

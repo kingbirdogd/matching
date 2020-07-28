@@ -32,7 +32,8 @@ host_url     = aliyun_dev_url
 #market_id = '2001011000000' # Perp
 market_id = '2001051000000' # Spread
 #market_id = '2001000000000' # Spot
-#market_id = '2001031000000' # #Repo
+#market_id = '2001031000000' # Repo
+#market_id = '3001000000000' # FLEXUSD
 name = 'peter'
 # ==========================================
 

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <string>
+#include <algorithm>
 #include <thread>
 #include <msg_generated.h>
 //#include <zmq.hpp>
@@ -347,6 +348,7 @@ int main(int iArgc, char** pszArgv)
     if (!GenerateText(parser, fbs_buf.first.get(), &jsongen)) {
       elog.error() << "Couldn't serialize parsed data to JSON!" << std::endl;
     }
+    jsongen.erase(std::remove(jsongen.begin(), jsongen.end(), '\n'), jsongen.end());
     Message msg = MessageBuilder().setContent(jsongen.c_str(), jsongen.size()).build();
 
     Result res = producer.send(msg);

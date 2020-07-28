@@ -14,13 +14,14 @@ local_url       = 'localhost:6650'
 aliyun_dev_url  = "172.21.11.79:6650"
 aliyun_test_url = '172.21.21.221:6650'
 aliyun_stg_url  = '172.42.13.79:6650'
+aliyun_live_url = '172.41.11.101:6650'
 
 # ==== Change the following as you need ====
 topic_prefix = aliyun_dev_prefix
-host_url     = aliyun_stg_url
+host_url     = aliyun_test_url
 
-market_id = '2001021200925' # Futures
-#market_id = '2001011000000' # Perp
+#market_id = '2001021200925' # Futures
+market_id = '2001011000000' # Perp
 #market_id = '2001051000000' # Spread
 #market_id = '2001000000000' # Spot
 #market_id = '2001031000000' # #Repo
@@ -32,7 +33,8 @@ consumer_name = 'consumer-' + name
 consumer_id_name = 'consumer-id-' + name
 
 client = pulsar.Client('pulsar://' + host_url )
-consumer = client.subscribe(topic_prefix + '/MD-SNAPSHOT-' + market_id,
+#consumer = client.subscribe(topic_prefix + '/MD-SNAPSHOT-' + market_id,
+consumer = client.subscribe(topic_prefix + '/MD-DIFF-' + market_id,
                             subscription_name,
                             properties={
                                 "consumer-name": consumer_name,
