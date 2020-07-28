@@ -12,6 +12,8 @@
 #include <pulsar/Client.h>
 //#include <lib/LogUtils.h>
 #include "common/log.h"
+#include <flatbuffers/util.h>
+#include <flatbuffers/idl.h>
 
 Log elog(Log::INFO);
 
@@ -238,7 +240,12 @@ void handle_order(const matching::order& o)
 int main(int iArgc, char** pszArgv)
 {
   signal(SIGUSR1, signal_handler);
-	if (6 != iArgc)
+  flatbuffers::IDLOptions opts;
+  opts.strict_json = true;
+  opts.output_default_scalars_in_json = true;
+  flatbuffers::Parser parser(opts);
+
+  if (7 != iArgc)
 	{
 		//std::cout << "usage: " << pszArgv[0] << " host <port[1,65535]> <zmq_port[1,65535]> <order_status_pub_port[1,65535]>" << std::endl;
     elog.info() << "usage: " << pszArgv[0] << " host <port[1,65535]> pulsar_url order_in_url order_out_url" << std::endl;
@@ -255,6 +262,7 @@ int main(int iArgc, char** pszArgv)
   std::string pulsar_host   = pszArgv[3];
   std::string order_in_url  = pszArgv[4];
   std::string order_out_url = pszArgv[5];
+  std::string md_schema_file = pszArgv[6];
   //unsigned long long market_id = std::atoi(pszArgv[4]);
 
   Client client(pulsar_host.c_str());
@@ -303,7 +311,18 @@ int main(int iArgc, char** pszArgv)
 	{
     elog.info()  << "matching_tcp_client disconnected" << std::endl;
 	});
-	c.set_on_order([&](const matching::order& o) {
+
+
+  // Read schema
+  std::string schema_ok_file;
+  bool ok = flatbuffers::LoadFile(md_schema_file.c_str(), false, &schema_ok_file);
+  if (!ok) {
+    std::cout << "load file failed!" << std::endl;
+    return -1;
+  }
+  parser.Parse(schema_ok_file.c_str());
+
+  c.set_on_order([&](const matching::order& o) {
     handle_order(o);
     if (o.order_state == matching::order::CANCELED_BY_AMEND) {
       elog.info() << "Not pushing CANCELED_BY_AMEND" << std::endl;
@@ -323,7 +342,13 @@ int main(int iArgc, char** pszArgv)
       if (fbs_buf.second > 0)
         elog.info() << "Pulsar pushing:" << get_fbs_msg_order_as_string(fbs_buf.first.get()) << std::endl;
     }
-    Message msg = MessageBuilder().setContent(fbs_buf.first.get(), fbs_buf.second).build();
+    //Message msg = MessageBuilder().setContent(fbs_buf.first.get(), fbs_buf.second).build();
+    std::string jsongen;
+    if (!GenerateText(parser, fbs_buf.first.get(), &jsongen)) {
+      elog.error() << "Couldn't serialize parsed data to JSON!" << std::endl;
+    }
+    Message msg = MessageBuilder().setContent(jsongen.c_str(), jsongen.size()).build();
+
     Result res = producer.send(msg);
     //LOG_INFO("Message sent: " << res);
     //order_status_pub_sock.send(zmq::const_buffer(fbs_buf.first, fbs_buf.second), zmq::send_flags::none);
@@ -351,6 +376,7 @@ int main(int iArgc, char** pszArgv)
 	o.price = 101;
 	c.send(o);
 */
+
 
   while (true) {
     if (bPause) {

@@ -113,13 +113,13 @@ sleep 1
 # Pulsar Proxy
 #${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34671 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-${USDT_USD_QP}   persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-${USDT_USD_QP}   >> ${LOG_LOCATION}/pulsar_proxy1.out.log 2>> ${LOG_LOCATION}/pulsar_proxy1.err.log &
 #sleep 1
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34672 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-${USDT_USD_SWAP} persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-${USDT_USD_SWAP} >> ${LOG_LOCATION}/pulsar_proxy2.out.log 2>> ${LOG_LOCATION}/pulsar_proxy2.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34672 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-${USDT_USD_SWAP} persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-${USDT_USD_SWAP} ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy2.out.log 2>> ${LOG_LOCATION}/pulsar_proxy2.err.log &
 sleep 1
 #${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34673 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-${USDT_USD_SPR}  persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-${USDT_USD_SPR}  >> ${LOG_LOCATION}/pulsar_proxy3.out.log 2>> ${LOG_LOCATION}/pulsar_proxy3.err.log &
 #sleep 1
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34674 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-${USDT_USD}      persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-${USDT_USD}      >> ${LOG_LOCATION}/pulsar_proxy4.out.log 2>> ${LOG_LOCATION}/pulsar_proxy4.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34674 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-${USDT_USD}      persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-${USDT_USD}      ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy4.out.log 2>> ${LOG_LOCATION}/pulsar_proxy4.err.log &
 sleep 1
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34675 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-${USDT_USD_REPO} persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-${USDT_USD_REPO} >> ${LOG_LOCATION}/pulsar_proxy5.out.log 2>> ${LOG_LOCATION}/pulsar_proxy5.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34675 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-${USDT_USD_REPO} persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-${USDT_USD_REPO} ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy5.out.log 2>> ${LOG_LOCATION}/pulsar_proxy5.err.log &
 sleep 1
 #${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34676 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-3001000000000 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-3001000000000 >> ${LOG_LOCATION}/pulsar_proxy6.out.log 2>> ${LOG_LOCATION}/pulsar_proxy6.err.log &
 #sleep 1

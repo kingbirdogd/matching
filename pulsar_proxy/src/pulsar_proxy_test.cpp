@@ -14,7 +14,10 @@
 //#include <lib/LogUtils.h>
 #include "common/log.h"
 #include <flatbuffers/idl.h>
+#include <flatbuffers/flatbuffers.h>
+#include <flatbuffers/util.h>
 #include "json.hpp"
+#include "json_helper.hpp"
 
 using nlohmann::json;
 
@@ -242,7 +245,11 @@ void handle_order(const matching::order& o)
 
 int main(int iArgc, char** pszArgv) {
   signal(SIGUSR1, signal_handler);
-  flatbuffers::Parser parser;
+  flatbuffers::IDLOptions opts;
+  opts.strict_json = true;
+  opts.output_default_scalars_in_json = true;
+
+  flatbuffers::Parser parser(opts);
   if (7 != iArgc) {
     //std::cout << "usage: " << pszArgv[0] << " host <port[1,65535]> <zmq_port[1,65535]> <order_status_pub_port[1,65535]>" << std::endl;
     elog.info() << "usage: " << pszArgv[0] << " host <port[1,65535]> pulsar_url order_in_url order_out_url" << std::endl;
@@ -437,6 +444,15 @@ int main(int iArgc, char** pszArgv) {
 
   std::cout << "output json" << std::endl
             << jsongen << std::endl;
+
+  std::stringstream ss;
+  ss << jsongen;
+//  json j = json::parse(ss.str().c_str());
+//  std::cout << j["payload_type"] << std::endl;
+//  std::cout << j["payload"]["account_id"] << std::endl;
+  matching::order o2 = json_msg_to_order((const void *)(ss.str().c_str()));
+  std::cout << get_order_as_string(o2) << std::endl;
+
 
 /*
 	o.account_id=
