@@ -195,7 +195,14 @@ class Order(object):
             return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
         return 0
 
-def OrderStart(builder): builder.StartObject(25)
+    # Order
+    def RequestId(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(54))
+        if o != 0:
+            return self._tab.Get(flatbuffers.number_types.Uint64Flags, o + self._tab.Pos)
+        return 0
+
+def OrderStart(builder): builder.StartObject(26)
 def OrderAddVersion(builder, version): builder.PrependUint8Slot(0, version, 1)
 def OrderAddAccountId(builder, accountId): builder.PrependUint64Slot(1, accountId, 0)
 def OrderAddMarketId(builder, marketId): builder.PrependUint64Slot(2, marketId, 0)
@@ -221,4 +228,5 @@ def OrderAddOrderAction(builder, orderAction): builder.PrependUint8Slot(21, orde
 def OrderAddOrderState(builder, orderState): builder.PrependUint8Slot(22, orderState, 0)
 def OrderAddOrderMatchedType(builder, orderMatchedType): builder.PrependUint8Slot(23, orderMatchedType, 0)
 def OrderAddTimestampEpochMs(builder, timestampEpochMs): builder.PrependUint64Slot(24, timestampEpochMs, 0)
+def OrderAddRequestId(builder, requestId): builder.PrependUint64Slot(25, requestId, 0)
 def OrderEnd(builder): return builder.EndObject()

@@ -10,10 +10,10 @@ import hmac
 import hashlib
 
 # # test env
-wss_url   = 'wss://api-test-v2.coinflex-cn.com/v2/websocket'
-https_url = 'https://api-test-v2.coinflex-cn.com/v2/account/auth/trading/login'
-api_key    = '3b207a63-b872-47f3-a85b-ba95fafc8b51'
-api_secret = '73f1982f-cde5-44d6-b236-e65466377d3c'
+# wss_url   = 'wss://api-test-v2.coinflex-cn.com/v2/websocket'
+# https_url = 'https://api-test-v2.coinflex-cn.com/v2/account/auth/trading/login'
+# api_key    = '3b207a63-b872-47f3-a85b-ba95fafc8b51'
+# api_secret = '73f1982f-cde5-44d6-b236-e65466377d3c'
 
 # # dev env
 # wss_url   = 'wss://api-dev-v2.coinflex-cn.com/v2/websocket'
@@ -21,9 +21,11 @@ api_secret = '73f1982f-cde5-44d6-b236-e65466377d3c'
 # api_key    = 'ZeCafws/E911MGSa16+jCObJIIO33ZOx9Kv/ZeovTsk='
 # api_secret = 'LS7wkx3K4pnJGIecuX44Y+R0iXZjmZ/E5Nqmjgjiutw='
 
-# # stage env
-# wss_url   = 'wss://v2stgapi.coinflex.com/v2/websocket'
-# https_url = 'https://v2stgapi.coinflex.com/v2/account/auth/trading/login'
+# stage env
+wss_url   = 'wss://v2stgapi.coinflex.com/v2/websocket'
+https_url = 'https://v2stgapi.coinflex.com/v2/account/auth/trading/login'
+api_key    = 'OFHrN+Kyi7M6ScAZGTYREBJQhKRme4ARUJN5QcQ+J4U='
+api_secret = 'wxUTiLcIW068IDTYbsUFLOq33SEONuby063Yj4XmDxc='
 
 # # v2
 # wss_url   = 'wss://v2api.coinflex.com/v2/websocket'
@@ -35,6 +37,13 @@ market = "BTC-USD-SWAP-LIN"
 #market = 'BTC-USD-SPR-QP-LIN'
 #market = 'BTC-USD-REPO-LIN'
 #market = 'FLEX-USD'#
+
+#market = "ETH-USD-200925-LIN"
+#market = "ETH-USD-SWAP-LIN"
+#market = 'ETH-USD-SPR-QP-LIN'
+#market = 'ETH-USD-REPO-LIN'
+
+bounds = { 'BTC' : [10882, 10900], 'ETH': [318, 328] }
 
 # login = 'peter.chan+v2_test1@coinflex.com'
 # passwd= 'peter.test'
@@ -87,11 +96,15 @@ def amendOrder(side,quantity,price, order_id):
     return send_order
 
 async def get_reply_notice(sleep_s, bPrint=True):
-    global ws, logined
+    global ws, logined, market
     while not logined:
         await asyncio.sleep(0.05)
 
     print(f"Start listening to notice messages...")
+    if ws and logined:
+        sub_msg = f'{{"op":"subscribe", "args":["order:{market}"],"tag":1}}'
+        await ws.send(sub_msg)
+
     while True:
         if ws and logined:
             response = await ws.recv()
@@ -130,7 +143,9 @@ async def call_api():
             # await websocket.send(json.dumps(placeOrder( "SELL", 1600,  0.0021300000)))
             # await websocket.send(json.dumps(placeOrder( "BUY",  1700, -0.0007)))
 
-            rnd_bid_px  = random.randint(10600, 10800);          rnd_ask_px  = random.randint(10600, 10800)
+            lbound = bounds[market[0:3]][0]
+            ubound = bounds[market[0:3]][1]
+            rnd_bid_px  = random.randint(lbound, ubound);        rnd_ask_px  = random.randint(lbound, ubound)
             rnd_bid_qty = random.randint(1, 3);                  rnd_ask_qty = random.randint(1, 3)
 
             await websocket.send(json.dumps(placeOrder( "BUY",  rnd_bid_qty, rnd_bid_px)))

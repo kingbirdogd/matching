@@ -28,13 +28,22 @@ aliyun_live_url = '172.41.11.101:6650'
 
 # ==== Change the following as you need ====
 topic_prefix = posttrade_prefix
-host_url     = aliyun_test_url
+host_url     = aliyun_stg_url
 
+# BTC
 #market_id = '2001021200925' # Futures
-market_id = '2001011000000' # Perp
+#market_id = '2001011000000' # Perp
 #market_id = '2001051000000' # Spread
 #market_id = '2001000000000' # Spot
 #market_id = '2001031000000' # #Repo
+
+# ETH
+#market_id='4001021200925' # Futures
+market_id='4001011000000' # Perp
+#market_id='4001051000000' # Spread
+#market_id='4001000000000' # Spot
+#market_id='4001031000000' # Repo
+
 name = 'peter'
 # ==========================================
 
