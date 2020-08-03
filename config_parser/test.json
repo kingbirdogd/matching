@@ -1,0 +1,69 @@
+{
+  "underlying" : "BTC",
+  "instruments":
+  [
+    {
+      "book_name" : "Futures",
+      "port"      : 34671,
+      "tick_sz"   : 0.5,
+      "impliers"  : [
+        {
+          "bi_type"       : "a_bid_implier",
+          "bi_priority"   : 1,
+          "bi_leg1"       : "Spread-Fut-Perp",
+          "bi_leg2"       : "Perpetual",
+          "bi_maker_fees" : 0,
+          "bi_factor"     : 0,
+          "ai_type"       : "a_ask_implier",
+          "ai_priority"   : 1,
+          "ai_leg1"       : "Spread-Fut-Perp",
+          "ai_leg2"       : "Perpetual",
+          "ai_maker_fees" : 0,
+          "ai_factor"     : 0
+        }
+      ]
+    },
+    {
+      "book_name" : "Perpetual",
+      "port"      : 34672,
+      "tick_sz"   : 0.5,
+      "impliers"  : [
+        {
+          "bi_type"       : "b_bid_implier",
+          "bi_priority"   : 1,
+          "bi_leg1"       : "Futures",
+          "bi_leg2"       : "Spread-Fut-Perp",
+          "bi_maker_fees" : 0,
+          "bi_factor"     : 0,
+          "ai_type"       : "b_ask_implier",
+          "ai_priority"   : 1,
+          "ai_leg1"       : "Futures",
+          "ai_leg2"       : "Spread-Fut-Perp",
+          "ai_maker_fees" : 0,
+          "ai_factor"     : 0
+        }
+      ]
+    },
+    {
+      "book_name" : "Spread-Fut-Perp",
+      "port"      : 34673,
+      "tick_sz"   : 1.0,
+      "impliers"  : [
+        {
+          "bi_type"       : "in_bid_implier",
+          "bi_priority"   : 1,
+          "bi_leg1"       : "Futures",
+          "bi_leg2"       : "Perpetual",
+          "bi_maker_fees" : 2,
+          "bi_factor"     : 0,
+          "ai_type"       : "in_ask_implier",
+          "ai_priority"   : 1,
+          "ai_leg1"       : "Futures",
+          "ai_leg2"       : "Perpetual",
+          "ai_maker_fees" : 2,
+          "ai_factor"     : 0
+        }
+      ]
+    }
+  ]
+}
