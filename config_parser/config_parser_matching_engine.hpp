@@ -20,6 +20,20 @@ class JsonConfigParser {
 public:
   JsonConfigParser(const std::string &fname) : config_fname_(fname) { }
 
+  static void assert_books_exist(const std::string& book_name,
+                                 const nl::json &implier,
+                                 const std::unordered_map<std::string, matching::engine*> &book_map)
+  {
+    if (book_map.find(implier["bi_leg1"]) == book_map.end() || book_map.find(implier["bi_leg2"]) == book_map.end() ||
+        book_map.find(implier["ai_leg1"]) == book_map.end() || book_map.find(implier["ai_leg2"]) == book_map.end())
+    {
+      std::clog << "bi_leg1/2 (" << implier["bi_leg1"] << "/" << implier["bi_leg2"]
+                << ") ai_leg1/2 (" << implier["ai_leg1"] << "/" << implier["ai_leg2"]
+                << ") are not defined properly for " << book_name << '\n';
+      exit(-1);
+    }
+  }
+
   static auto my_read_inst_config(const nl::json &j, std::unordered_map<std::string, matching::engine*> &book_map) {
     //std::clog << j["tick_sz"] << " " <<  j["port"] << '\n';
     std::clog << "Setting up book: " << j["book_name"] << '\n';
@@ -39,12 +53,14 @@ public:
       for (auto& implier: j["impliers"]) {
         //std::cout << implier << '\n';
         std::clog << "  implier: " << implier << '\n';
-        if (implier["bi_type"].get<std::string>().compare("a_bid_implier") &&
-            implier["ai_type"].get<std::string>().compare("a_ask_implier")) {
-          if (book_map.find(implier["bi_leg1"]) == book_map.end() || book_map.find(implier["ai_leg1"]) == book_map.end()) {
-            std::clog << "bi_leg1 and ai_leg1 are not both defined prepoerly for " << j["book_name"] << '\n';
-            exit(-1);
-          }
+        assert_books_exist(j["book_name"], implier, book_map);
+
+        if (implier["bi_type"].get<std::string>().compare("a_bid_implier") == 0 &&
+            implier["ai_type"].get<std::string>().compare("a_ask_implier") == 0) {
+//          if (book_map.find(implier["bi_leg1"]) == book_map.end() || book_map.find(implier["ai_leg1"]) == book_map.end()) {
+//            std::clog << "bi_leg1 and ai_leg1 are not both defined prepoerly for " << j["book_name"] << '\n';
+//            exit(-1);
+//          }
 
           matching::implied_spread_a_out_bid a_bid_implier(implier["bi_priority"],book_map[implier["bi_leg1"]],book_map[implier["bi_leg2"]],implier["bi_maker_fees"]);
           matching::implied_spread_a_out_ask a_ask_implier(implier["ai_priority"],book_map[implier["ai_leg1"]],book_map[implier["ai_leg2"]],implier["ai_maker_fees"]);
@@ -53,12 +69,12 @@ public:
           engines.push_back(s);
           //return s;
         }
-        else if (implier["bi_type"].get<std::string>().compare("b_bid_implier") &&
-            implier["ai_type"].get<std::string>().compare("b_ask_implier")) {
-          if (book_map.find(implier["bi_leg1"]) == book_map.end() || book_map.find(implier["ai_leg1"]) == book_map.end()) {
-            std::clog << "bi_leg1 and ai_leg1 are not both defined prepoerly for " << j["book_name"] << '\n';
-            exit(-1);
-          }
+        else if (implier["bi_type"].get<std::string>().compare("b_bid_implier") == 0 &&
+                 implier["ai_type"].get<std::string>().compare("b_ask_implier") == 0) {
+//          if (book_map.find(implier["bi_leg1"]) == book_map.end() || book_map.find(implier["ai_leg1"]) == book_map.end()) {
+//            std::clog << "bi_leg1 and ai_leg1 are not both defined prepoerly for " << j["book_name"] << '\n';
+//            exit(-1);
+//          }
 
           matching::implied_spread_b_out_bid b_bid_implier(implier["bi_priority"],book_map[implier["bi_leg1"]],book_map[implier["bi_leg2"]],implier["bi_maker_fees"]);
           matching::implied_spread_b_out_ask b_ask_implier(implier["ai_priority"],book_map[implier["ai_leg1"]],book_map[implier["ai_leg2"]],implier["ai_maker_fees"]);
@@ -67,17 +83,31 @@ public:
           engines.push_back(s);
           //return s;
         }
-        else if (implier["bi_type"].get<std::string>().compare("in_bid_implier") &&
-                 implier["ai_type"].get<std::string>().compare("in_ask_implier")) {
-          if (book_map.find(implier["bi_leg1"]) == book_map.end() || book_map.find(implier["ai_leg1"]) == book_map.end()) {
-            std::clog << "bi_leg1 and ai_leg1 are not both defined prepoerly for " << j["book_name"] << '\n';
-            exit(-1);
-          }
+        else if (implier["bi_type"].get<std::string>().compare("in_bid_implier") == 0 &&
+                 implier["ai_type"].get<std::string>().compare("in_ask_implier") == 0) {
+//          if (book_map.find(implier["bi_leg1"]) == book_map.end() || book_map.find(implier["ai_leg1"]) == book_map.end()) {
+//            std::clog << "bi_leg1 and ai_leg1 are not both defined prepoerly for " << j["book_name"] << '\n';
+//            exit(-1);
+//          }
 
           matching::implied_spread_in_bid spread_bid_implier(implier["bi_priority"],book_map[implier["bi_leg1"]],book_map[implier["bi_leg2"]],implier["bi_maker_fees"]);
           matching::implied_spread_in_ask spread_ask_implier(implier["ai_priority"],book_map[implier["ai_leg1"]],book_map[implier["ai_leg2"]],implier["ai_maker_fees"]);
           book.set_bid_implier(&spread_bid_implier);
           book.set_ask_implier(&spread_bid_implier);
+          engines.push_back(s);
+          //return s;
+        }
+        else if (implier["bi_type"].get<std::string>().compare("repo_out_bid") == 0 &&
+                 implier["ai_type"].get<std::string>().compare("repo_out_ask") == 0) {
+//          if (book_map.find(implier["bi_leg1"]) == book_map.end() || book_map.find(implier["ai_leg1"]) == book_map.end()) {
+//            std::clog << "bi_leg1 and ai_leg1 are not both defined prepoerly for " << j["book_name"] << '\n';
+//            exit(-1);
+//          }
+
+          matching::implied_repo_out_bid spot_bid_implier(implier["bi_priority"],book_map[implier["bi_leg1"]],book_map[implier["bi_leg2"]],implier["bi_maker_fees"],implier["bi_factor"]);
+          matching::implied_repo_out_ask spot_ask_implier(implier["ai_priority"],book_map[implier["ai_leg1"]],book_map[implier["ai_leg2"]],implier["ai_maker_fees"],implier["ai_factor"]);
+          book.set_bid_implier(&spot_bid_implier);
+          book.set_ask_implier(&spot_ask_implier);
           engines.push_back(s);
           //return s;
         }
@@ -99,15 +129,13 @@ public:
     std::ifstream i(config_fname_);
     nl::json j;
     i >> j;
+    std::clog << "Setting up underlying: " << j["underlying"] << '\n';
 
     std::vector<decltype(std::function{my_read_inst_config})::result_type> books_to_be_set_impliers;
-    //for (auto& e : j["instruments"]) {
-      //std::clog << e << '\n';
-      for (auto &inst : j["instruments"]) {
-        std::cout << inst << '\n';
-        books_to_be_set_impliers.push_back(my_read_inst_config(inst, book_map_));
-      }
-    //}
+    for (auto &inst : j["instruments"]) {
+      //std::clog << inst << '\n';
+      books_to_be_set_impliers.push_back(my_read_inst_config(inst, book_map_));
+    }
 
     std::vector<matching_tcp_service *> engines;
     for (auto &b: books_to_be_set_impliers) {

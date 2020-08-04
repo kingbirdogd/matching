@@ -64,6 +64,39 @@
           "ai_factor"     : 0
         }
       ]
+    },
+    {
+      "book_name" : "Spot",
+      "port"      : 34674,
+      "tick_sz"   : 0.1,
+      "impliers"  : [
+        {
+          "bi_type"       : "repo_out_bid",
+          "bi_priority"   : 1,
+          "bi_leg1"       : "Perpetual",
+          "bi_leg2"       : "Repo",
+          "bi_maker_fees" : 0,
+          "bi_factor"     : 100000000,
+          "ai_type"       : "repo_out_ask",
+          "ai_priority"   : 1,
+          "ai_leg1"       : "Perpetual",
+          "ai_leg2"       : "Repo",
+          "ai_maker_fees" : 0,
+          "ai_factor"     : 100000000
+        }
+      ]
+    },
+    {
+      "book_name" : "Repo",
+      "port"      : 34675,
+      "tick_sz"   : 0.00005,
+      "impliers"  : []
+    },
+    {
+      "book_name" : "Flex",
+      "port"      : 34676,
+      "tick_sz"   : 0.005,
+      "impliers"  : []
     }
   ]
 }
