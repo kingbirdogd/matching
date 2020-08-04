@@ -22,7 +22,7 @@ namespace matching
 		};
 		enum order_type : unsigned char
 		{
-			LIMITED = 0x00,
+			LIMIT = 0x00,
 			MARKET = 0x01
 		};
 		enum order_action_type : unsigned char
@@ -58,9 +58,9 @@ namespace matching
 			CANCELED_BY_MAKER_ONLY = 0x09,
 			REJECT_CANCEL_ORDER_ID_NOT_FOUND = 0xA,
 			REJECT_AMEND_ORDER_ID_NOT_FOUND = 0x0B,
-			REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY = 0x0C,
-			REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMITED = 0x0D,
-			REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED = 0x12,
+			REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY  = 0x0C,
+			REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMIT = 0x0D,
+			REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMIT = 0x12,
 			REJECT_UNKNOW_ORDER_ACTION = 0x14,
 			REJECT_QUANTITY_ZERO = 0x15,
 			REJECT_LIMITE_ORDER_WITH_MARKET_PRICE = 0x16,
@@ -89,9 +89,9 @@ namespace matching
 		unsigned long long last_matched_order_id2;
 		unsigned long long matched_id;
 		long long buy_stop_trigger_price;
-		long long buy_stop_limited_price;
+		long long buy_stop_limit_price;
 		long long sell_stop_trigger_price;
-		long long sell_stop_limited_price;
+		long long sell_stop_limit_price;
 		order_side side;
 		order_type type;
 		order_time_condition time_condition;
@@ -122,11 +122,11 @@ namespace matching
 			last_matched_order_id2(2),
 			matched_id(0),
 			buy_stop_trigger_price(0),
-			buy_stop_limited_price(MARKET_PRICE),
+			buy_stop_limit_price(MARKET_PRICE),
 			sell_stop_trigger_price(0),
-			sell_stop_limited_price(MARKET_PRICE),
+			sell_stop_limit_price(MARKET_PRICE),
 			side(order_side::BUY),
-			type(order_type::LIMITED),
+			type(order_type::LIMIT),
 			time_condition(order_time_condition::GTC),
 			filler(0),
 			order_action(order_action_type::NEW),
@@ -158,25 +158,25 @@ namespace matching
 			}
 			else if (order_side::BUY_STOP == o1.side)
 			{
-				if (o1.buy_stop_limited_price != o2.buy_stop_limited_price)
+				if (o1.buy_stop_limit_price != o2.buy_stop_limit_price)
 					return false;
 				if (o1.buy_stop_trigger_price != o2.buy_stop_trigger_price)
 					return false;
 			}
 			else if (order_side::SELL_STOP == o1.side)
 			{
-				if (o1.sell_stop_limited_price != o2.sell_stop_limited_price)
+				if (o1.sell_stop_limit_price != o2.sell_stop_limit_price)
 					return false;
 				if (o1.sell_stop_trigger_price != o2.sell_stop_trigger_price)
 					return false;
 			}
 			else
 			{
-				if (o1.buy_stop_limited_price != o2.buy_stop_limited_price)
+				if (o1.buy_stop_limit_price != o2.buy_stop_limit_price)
 					return false;
 				if (o1.buy_stop_trigger_price != o2.buy_stop_trigger_price)
 					return false;
-				if (o1.sell_stop_limited_price != o2.sell_stop_limited_price)
+				if (o1.sell_stop_limit_price != o2.sell_stop_limit_price)
 					return false;
 				if (o1.sell_stop_trigger_price != o2.sell_stop_trigger_price)
 					return false;

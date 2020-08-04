@@ -45,9 +45,9 @@ void handle_order(const matching::order& o)
 	std::string time_condition = "";
 	std::string action = "";
 	std::string matched_type = "";
-	if (matching::order::order_type::LIMITED == o.type)
+	if (matching::order::order_type::LIMIT == o.type)
 	{
-		type = "LIMITED";
+		type = "LIMIT";
 	}
 	else
 	{
@@ -129,13 +129,13 @@ void handle_order(const matching::order& o)
 	{
 		status = "REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY";
 	}
-	else if (o.order_state == matching::order::order_status_type::REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMITED)
+	else if (o.order_state == matching::order::order_status_type::REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMIT)
 	{
-		status = "REJECT_BUY_STOP_TRIGGER_LESS_THAN_STOP_LIMITED";
+		status = "REJECT_BUY_STOP_TRIGGER_LESS_THAN_STOP_LIMIT";
 	}
-	else if (o.order_state == matching::order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED)
+	else if (o.order_state == matching::order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMIT)
 	{
-		status = "REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED";
+		status = "REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMIT";
 	}
 	else if (o.order_state == matching::order::order_status_type::REJECT_UNKNOW_ORDER_ACTION)
 	{
@@ -201,9 +201,9 @@ void handle_order(const matching::order& o)
 			<< ",remain_quantity:" << o.remain_quantity
 			<< ",price:" << o.price
 			<< ",buy_stop_trigger_price:" << o.buy_stop_trigger_price
-			<< ",buy_stop_limited_price:" << o.buy_stop_limited_price
+			<< ",buy_stop_limit_price:" << o.buy_stop_limit_price
 			<< ",sell_stop_trigger_price:" << o.sell_stop_trigger_price
-			<< ",sell_stop_limited_price:" << o.sell_stop_limited_price
+			<< ",sell_stop_limit_price:" << o.sell_stop_limit_price
 			<< ",last_match_price:" << o.last_match_price
 			<< ",last_match_quantity:" << o.last_match_quantity
 			<< ",last_matched_order_id:" << o.last_matched_order_id
@@ -274,11 +274,11 @@ int main(int iArgc, char** pszArgv)
 
   std::cout << time_in_HH_MM_SS_MMM() << " " << CoinflexV2::get_order_as_string(o) << std::endl;
 
-  // Use xxx_stop_limited_price to set lower/upper price band for auction
+  // Use xxx_stop_limit_price to set lower/upper price band for auction
   if (o.side == matching::order::BUY)
-    o.buy_stop_limited_price = px_factor*buy_upper_band;
+    o.buy_stop_limit_price = px_factor*buy_upper_band;
   else if (o.side == matching::order::SELL)
-    o.sell_stop_limited_price = px_factor*sell_lower_band;
+    o.sell_stop_limit_price = px_factor*sell_lower_band;
 
 	c.send(o);
 
