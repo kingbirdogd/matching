@@ -21,7 +21,9 @@ public:
   JsonConfigParser(const std::string &fname) : config_fname_(fname) { }
 
   static auto my_read_inst_config(const nl::json &j, std::unordered_map<std::string, matching::engine*> &book_map) {
-    std::clog << j["tick_sz"] << " " <<  j["port"] << '\n';
+    //std::clog << j["tick_sz"] << " " <<  j["port"] << '\n';
+    std::clog << "Setting up book: " << j["book_name"] << '\n';
+    std::clog << "  Port:" << j["port"] << "  Tick Size:" << j["tick_sz"] << '\n';
     matching_tcp_service *s = new matching_tcp_service(static_cast<unsigned short int>(j["tick_sz"]), j["port"]);
     auto &book = s->get_engine();
     const auto [it, success] = book_map.insert({j["book_name"], &book});
@@ -32,8 +34,11 @@ public:
     //unsigned long long bps = j["maker_fees"];
     //return [](){};
     auto res = [&book, s, &j](std::unordered_map<std::string, matching::engine*> &book_map){
+      std::vector<matching_tcp_service*> engines;
+      std::clog << "Setting up impliers for book: " << j["book_name"] << '\n';
       for (auto& implier: j["impliers"]) {
         //std::cout << implier << '\n';
+        std::clog << "  implier: " << implier << '\n';
         if (implier["bi_type"].get<std::string>().compare("a_bid_implier") &&
             implier["ai_type"].get<std::string>().compare("a_ask_implier")) {
           if (book_map.find(implier["bi_leg1"]) == book_map.end() || book_map.find(implier["ai_leg1"]) == book_map.end()) {
@@ -45,7 +50,8 @@ public:
           matching::implied_spread_a_out_ask a_ask_implier(implier["ai_priority"],book_map[implier["ai_leg1"]],book_map[implier["ai_leg2"]],implier["ai_maker_fees"]);
           book.set_bid_implier(&a_bid_implier);
           book.set_ask_implier(&a_ask_implier);
-          return s;
+          engines.push_back(s);
+          //return s;
         }
         else if (implier["bi_type"].get<std::string>().compare("b_bid_implier") &&
             implier["ai_type"].get<std::string>().compare("b_ask_implier")) {
@@ -58,7 +64,8 @@ public:
           matching::implied_spread_b_out_ask b_ask_implier(implier["ai_priority"],book_map[implier["ai_leg1"]],book_map[implier["ai_leg2"]],implier["ai_maker_fees"]);
           book.set_bid_implier(&b_bid_implier);
           book.set_ask_implier(&b_ask_implier);
-          return s;
+          engines.push_back(s);
+          //return s;
         }
         else if (implier["bi_type"].get<std::string>().compare("in_bid_implier") &&
                  implier["ai_type"].get<std::string>().compare("in_ask_implier")) {
@@ -71,12 +78,14 @@ public:
           matching::implied_spread_in_ask spread_ask_implier(implier["ai_priority"],book_map[implier["ai_leg1"]],book_map[implier["ai_leg2"]],implier["ai_maker_fees"]);
           book.set_bid_implier(&spread_bid_implier);
           book.set_ask_implier(&spread_bid_implier);
-          return s;
+          engines.push_back(s);
+          //return s;
         }
         else {
           std::clog << "bid_implier and ask_implier are not both defined properly for " << j["book_name"] << '\n';
         }
       }
+      return engines;
     };
 
     std::clog << "Done " << j["book_name"] << '\n';
@@ -102,7 +111,9 @@ public:
 
     std::vector<matching_tcp_service *> engines;
     for (auto &b: books_to_be_set_impliers) {
-      engines.push_back(b(book_map_));
+      auto es = b(book_map_);
+      engines.insert(engines.end(), std::make_move_iterator(es.begin()), std::make_move_iterator(es.end()));
+      //engines.push_back(b(book_map_));
     }
     return engines;
   }
