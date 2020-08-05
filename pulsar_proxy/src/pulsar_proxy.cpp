@@ -269,11 +269,23 @@ int main(int iArgc, char** pszArgv)
   Client client(pulsar_host.c_str());
 
   Producer producer;
+  ProducerConfiguration config = ProducerConfiguration();
+  config.setBatchingEnabled(true);
+  // TODO: Batch Builder?
+  config.setBatchingMaxAllowedSizeInBytes(128*1024*1024);
+  config.setBatchingMaxMessages(200000);
+  config.setPartitionsRoutingMode(ProducerConfiguration::PartitionsRoutingMode::RoundRobinDistribution);
+  // TODO: Switch Frequency?
+  config.setBatchingMaxPublishDelayMs(1);
+  config.setCompressionType(CompressionLZ4);
+  config.setSendTimeout(1000);
+  config.setBlockIfQueueFull(true);
+
   Result result = ResultUnknownError;
   //std::string order_out_url = std::string("persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-") + std::to_string(market_id);
   while (result != ResultOk) {
     elog.info() << "Creating Producer: " << order_out_url << std::endl;
-    result = client.createProducer(order_out_url.c_str(), producer);
+    result = client.createProducer(order_out_url.c_str(), config, producer);
     if (result != ResultOk) {
       elog.error() << "Error creating producer: " << result << std::endl;
       //return -1;
