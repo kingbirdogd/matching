@@ -22,8 +22,8 @@ namespace md
 		};
 	private:
 		callback& cb;
-		long long mini_tick;
 		basic_book& outright;
+		long long mini_tick;
 		basic_book::bid_book implied_bid;
 		basic_book::ask_book implied_ask;
 		basic_book a;
@@ -44,8 +44,8 @@ namespace md
 			implier* ai = nullptr
 		):
 		cb(c),
-		mini_tick(mtick),
 		outright(out),
+		mini_tick(mtick),
 		implied_bid(),
 		implied_ask(),
 		a(),
@@ -57,10 +57,37 @@ namespace md
 		{
 		}
 		md_implied_book() = delete;
-		md_implied_book(const md_implied_book&) = default;
-		md_implied_book(md_implied_book&&) = default;
-		md_implied_book& operator= (const md_implied_book&) = default;
-		md_implied_book& operator= (md_implied_book&&) = default;
+		md_implied_book(const md_implied_book& ib) = delete;
+		md_implied_book(md_implied_book&& ib):
+			cb(ib.cb),
+			outright(ib.outright),
+			mini_tick(ib.mini_tick),
+			implied_bid(std::move(ib.implied_bid)),
+			implied_ask(std::move(ib.implied_ask)),
+			a(std::move(ib.a)),
+			b(std::move(ib.b)),
+			bid_implie_type(ib.bid_implie_type),
+			ask_implie_type(ib.ask_implie_type),
+			bid_implier(ib.bid_implier),
+			ask_implier(ib.ask_implier)
+		{
+		}
+		md_implied_book& operator= (const md_implied_book&) = delete;
+		md_implied_book& operator= (md_implied_book&& ib)
+		{
+			cb = ib.cb;
+			outright = ib.outright;
+			mini_tick = ib.mini_tick;
+			implied_bid = std::move(ib.implied_bid);
+			implied_ask = std::move(ib.implied_ask);
+			a = std::move(ib.a);
+			b = std::move(ib.b);
+			bid_implie_type = ib.bid_implie_type;
+			ask_implie_type = ib.ask_implie_type;
+			bid_implier = ib.bid_implier;
+			ask_implier = ib.ask_implier;
+			return *this;
+		}
 		~md_implied_book() = default;
 		void handle_a(const matching::order& odr);
 		void handle_b(const matching::order& odr);

@@ -23,6 +23,20 @@ public:
 		implier* bid_implier,
 		implier* ask_implier
 	);
+	implied_md_tcp_service() = delete;
+	implied_md_tcp_service(const implied_md_tcp_service&) = delete;
+	implied_md_tcp_service(implied_md_tcp_service&& srv):
+		_a(srv._a),
+		_b(srv._b)
+	{
+	}
+	implied_md_tcp_service& operator= (const implied_md_tcp_service&) = delete;
+	implied_md_tcp_service& operator= (implied_md_tcp_service&& srv)
+	{
+		_a = srv._a;
+		_b = srv._b;
+		return *this;
+	}
 	void run();
 };
 
