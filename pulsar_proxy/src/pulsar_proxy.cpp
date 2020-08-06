@@ -210,7 +210,7 @@ void handle_order(const matching::order& o)
 	client_to_engine_id_map[o.client_order_id] = o.order_id;
   {
     std::lock_guard<std::mutex> lockGuard(iomutex);
-    elog.debug()
+    elog.info()
         << "account_id:" << o.account_id
         << ",market_id:" << o.market_id
         << ",action:" << action

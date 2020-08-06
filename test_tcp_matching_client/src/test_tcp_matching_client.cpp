@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <string>
 #include <thread>
+#include "fbs_helper.hpp"
 
 std::unordered_map<unsigned long long, unsigned long long> client_to_engine_id_map;
 
@@ -209,7 +210,9 @@ int main(int iArgc, char** pszArgv)
 	});
 	c.set_on_order([&](const matching::order& o)
 	{
-		handle_order(o);
+    matching::order o2 = o;
+	  std::clog << CoinflexV2::get_order_as_string(o2) << std::endl;
+		//handle_order(o);
 	});
 	std::thread th([&]()
 	{
@@ -219,20 +222,33 @@ int main(int iArgc, char** pszArgv)
 		}
 	});
 
-	matching::order o;
-	o.side = matching::order::order_side::SELL;
-	o.client_order_id = 1;
-	o.quantity = 1000;
-	o.display_quantity = 1000;
-	o.price = 100;
-	c.send(o);
+  matching::order o;
 
-	o.side = matching::order::order_side::BUY;
-	o.client_order_id = 1;
-	o.quantity = 980;
-	o.display_quantity = 980;
-	o.price = 101;
-	c.send(o);
+//  o.market_id = 9001011000000;
+//  o.account_id = 16191595;
+//  o.side = matching::order::order_side::BUY;
+//  o.client_order_id = 1247778151896637415;
+//  o.price = 99980000; //  std::round(0.0001 * factor);
+//  o.quantity = 100000000000;
+//  o.display_quantity = 100000000000;
+//  o.time_condition = matching::order::MAKER_ONLY;
+//  o.type = matching::order::LIMITED;
+//  o.request_id = 4138588;
+//  c.send(o);
+
+//	o.side = matching::order::order_side::SELL;
+//	o.client_order_id = 1;
+//	o.quantity = 1000;
+//	o.display_quantity = 1000;
+//	o.price = 100;
+//	c.send(o);
+//
+//	o.side = matching::order::order_side::BUY;
+//	o.client_order_id = 1;
+//	o.quantity = 980;
+//	o.display_quantity = 980;
+//	o.price = 101;
+//	c.send(o);
 
 	th.join();
 	return 0;

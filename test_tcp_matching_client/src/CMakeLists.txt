@@ -1,3 +1,4 @@
 add_executable(test_tcp_matching_client test_tcp_matching_client.cpp)
+target_include_directories(test_tcp_matching_client PUBLIC ${CMAKE_SOURCE_DIR}/coinflex_v2_common)
 target_link_libraries(test_tcp_matching_client matching_tcp_client tcp_client pthread)
 install(TARGETS test_tcp_matching_client DESTINATION ${CMAKE_INSTALL_PREFIX})

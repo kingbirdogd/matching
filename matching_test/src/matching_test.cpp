@@ -1197,6 +1197,7 @@ void test_no_response() {
   matching::engine e([&](const matching::order& o) { handle_order(o);output_order = o; }, factor*tick_sz);
   matching::order o;
 
+  o.account_id = 16191595;
   o.side = matching::order::order_side::BUY;
   o.client_order_id = 1247778151896637415;
   o.price = 99980000; //  std::round(0.0001 * factor);
@@ -1204,6 +1205,7 @@ void test_no_response() {
   o.display_quantity = 100000000000;
   o.time_condition = matching::order::MAKER_ONLY;
   o.type = matching::order::LIMITED;
+  o.request_id = 4138588;
   e.handle(o);
 
 //  o.side = matching::order::order_side::SELL;
