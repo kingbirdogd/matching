@@ -43,7 +43,7 @@ market = "BTC-USD-SWAP-LIN"
 #market = 'ETH-USD-SPR-QP-LIN'
 #market = 'ETH-USD-REPO-LIN'
 
-bounds = { 'BTC' : [10882, 10900], 'ETH': [318, 328] }
+bounds = { 'BTC' : [11370, 11390], 'ETH': [318, 328] }
 
 # login = 'peter.chan+v2_test1@coinflex.com'
 # passwd= 'peter.test'
