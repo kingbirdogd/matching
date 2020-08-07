@@ -345,24 +345,24 @@ void implied_test_md_tick_size()
       (
           handle_md,
           //[](const md::book_item&){},
-          march_tick_size,
-          md::md_book::implier_type::a_bid_b_bid,
-          md::md_book::implier_type::a_ask_b_ask,
-          &abi,
-          &aai
+          march_tick_size
       );
+  March_Book.add_implited_book(md::md_implied_book::implier_type::a_bid_b_bid,
+          md::md_implied_book::implier_type::a_ask_b_ask,
+          &abi,
+          &aai);
 
   //SHORT B(implied OUT, BID_B) <- (BID_PRICE_A - ASK_PRICE_AB) @ MIN(BID_QUANTITY_A, ASK_QUANTITY_AB)
   //LONG B(implied OUT, ASK_B) <- (ASK_PRICE_A - BID_PRICE_AB) @ MIN(ASK_QUANTITY_A, BID_QUANTITY_AB)
   md::md_book June_Book
       (
           handle_md,
-          june_tick_size,
-          md::md_book::implier_type::a_bid_b_ask,
-          md::md_book::implier_type::a_ask_b_bid,
-          &mbi,
-          &mai
+          june_tick_size
       );
+  June_Book.add_implited_book(md::md_implied_book::implier_type::a_bid_b_ask,
+          md::md_implied_book::implier_type::a_ask_b_bid,
+          &mbi,
+          &mai);
 
   //SHORT AB (implied IN, BID_AB) <- (BID_PRICE_A - ASK_PRICE_B) @ MIN(BID_QUANTITY_A, ASK_QUANTITY_B)
   //LONG AB (implied IN, ASK_AB) <- (ASK_PRICE_A - BID_PRICE_B) @ MIN(ASK_QUANTITY_A, BID_QUANTITY_B)
@@ -370,12 +370,12 @@ void implied_test_md_tick_size()
       (
           handle_md,
           //[](const md::book_item&){},
-          spread_tick_size,
-          md::md_book::implier_type::a_bid_b_ask,
-          md::md_book::implier_type::a_ask_b_bid,
-          &mbi,
-          &mai
+          spread_tick_size
       );
+  Spread_Book.add_implited_book(md::md_implied_book::implier_type::a_bid_b_ask,
+          md::md_implied_book::implier_type::a_ask_b_bid,
+          &mbi,
+          &mai);
 
   matching::engine March
       (
@@ -383,8 +383,8 @@ void implied_test_md_tick_size()
           {
             handle_order(odr);
             March_Book.handle_outright(odr);
-            June_Book.handle_a(odr);
-            Spread_Book.handle_a(odr);
+            June_Book.handle_a(odr, 0);
+            Spread_Book.handle_a(odr, 0);
           },
           march_tick_size
       );
@@ -394,8 +394,8 @@ void implied_test_md_tick_size()
           {
             handle_order(odr);
             June_Book.handle_outright(odr);
-            March_Book.handle_b(odr);
-            Spread_Book.handle_b(odr);
+            March_Book.handle_b(odr, 0);
+            Spread_Book.handle_b(odr, 0);
           },
           june_tick_size
       );
@@ -405,8 +405,8 @@ void implied_test_md_tick_size()
           {
             handle_order(odr);
             Spread_Book.handle_outright(odr);
-            March_Book.handle_a(odr);
-            June_Book.handle_b(odr);
+            March_Book.handle_a(odr, 0);
+            June_Book.handle_b(odr, 0);
           },
           spread_tick_size
       );
@@ -471,36 +471,32 @@ void implied_test_remain_qty_overflow()
   md::md_book March_Book
       (
           handle_md,
-          1,
-          md::md_book::implier_type::a_bid_b_bid,
-          md::md_book::implier_type::a_ask_b_ask,
-          &abi,
-          &aai
+          1
       );
+  March_Book.add_implited_book(md::md_implied_book::a_bid_b_bid, md::md_implied_book::a_ask_b_ask, &abi, &aai);
 
   //SHORT B(implied OUT, BID_B) <- (BID_PRICE_A - ASK_PRICE_AB) @ MIN(BID_QUANTITY_A, ASK_QUANTITY_AB)
   //LONG B(implied OUT, ASK_B) <- (ASK_PRICE_A - BID_PRICE_AB) @ MIN(ASK_QUANTITY_A, BID_QUANTITY_AB)
   md::md_book June_Book
       (
           handle_md,
-          1,
-          md::md_book::implier_type::a_bid_b_ask,
-          md::md_book::implier_type::a_ask_b_bid,
-          &mbi,
-          &mai
+          1
       );
-
+  June_Book.add_implited_book(md::md_implied_book::a_bid_b_ask,
+          md::md_implied_book::a_ask_b_bid,
+          &mbi,
+          &mai);
   //SHORT AB (implied IN, BID_AB) <- (BID_PRICE_A - ASK_PRICE_B) @ MIN(BID_QUANTITY_A, ASK_QUANTITY_B)
   //LONG AB (implied IN, ASK_AB) <- (ASK_PRICE_A - BID_PRICE_B) @ MIN(ASK_QUANTITY_A, BID_QUANTITY_B)
   md::md_book Spread_Book
       (
           handle_md,
-          1,
-          md::md_book::implier_type::a_bid_b_ask,
-          md::md_book::implier_type::a_ask_b_bid,
-          &mbi,
-          &mai
+          1
       );
+  Spread_Book.add_implited_book(md::md_implied_book::a_bid_b_ask,
+          md::md_implied_book::a_ask_b_bid,
+          &mbi,
+          &mai);
 
   matching::engine March
       (
@@ -508,8 +504,8 @@ void implied_test_remain_qty_overflow()
           {
             handle_order(odr);
             March_Book.handle_outright(odr);
-            June_Book.handle_a(odr);
-            Spread_Book.handle_a(odr);
+            June_Book.handle_a(odr, 0);
+            Spread_Book.handle_a(odr, 0);
           }
       );
   matching::engine June
@@ -518,8 +514,8 @@ void implied_test_remain_qty_overflow()
           {
             handle_order(odr);
             June_Book.handle_outright(odr);
-            March_Book.handle_b(odr);
-            Spread_Book.handle_b(odr);
+            March_Book.handle_b(odr, 0);
+            Spread_Book.handle_b(odr, 0);
 
           }
       );
@@ -529,8 +525,8 @@ void implied_test_remain_qty_overflow()
           {
             handle_order(odr);
             Spread_Book.handle_outright(odr);
-            March_Book.handle_a(odr);
-            June_Book.handle_b(odr);
+            March_Book.handle_a(odr, 0);
+            June_Book.handle_b(odr, 0);
           }
       );
   matching::implied_spread_in_bid spread_bid_implier(1, &March, &June);
@@ -595,36 +591,38 @@ void implied_test()
 	md::md_book March_Book
 	(
 			handle_md,
-			1,
-			md::md_book::implier_type::a_bid_b_bid,
-			md::md_book::implier_type::a_ask_b_ask,
-			&abi,
-			&aai
+			1
 	);
+	March_Book.add_implited_book(md::md_implied_book::implier_type::a_bid_b_bid,
+			md::md_implied_book::implier_type::a_ask_b_ask,
+			&abi,
+			&aai);
 
 	//SHORT B(implied OUT, BID_B) <- (BID_PRICE_A - ASK_PRICE_AB) @ MIN(BID_QUANTITY_A, ASK_QUANTITY_AB)
 	//LONG B(implied OUT, ASK_B) <- (ASK_PRICE_A - BID_PRICE_AB) @ MIN(ASK_QUANTITY_A, BID_QUANTITY_AB)
 	md::md_book June_Book
 	(
 			handle_md,
-			1,
-			md::md_book::implier_type::a_bid_b_ask,
-			md::md_book::implier_type::a_ask_b_bid,
-			&mbi,
-			&mai
+			1
 	);
+
+	June_Book.add_implited_book(md::md_implied_book::implier_type::a_bid_b_ask,
+			md::md_implied_book::implier_type::a_ask_b_bid,
+			&mbi,
+			&mai);
 
 	//SHORT AB (implied IN, BID_AB) <- (BID_PRICE_A - ASK_PRICE_B) @ MIN(BID_QUANTITY_A, ASK_QUANTITY_B)
 	//LONG AB (implied IN, ASK_AB) <- (ASK_PRICE_A - BID_PRICE_B) @ MIN(ASK_QUANTITY_A, BID_QUANTITY_B)
 	md::md_book Spread_Book
 	(
 			handle_md,
-			1,
-			md::md_book::implier_type::a_bid_b_ask,
-			md::md_book::implier_type::a_ask_b_bid,
-			&mbi,
-			&mai
+			1
 	);
+
+	Spread_Book.add_implited_book(md::md_implied_book::implier_type::a_bid_b_ask,
+			md::md_implied_book::implier_type::a_ask_b_bid,
+			&mbi,
+			&mai);
 
 	matching::engine March
 	(
@@ -632,8 +630,8 @@ void implied_test()
 		{
 			handle_order(odr);
 			March_Book.handle_outright(odr);
-			June_Book.handle_a(odr);
-			Spread_Book.handle_a(odr);
+			June_Book.handle_a(odr, 0);
+			Spread_Book.handle_a(odr, 0);
 		}
 	);
 	matching::engine June
@@ -642,8 +640,8 @@ void implied_test()
 		{
 			handle_order(odr);
 			June_Book.handle_outright(odr);
-			March_Book.handle_b(odr);
-			Spread_Book.handle_b(odr);
+			March_Book.handle_b(odr, 0);
+			Spread_Book.handle_b(odr, 0);
 
 		}
 	);
@@ -653,8 +651,8 @@ void implied_test()
 		{
 			handle_order(odr);
 			Spread_Book.handle_outright(odr);
-			March_Book.handle_a(odr);
-			June_Book.handle_b(odr);
+			March_Book.handle_a(odr, 0);
+			June_Book.handle_b(odr, 0);
 		}
 	);
 	matching::implied_spread_in_bid spread_bid_implier(1, &March, &June);
