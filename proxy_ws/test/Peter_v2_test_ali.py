@@ -31,20 +31,18 @@ api_secret = '73f1982f-cde5-44d6-b236-e65466377d3c'
 # 'https://v2api.coinflex.com/v2/markets/public/markets/'
 
 #market = "BTC-USD-200925-LIN"
-market = "BTC-USD-SWAP-LIN"
+#market = "BTC-USD-SWAP-LIN"
 #market = 'BTC-USD-SPR-QP-LIN'
 #market = 'BTC-USD-REPO-LIN'
 #market = 'FLEX-USD'#
+market = "USDT-USD-SWAP-LIN"
 
-# login = 'peter.chan+v2_test1@coinflex.com'
-# passwd= 'peter.test'
-#login = "siang.xu+test1@coinflex.com"
-#passwd ="coinflex"
-# Dev env
-# Test env
-# v2 env
-#login = 'peter.chan+v2_dev1@coinflex.com'
-#passwd= 'peter.test'
+#market = "ETH-USD-200925-LIN"
+#market = "ETH-USD-SWAP-LIN"
+#market = 'ETH-USD-SPR-QP-LIN'
+#market = 'ETH-USD-REPO-LIN'
+
+bounds = { 'BTC' : [11370, 11390], 'ETH': [318, 328], 'USD': [98,102] }
 
 client_order_id = int(time.time()) * 1000 + 1
 headers = {'content-type': 'application/json'}
@@ -130,7 +128,12 @@ async def call_api():
             # await websocket.send(json.dumps(placeOrder( "SELL", 1600,  0.0021300000)))
             # await websocket.send(json.dumps(placeOrder( "BUY",  1700, -0.0007)))
 
-            rnd_bid_px  = random.randint(10600, 10800);          rnd_ask_px  = random.randint(10600, 10800)
+            lbound = bounds[market[0:3]][0]
+            ubound = bounds[market[0:3]][1]
+            rnd_bid_px  = random.randint(lbound, ubound);        rnd_ask_px  = random.randint(lbound, ubound)
+            if market[0:3] == 'USD' :
+              rnd_bid_px /= 100
+              rnd_ask_px /= 100
             rnd_bid_qty = random.randint(1, 3);                  rnd_ask_qty = random.randint(1, 3)
 
             await websocket.send(json.dumps(placeOrder( "BUY",  rnd_bid_qty, rnd_bid_px)))
