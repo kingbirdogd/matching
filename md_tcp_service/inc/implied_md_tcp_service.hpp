@@ -26,15 +26,15 @@ public:
 	implied_md_tcp_service() = delete;
 	implied_md_tcp_service(const implied_md_tcp_service&) = delete;
 	implied_md_tcp_service(implied_md_tcp_service&& srv):
-		_a(srv._a),
-		_b(srv._b)
+		_a(std::move(srv._a)),
+		_b(std::move(srv._b))
 	{
 	}
 	implied_md_tcp_service& operator= (const implied_md_tcp_service&) = delete;
 	implied_md_tcp_service& operator= (implied_md_tcp_service&& srv)
 	{
-		_a = srv._a;
-		_b = srv._b;
+		_a = std::move(srv._a);
+		_b = std::move(srv._b);
 		return *this;
 	}
 	void run();
