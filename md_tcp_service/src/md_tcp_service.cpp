@@ -55,9 +55,35 @@ md_tcp_service::md_tcp_service
 	url << "tcp://localhost:" << xsub_port;
 }
 
+std::string time_in_HH_MM_SS_MMM()
+{
+  using namespace std::chrono;
+
+  // get current time
+  auto now = system_clock::now();
+
+  // get number of milliseconds for the current second
+  // (remainder after division into seconds)
+  auto us = duration_cast<microseconds>(now.time_since_epoch()) % 1000000;
+
+  // convert to std::time_t in order to convert to std::tm (broken time)
+  auto timer = system_clock::to_time_t(now);
+
+  // convert to broken time
+  std::tm bt = *std::localtime(&timer);
+
+  std::ostringstream oss;
+
+  oss << std::put_time(&bt, "%Y-%m-%d %H:%M:%S"); // HH:MM:SS
+  oss << '.' << std::setfill('0') << std::setw(6) << us.count();
+
+  return oss.str();
+}
+
 void md_tcp_service::_handle_item(const md::book_item& item)
 {
-  std::cout << "side=" << item.side << ",px=" << item.price << ",qty=" << item.quantity << std::endl;
+
+  std::cout << time_in_HH_MM_SS_MMM() << " side=" << item.side << ",px=" << item.price << ",qty=" << item.quantity << '\n';
 	_s.send(item);
 }
 

@@ -277,7 +277,7 @@ int main(int iArgc, char** pszArgv)
   config.setPartitionsRoutingMode(ProducerConfiguration::PartitionsRoutingMode::RoundRobinDistribution);
   // TODO: Switch Frequency?
   config.setBatchingMaxPublishDelayMs(1);
-  config.setCompressionType(CompressionLZ4);
+  //config.setCompressionType(CompressionLZ4);  // buggy in 2.6.0
   config.setSendTimeout(1000);
   config.setBlockIfQueueFull(true);
 
@@ -361,7 +361,8 @@ int main(int iArgc, char** pszArgv)
       elog.error() << "Couldn't serialize parsed data to JSON!" << std::endl;
     }
     jsongen.erase(std::remove(jsongen.begin(), jsongen.end(), '\n'), jsongen.end());
-    Message msg = MessageBuilder().setContent(jsongen.c_str(), jsongen.size()).build();
+    auto key = std::string("ACCOUNT-ID-")+std::to_string(o.account_id);
+    Message msg = MessageBuilder().setOrderingKey(key).setContent(jsongen.c_str(), jsongen.size()).build();
 
     Result res = producer.send(msg);
     //LOG_INFO("Message sent: " << res);
