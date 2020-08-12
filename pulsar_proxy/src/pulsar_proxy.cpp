@@ -362,8 +362,8 @@ int main(int iArgc, char** pszArgv)
     }
     jsongen.erase(std::remove(jsongen.begin(), jsongen.end(), '\n'), jsongen.end());
     auto key = std::string("ACCOUNT-ID-")+std::to_string(o.account_id);
-    Message msg = MessageBuilder().setOrderingKey(key)..setPartitionKey(key).setContent(jsongen.c_str(), jsongen.size()).build();
-    elog.info() << "Ordering key: " << msg.getOrderingKey() << "Partition key: " << msg.getPartitionKey() << std::endl;
+    Message msg = MessageBuilder().setOrderingKey(key).setPartitionKey(key).setContent(jsongen.c_str(), jsongen.size()).build();
+    //elog.info() << "Ordering key: " << msg.getOrderingKey() << "Partition key: " << msg.getPartitionKey() << std::endl;
 
     Result res = producer.send(msg);
     //LOG_INFO("Message sent: " << res);

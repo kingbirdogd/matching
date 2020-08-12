@@ -1,4 +1,4 @@
-add_library(md_tcp_service md_tcp_service.cpp)
+add_library(md_tcp_service md_tcp_service.cpp implied_md_tcp_service.cpp)
 target_include_directories(md_tcp_service PUBLIC ../inc)
 target_include_directories(md_tcp_service PUBLIC ${CMAKE_SOURCE_DIR}/net/md_tcp_service/inc)
 target_include_directories(md_tcp_service PUBLIC ${CMAKE_SOURCE_DIR}/net/tcp_service/inc)
