@@ -21,6 +21,7 @@ aliyun_dev_prefix  = 'persistent://CF-V2/ME-WS'
 posttrade_prefix   = 'persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-'
 
 local_url       = 'localhost:6650'
+aliyun_lemon_url= "172.21.31.250:6651"
 aliyun_dev_url  = "172.21.11.79:6650"
 aliyun_test_url = '172.21.21.221:6650'
 aliyun_stg_url  = '172.42.13.79:6650'
@@ -28,7 +29,7 @@ aliyun_live_url = '172.41.11.101:6650'
 
 # ==== Change the following as you need ====
 topic_prefix = posttrade_prefix
-host_url     = aliyun_test_url
+host_url     = aliyun_lemon_url
 
 #market_id = '2001021200925' # Futures
 market_id = '2001011000000' # Perp
@@ -100,6 +101,8 @@ if __name__ == '__main__':
         #   continue
 
         print(f'recv {len(buf.data())} bytes from pulsar')
+        print(f'partition_key={buf.partition_key()}')
+        print(f'properties={buf.properties()}')
         print(f'publish_timestamp = {buf.publish_timestamp()} ')
         print(f'data = {buf.data()} ')
         #print(f'event_timestamp = {buf.event_timestamp()} ')

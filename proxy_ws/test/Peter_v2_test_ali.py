@@ -10,16 +10,22 @@ import hmac
 import hashlib
 
 # # test env
-wss_url   = 'wss://api-test-v2.coinflex-cn.com/v2/websocket'
-https_url = 'https://api-test-v2.coinflex-cn.com/v2/account/auth/trading/login'
-api_key    = '3b207a63-b872-47f3-a85b-ba95fafc8b51'
-api_secret = '73f1982f-cde5-44d6-b236-e65466377d3c'
+# wss_url   = 'wss://api-test-v2.coinflex-cn.com/v2/websocket'
+# https_url = 'https://api-test-v2.coinflex-cn.com/v2/account/auth/trading/login'
+# api_key    = '3b207a63-b872-47f3-a85b-ba95fafc8b51'
+# api_secret = '73f1982f-cde5-44d6-b236-e65466377d3c'
 
 # # dev env
 # wss_url   = 'wss://api-dev-v2.coinflex-cn.com/v2/websocket'
 # https_url = 'https://api-dev-v2.coinflex-cn.com/v2/account/auth/trading/login'
 # api_key    = 'ZeCafws/E911MGSa16+jCObJIIO33ZOx9Kv/ZeovTsk='
 # api_secret = 'LS7wkx3K4pnJGIecuX44Y+R0iXZjmZ/E5Nqmjgjiutw='
+
+# lemon env
+wss_url   = 'wss://api-lemon-v2.coinflex-cn.com/v2/websocket'
+#https_url = 'https://api-dev-v2.coinflex-cn.com/v2/account/auth/trading/login'
+api_key    = '1yp3dBb2uajNqhrPMY/0mZqXpOxPm75oQsSOeeqo4hs='
+api_secret = 'JK9Skbdtd+tMaQpyXQwtPzljQ8T0BTQvPRv5bK1LI2U='
 
 # # stage env
 # wss_url   = 'wss://v2stgapi.coinflex.com/v2/websocket'
@@ -31,11 +37,11 @@ api_secret = '73f1982f-cde5-44d6-b236-e65466377d3c'
 # 'https://v2api.coinflex.com/v2/markets/public/markets/'
 
 #market = "BTC-USD-200925-LIN"
-#market = "BTC-USD-SWAP-LIN"
+market = "BTC-USD-SWAP-LIN"
 #market = 'BTC-USD-SPR-QP-LIN'
 #market = 'BTC-USD-REPO-LIN'
 #market = 'FLEX-USD'#
-market = "USDT-USD-SWAP-LIN"
+#market = "USDT-USD-SWAP-LIN"
 
 #market = "ETH-USD-200925-LIN"
 #market = "ETH-USD-SWAP-LIN"
