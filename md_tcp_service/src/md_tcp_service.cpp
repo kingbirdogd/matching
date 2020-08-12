@@ -82,8 +82,7 @@ std::string time_in_HH_MM_SS_MMM()
 
 void md_tcp_service::_handle_item(const md::book_item& item)
 {
-
-  std::cout << time_in_HH_MM_SS_MMM() << " side=" << item.side << ",px=" << item.price << ",qty=" << item.quantity << '\n';
+  std::clog << time_in_HH_MM_SS_MMM() << " side=" << item.side << ",px=" << item.price << ",qty=" << item.quantity << '\n';
 	_s.send(item);
 }
 
