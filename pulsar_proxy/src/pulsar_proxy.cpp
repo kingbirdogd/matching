@@ -47,7 +47,7 @@ void handle_order(const matching::order& o)
 	std::string matched_type = "";
 	if (matching::order::order_type::LIMIT == o.type)
 	{
-		type = "LIMITs";
+		type = "LIMIT";
 	}
 	else
 	{
@@ -210,7 +210,7 @@ void handle_order(const matching::order& o)
 	client_to_engine_id_map[o.client_order_id] = o.order_id;
   {
     std::lock_guard<std::mutex> lockGuard(iomutex);
-    elog.debug()
+    elog.info()
         << "account_id:" << o.account_id
         << ",market_id:" << o.market_id
         << ",action:" << action
@@ -269,11 +269,23 @@ int main(int iArgc, char** pszArgv)
   Client client(pulsar_host.c_str());
 
   Producer producer;
+  ProducerConfiguration config = ProducerConfiguration();
+  config.setBatchingEnabled(true);
+  // TODO: Batch Builder?
+  config.setBatchingMaxAllowedSizeInBytes(128*1024*1024);
+  config.setBatchingMaxMessages(200000);
+  config.setPartitionsRoutingMode(ProducerConfiguration::PartitionsRoutingMode::RoundRobinDistribution);
+  // TODO: Switch Frequency?
+  config.setBatchingMaxPublishDelayMs(1);
+  //config.setCompressionType(CompressionLZ4);  // buggy in 2.6.0
+  config.setSendTimeout(1000);
+  config.setBlockIfQueueFull(true);
+
   Result result = ResultUnknownError;
   //std::string order_out_url = std::string("persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-") + std::to_string(market_id);
   while (result != ResultOk) {
     elog.info() << "Creating Producer: " << order_out_url << std::endl;
-    result = client.createProducer(order_out_url.c_str(), producer);
+    result = client.createProducer(order_out_url.c_str(), config, producer);
     if (result != ResultOk) {
       elog.error() << "Error creating producer: " << result << std::endl;
       //return -1;
@@ -349,7 +361,9 @@ int main(int iArgc, char** pszArgv)
       elog.error() << "Couldn't serialize parsed data to JSON!" << std::endl;
     }
     jsongen.erase(std::remove(jsongen.begin(), jsongen.end(), '\n'), jsongen.end());
-    Message msg = MessageBuilder().setContent(jsongen.c_str(), jsongen.size()).build();
+    auto key = std::string("ACCOUNT-ID-")+std::to_string(o.account_id);
+    Message msg = MessageBuilder().setOrderingKey(key)..setPartitionKey(key).setContent(jsongen.c_str(), jsongen.size()).build();
+    elog.info() << "Ordering key: " << msg.getOrderingKey() << "Partition key: " << msg.getPartitionKey() << std::endl;
 
     Result res = producer.send(msg);
     //LOG_INFO("Message sent: " << res);
