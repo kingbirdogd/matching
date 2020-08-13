@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <string>
 #include <thread>
+#include <zconf.h>
 #include "fbs_helper.hpp"
 
 std::unordered_map<unsigned long long, unsigned long long> client_to_engine_id_map;
@@ -186,6 +187,7 @@ void handle_order(const matching::order& o)
 
 int main(int iArgc, char** pszArgv)
 {
+  bool connected = false;
 	if (3 != iArgc)
 	{
 		std::cout << "usage: test_tcp_matching_client host <port[1,65535]>" << std::endl;
@@ -202,11 +204,13 @@ int main(int iArgc, char** pszArgv)
 	matching_tcp_client c(host, sPort);
 	c.set_connected([&]()
 	{
-		std::cout << "matching_tcp_client connected" << std::endl;
+		std::clog << "matching_tcp_client connected" << std::endl;
+		connected = true;
 	});
 	c.set_disconnected([&]()
 	{
-		std::cout << "matching_tcp_client disconnected" << std::endl;
+		std::clog << "matching_tcp_client disconnected" << std::endl;
+		sleep(1);
 	});
 	c.set_on_order([&](const matching::order& o)
 	{
@@ -222,6 +226,11 @@ int main(int iArgc, char** pszArgv)
 		}
 	});
 
+  while (!connected) {
+    std::clog << "Waiting to connect..." << std::endl;
+    sleep(1);
+  }
+
   matching::order o;
 
 //  o.market_id = 9001011000000;
@@ -236,19 +245,33 @@ int main(int iArgc, char** pszArgv)
 //  o.request_id = 4138588;
 //  c.send(o);
 
-//	o.side = matching::order::order_side::SELL;
-//	o.client_order_id = 1;
-//	o.quantity = 1000;
-//	o.display_quantity = 1000;
-//	o.price = 100;
-//	c.send(o);
-//
-//	o.side = matching::order::order_side::BUY;
-//	o.client_order_id = 1;
-//	o.quantity = 980;
-//	o.display_quantity = 980;
-//	o.price = 101;
-//	c.send(o);
+
+
+	o.side = matching::order::order_side::SELL;
+	o.client_order_id = 1;
+	o.quantity = 1000;
+	o.display_quantity = 1000;
+	o.price = 102;
+	c.send(o);
+	sleep(1);
+
+	o.side = matching::order::order_side::BUY;
+	o.client_order_id = 1;
+	o.quantity = 980;
+	o.display_quantity = 980;
+	o.price = 101;
+	c.send(o);
+  sleep(1);
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 1;
+  o.quantity = 980;
+  o.display_quantity = 980;
+  o.price = 102;
+  c.send(o);
+  sleep(1);
+
+  std::clog << "Done" << std::endl;
 
 	th.join();
 	return 0;

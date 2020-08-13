@@ -220,7 +220,7 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
   if (elog.info_enabled()) {
     //elog.debug() << "seq_num=" << seq_num << std::endl;
     elog.info() << "snapshot:" << snapshot << std::endl;
-    elog.info() << "checksum string:" << ss.str() << std::endl;
+    elog.info() << "checksum string:" << checksum_str << std::endl;
   }
   return snapshot;
 }
@@ -322,11 +322,11 @@ std::pair<bool, json::Object> OrderBook::get_orderbook_diff(//book_map_t &bids,
   auto it_ask = asks_pxLevels->begin();
   while ((it_bid != bids_pxLevels->rend()) || (it_ask != asks_pxLevels->end())) {
     if (it_bid != bids_pxLevels->rend()) {
-      ss << it_bid[0] << ":" << it_bid[1] << ":";
+      ss << it_bid[0]->as_array()->at(0) << ":" << it_bid[0]->as_array()->at(1) << ":";
       it_bid++;
     }
     if (it_ask != asks_pxLevels->end()) {
-      ss << it_ask[0] << ":" << it_ask[1] << ":";
+      ss << it_ask[0]->as_array()->at(0) << ":" << it_ask[0]->as_array()->at(1) << ":";
       it_ask++;
     }
   }
@@ -350,7 +350,7 @@ std::pair<bool, json::Object> OrderBook::get_orderbook_diff(//book_map_t &bids,
   delta.insert("data", std::move(data));
   if (elog.info_enabled()) {
     elog.info() << "update  :" << delta << std::endl;
-    elog.info() << "checksum string:" << ss.str() << std::endl;
+    elog.info() << "checksum string:" << checksum_str << std::endl;
   }
   return std::make_pair(any_diff, delta);
   //return delta;
