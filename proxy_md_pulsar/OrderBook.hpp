@@ -20,7 +20,8 @@ namespace proxy {
     OrderBook() : top_bid_px(std::numeric_limits<long long>::min()),
                   top_ask_px(std::numeric_limits<long long>::max()),
                   seq_num(duration_cast<seconds>(system_clock::now().time_since_epoch()).count() * 1e9),
-                  market_id(0)
+                  market_id(0),
+                  factor(100000000)
     {
       elog.debug() << "seq_num=" << seq_num << std::endl;
     }
@@ -42,6 +43,7 @@ namespace proxy {
     long long top_bid_px, top_ask_px;
     unsigned long long seq_num;
     unsigned long long market_id;
+    unsigned long long factor;
   };
 
 

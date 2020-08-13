@@ -159,12 +159,12 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
   while ((it_bid != last_valid_bids.rend()) || (it_ask != last_valid_asks.end())) {
     if (it_bid != last_valid_bids.rend()) {
       if (it_bid->second.quantity != 0)
-        ss << it_bid->second.price << ":" << it_bid->second.quantity << ":";
+        ss << it_bid->second.price/factor << ":" << it_bid->second.quantity/factor << ":";
       it_bid++;
     }
     if (it_ask != last_valid_asks.end()) {
       if (it_ask->second.quantity != 0)
-        ss << it_ask->second.price << ":" << it_ask->second.quantity << ":";
+        ss << it_ask->second.price/factor << ":" << it_ask->second.quantity/factor << ":";
       it_ask++;
     }
   }
@@ -322,11 +322,11 @@ std::pair<bool, json::Object> OrderBook::get_orderbook_diff(//book_map_t &bids,
   auto it_ask = asks_pxLevels->begin();
   while ((it_bid != bids_pxLevels->rend()) || (it_ask != asks_pxLevels->end())) {
     if (it_bid != bids_pxLevels->rend()) {
-      ss << it_bid[0]->as_array()->at(0) << ":" << it_bid[0]->as_array()->at(1) << ":";
+      ss << it_bid[0]->as_array()->at(0)->as_integer()/factor << ":" << it_bid[0]->as_array()->at(1)->as_integer() << ":";
       it_bid++;
     }
     if (it_ask != asks_pxLevels->end()) {
-      ss << it_ask[0]->as_array()->at(0) << ":" << it_ask[0]->as_array()->at(1) << ":";
+      ss << it_ask[0]->as_array()->at(0))->as_integer()/factor << ":" << it_ask[0]->as_array()->at(1))->as_integer()/factor << ":";
       it_ask++;
     }
   }
