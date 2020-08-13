@@ -257,26 +257,6 @@ std::pair<bool, json::Object> OrderBook::get_orderbook_diff(//book_map_t &bids,
     }
   }
 
-  // Generate checksum
-  std::stringstream ss;
-  auto it_bid = last_valid_bids.rbegin();
-  auto it_ask = last_valid_asks.begin();
-  while ((it_bid != last_valid_bids.rend()) || (it_ask != last_valid_asks.end())) {
-    if (it_bid != last_valid_bids.rend()) {
-      if ((it_bid->second.price > top_valid_bid_price) && (it_bid->second.quantity > 0)) {
-        ss << it_bid->second.price << ":" << it_bid->second.quantity << ":";
-      it_bid++;
-    }
-    if (it_ask != last_valid_asks.end()) {
-      if (it_ask->second.quantity != 0)
-        ss << it_ask->second.price << ":" << it_ask->second.quantity << ":";
-      it_ask++;
-    }
-  }
-  auto checksum_str = ss.str().substr(0, ss.str().size()-1);
-  uint32_t res32 = crc32b((unsigned char*)checksum_str.data());
-  int32_t signed_res32 = *(int32_t*)(&res32);
-
   // Previous bids which have been deleted
   for (auto it = last_bids.rbegin(); it != last_bids.rend(); it++) {
     if ((it->second.price > top_valid_bid_price) && (it->second.quantity > 0)) {
