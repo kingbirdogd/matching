@@ -326,7 +326,7 @@ std::pair<bool, json::Object> OrderBook::get_orderbook_diff(//book_map_t &bids,
       it_bid++;
     }
     if (it_ask != asks_pxLevels->end()) {
-      ss << it_ask[0]->as_array()->at(0))->as_integer()/factor << ":" << it_ask[0]->as_array()->at(1))->as_integer()/factor << ":";
+      ss << it_ask[0]->as_array()->at(0)->as_integer()/factor << ":" << it_ask[0]->as_array()->at(1)->as_integer()/factor << ":";
       it_ask++;
     }
   }
