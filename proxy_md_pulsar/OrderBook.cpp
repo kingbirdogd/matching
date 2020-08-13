@@ -4,6 +4,24 @@
 using namespace md;
 using namespace proxy;
 
+unsigned int crc32b(unsigned char *message) {
+  int i, j;
+  unsigned int byte, crc, mask;
+
+  i = 0;
+  crc = 0xFFFFFFFF;
+  while (message[i] != 0) {
+    byte = message[i];            // Get next byte.
+    crc = crc ^ byte;
+    for (j = 7; j >= 0; j--) {    // Do eight times.
+      mask = -(crc & 1);
+      crc = (crc >> 1) ^ (0xEDB88320 & mask);
+    }
+    i = i + 1;
+  }
+  return ~crc;
+}
+
 std::string currentISO8601TimeUTC() {
   auto now = std::chrono::system_clock::now();
   auto itt = std::chrono::system_clock::to_time_t(now);
@@ -134,6 +152,26 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
   snapshot.insert("table", json::String("futures/depth"));
   snapshot.insert("action", json::String("partial"));
 
+  // Generate checksum
+  std::stringstream ss;
+  auto it_bid = last_valid_bids.rbegin();
+  auto it_ask = last_valid_asks.begin();
+  while ((it_bid != last_valid_bids.rend()) || (it_ask != last_valid_asks.end())) {
+    if (it_bid != last_valid_bids.rend()) {
+      if (it_bid->second.quantity != 0)
+        ss << it_bid->second.price << ":" << it_bid->second.quantity << ":";
+      it_bid++;
+    }
+    if (it_ask != last_valid_asks.end()) {
+      if (it_ask->second.quantity != 0)
+        ss << it_ask->second.price << ":" << it_ask->second.quantity << ":";
+      it_ask++;
+    }
+  }
+  auto checksum_str = ss.str().substr(0, ss.str().size()-1);
+  uint32_t res32 = crc32b((unsigned char*)checksum_str.data());
+  int32_t signed_res32 = *(int32_t*)(&res32);
+
   int cnt = 0;
   for (auto it = last_valid_bids.rbegin(); it != last_valid_bids.rend(); it++) {
     //if (it->second.price > top_bid_px) continue;
@@ -174,14 +212,15 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
   data_item.insert("bids", std::move(bids_pxLevels));
   data_item.insert("asks", std::move(asks_pxLevels));
   data_item.insert("timestamp", json::String(std::to_string(ms)));
-  data_item.insert("checksum", json::Integer(0));
+  data_item.insert("checksum", json::Integer(signed_res32));
   data_item.insert("seq_num", json::Integer(seq_num));
 
   data.insert(std::move(data_item));
   snapshot.insert("data", std::move(data));
-  if (elog.debug_enabled()) {
+  if (elog.info_enabled()) {
     //elog.debug() << "seq_num=" << seq_num << std::endl;
-    elog.debug() << "snapshot:" << snapshot << std::endl;
+    elog.info() << "snapshot:" << snapshot << std::endl;
+    elog.info() << "checksum string:" << ss.str() << std::endl;
   }
   return snapshot;
 }
@@ -277,6 +316,24 @@ std::pair<bool, json::Object> OrderBook::get_orderbook_diff(//book_map_t &bids,
     if (++cnt == max_entries) break;
   }
 
+  // Generate checksum
+  std::stringstream ss;
+  auto it_bid = bids_pxLevels->rbegin();
+  auto it_ask = asks_pxLevels->begin();
+  while ((it_bid != bids_pxLevels->rend()) || (it_ask != asks_pxLevels->end())) {
+    if (it_bid != bids_pxLevels->rend()) {
+      ss << it_bid[0] << ":" << it_bid[1] << ":";
+      it_bid++;
+    }
+    if (it_ask != asks_pxLevels->end()) {
+      ss << it_ask[0] << ":" << it_ask[1] << ":";
+      it_ask++;
+    }
+  }
+  auto checksum_str = ss.str().substr(0, ss.str().size()-1);
+  uint32_t res32 = crc32b((unsigned char*)checksum_str.data());
+  int32_t signed_res32 = *(int32_t*)(&res32);
+
   auto now = std::chrono::system_clock::now();
   auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
   bool any_diff = !bids_pxLevels->empty() || !asks_pxLevels->empty();
@@ -286,13 +343,14 @@ std::pair<bool, json::Object> OrderBook::get_orderbook_diff(//book_map_t &bids,
   data_item.insert("asks", std::move(asks_pxLevels));
   data_item.insert("timestamp", json::String(std::to_string(ms)));
   //data_item.insert("timestamp", json::String(currentISO8601TimeUTC()));
-  data_item.insert("checksum", json::Integer(0));
+  data_item.insert("checksum", json::Integer(signed_res32));
   data_item.insert("seq_num", json::Integer(seq_num));
 
   data.insert(std::move(data_item));
   delta.insert("data", std::move(data));
-  if (elog.debug_enabled()) {
-    elog.debug() << "update  :" << delta << std::endl;
+  if (elog.info_enabled()) {
+    elog.info() << "update  :" << delta << std::endl;
+    elog.info() << "checksum string:" << ss.str() << std::endl;
   }
   return std::make_pair(any_diff, delta);
   //return delta;
