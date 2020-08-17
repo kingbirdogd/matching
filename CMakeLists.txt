@@ -3,6 +3,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(VERSION dev)
 set(SUBMODULE_VERSION dev)
+set(CMAKE_BUILD_TYPE RelWithDebInfo)
 execute_process(COMMAND git describe --always --dirty OUTPUT_VARIABLE VERSION)
 string(STRIP "${VERSION}" VERSION)
 message("VERSION = ${VERSION}")
