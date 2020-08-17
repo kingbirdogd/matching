@@ -18,11 +18,11 @@ _b(b_ip, b_port)
 {
 	auto idx = book.current_idx();
 	book.add_implited_book(bid_implie_type, ask_implie_type, bid_implier, ask_implier);
-	_a.set_on_order([&](const matching::order& o)
+	_a.set_on_order([&, idx](const matching::order& o)
 	{
 		book.handle_a(o, idx);
 	});
-	_b.set_on_order([&](const matching::order& o)
+	_b.set_on_order([&, idx](const matching::order& o)
 	{
 		book.handle_b(o, idx);
 	});

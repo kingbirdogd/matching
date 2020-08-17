@@ -11,7 +11,7 @@
 class md_tcp_service
 {
 private:
-	using implied_tcp_services = std::vector<implied_md_tcp_service*>;
+	using implied_tcp_services = std::vector<implied_md_tcp_service>;
 private:
 	implied_tcp_services _services;
 	matching_tcp_client _outright;
@@ -33,7 +33,7 @@ public:
 		unsigned long long mtick = 1,
 		unsigned short int xsub_port = 36000
 	);
-	~md_tcp_service();
+	~md_tcp_service() = default;
 	void add_implied_service
 	(
 		const std::string a_ip,
