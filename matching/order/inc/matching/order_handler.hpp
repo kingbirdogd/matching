@@ -4,6 +4,7 @@
 #include <functional>
 #include <cstring>
 #include <matching/order.hpp>
+#include <iostream>
 namespace matching
 {
 	class order_handler
