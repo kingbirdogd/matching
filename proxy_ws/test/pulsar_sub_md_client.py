@@ -5,6 +5,7 @@ import datetime as dt
 
 import MdsMsg as mm
 import pulsar
+import sys
 
 
 local_topic_prefix = 'persistent://prop/r1/ns1'
@@ -18,12 +19,12 @@ aliyun_live_url = '172.41.11.101:6650'
 
 # ==== Change the following as you need ====
 topic_prefix = aliyun_dev_prefix
-host_url     = aliyun_test_url
+host_url     = aliyun_stg_url
 
 #market_id = '2001021200925' # Futures
-market_id = '2001011000000' # Perp
+#market_id = '2001011000000' # Perp
 #market_id = '2001051000000' # Spread
-#market_id = '2001000000000' # Spot
+market_id = '2001000000000' # Spot
 #market_id = '2001031000000' # #Repo
 name = 'peter'
 # ==========================================
@@ -33,8 +34,8 @@ consumer_name = 'consumer-' + name
 consumer_id_name = 'consumer-id-' + name
 
 client = pulsar.Client('pulsar://' + host_url )
-#consumer = client.subscribe(topic_prefix + '/MD-SNAPSHOT-' + market_id,
-consumer = client.subscribe(topic_prefix + '/MD-DIFF-' + market_id,
+consumer = client.subscribe(topic_prefix + '/MD-SNAPSHOT-' + market_id,
+#consumer = client.subscribe(topic_prefix + '/MD-DIFF-' + market_id,
                             subscription_name,
                             properties={
                                 "consumer-name": consumer_name,
@@ -68,6 +69,9 @@ def getStr_OrderBook(ob, ind=2):
     outStr += getStr_PxLevel(pxl, ind+2)
   outStr += f"{ss}}},\n"
 
+  if ob.Checksum() != 0:
+    print(outStr)
+    sys.exit(-1)
   return outStr
 
 def getStr_MdsMsg(o, ind=2) :

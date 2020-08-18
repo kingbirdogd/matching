@@ -9,7 +9,7 @@ import base64
 import hmac
 import hashlib
 
-# # test env
+# # # test env
 # wss_url   = 'wss://api-test-v2.coinflex-cn.com/v2/websocket'
 # https_url = 'https://api-test-v2.coinflex-cn.com/v2/account/auth/trading/login'
 # api_key    = '3b207a63-b872-47f3-a85b-ba95fafc8b51'
@@ -21,23 +21,26 @@ import hashlib
 # api_key    = 'ZeCafws/E911MGSa16+jCObJIIO33ZOx9Kv/ZeovTsk='
 # api_secret = 'LS7wkx3K4pnJGIecuX44Y+R0iXZjmZ/E5Nqmjgjiutw='
 
-# lemon env
-wss_url   = 'wss://api-lemon-v2.coinflex-cn.com/v2/websocket'
-#https_url = 'https://api-dev-v2.coinflex-cn.com/v2/account/auth/trading/login'
-api_key    = '1yp3dBb2uajNqhrPMY/0mZqXpOxPm75oQsSOeeqo4hs='
-api_secret = 'JK9Skbdtd+tMaQpyXQwtPzljQ8T0BTQvPRv5bK1LI2U='
+# stage env
+wss_url   = 'wss://v2stgapi.coinflex.com/v2/websocket'
+https_url = 'https://v2stgapi.coinflex.com/v2/account/auth/trading/login'
+api_key    = 'OFHrN+Kyi7M6ScAZGTYREBJQhKRme4ARUJN5QcQ+J4U='
+api_secret = 'wxUTiLcIW068IDTYbsUFLOq33SEONuby063Yj4XmDxc='
 
-# # stage env
-# wss_url   = 'wss://v2stgapi.coinflex.com/v2/websocket'
-# https_url = 'https://v2stgapi.coinflex.com/v2/account/auth/trading/login'
+# # lemon env
+# wss_url   = 'wss://api-lemon-v2.coinflex-cn.com/v2/websocket'
+# #https_url = 'https://api-dev-v2.coinflex-cn.com/v2/account/auth/trading/login'
+# api_key    = '1yp3dBb2uajNqhrPMY/0mZqXpOxPm75oQsSOeeqo4hs='
+# api_secret = 'JK9Skbdtd+tMaQpyXQwtPzljQ8T0BTQvPRv5bK1LI2U='
 
 # # v2
 # wss_url   = 'wss://v2api.coinflex.com/v2/websocket'
 # https_url = 'https://v2api.coinflex.com/v2/account/auth/trading/login'
-# 'https://v2api.coinflex.com/v2/markets/public/markets/'
+#'https://v2api.coinflex.com/v2/markets/public/markets/'
 
 #market = "BTC-USD-200925-LIN"
-market = "BTC-USD-SWAP-LIN"
+#market = "BTC-USD-SWAP-LIN"
+market = "BTC-USD"
 #market = 'BTC-USD-SPR-QP-LIN'
 #market = 'BTC-USD-REPO-LIN'
 #market = 'FLEX-USD'#
@@ -48,7 +51,7 @@ market = "BTC-USD-SWAP-LIN"
 #market = 'ETH-USD-SPR-QP-LIN'
 #market = 'ETH-USD-REPO-LIN'
 
-bounds = { 'BTC' : [11370, 11390], 'ETH': [318, 328], 'USD': [98,102] }
+bounds = { 'BTC' : [11940, 11999], 'ETH': [318, 328], 'USD': [98,102] }
 
 client_order_id = int(time.time()) * 1000 + 1
 headers = {'content-type': 'application/json'}
@@ -91,11 +94,16 @@ def amendOrder(side,quantity,price, order_id):
     return send_order
 
 async def get_reply_notice(sleep_s, bPrint=True):
-    global ws, logined
+    global ws, logined, market
     while not logined:
         await asyncio.sleep(0.05)
 
     print(f"Start listening to notice messages...")
+    if ws and logined:
+        #sub_msg = f'{{"op":"subscribe", "args":["order:{market}"],"tag":1}}'
+        sub_msg = f'{{"op":"subscribe", "args":["futures/depth:{market}"],"tag":1}}'
+        await ws.send(sub_msg)
+
     while True:
         if ws and logined:
             response = await ws.recv()
@@ -142,8 +150,8 @@ async def call_api():
               rnd_ask_px /= 100
             rnd_bid_qty = random.randint(1, 3);                  rnd_ask_qty = random.randint(1, 3)
 
-            await websocket.send(json.dumps(placeOrder( "BUY",  rnd_bid_qty, rnd_bid_px)))
-            await websocket.send(json.dumps(placeOrder( "SELL", rnd_ask_qty, rnd_ask_px)))
+            #await websocket.send(json.dumps(placeOrder( "BUY",  rnd_bid_qty, rnd_bid_px)))
+            #await websocket.send(json.dumps(placeOrder( "SELL", rnd_ask_qty, rnd_ask_px)))
         #break
         await asyncio.sleep(2)
 
