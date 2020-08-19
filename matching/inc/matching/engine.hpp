@@ -976,7 +976,7 @@ namespace matching
 				for (std::size_t i = 0; i < odr_list.size(); ++i)
 				{
 					auto& o = (*odr_list[i]);
-					o.price = o.buy_stop_limited_price;
+					o.price = o.buy_stop_limit_price;
 					if (order::order_time_condition::FOK == o.time_condition)
 					{
 						_ask_book_matcher.fok_match(_ask_book.key_comp(), o);
@@ -1016,7 +1016,7 @@ namespace matching
 				for (std::size_t i = 0; i < odr_list.size(); ++i)
 				{
 					auto& o = (*odr_list[i]);
-					o.price = o.sell_stop_limited_price;
+					o.price = o.sell_stop_limit_price;
 					if (order::order_time_condition::FOK == o.time_condition)
 					{
 						_bid_book_matcher.fok_match(_bid_book.key_comp(), o);
@@ -1129,7 +1129,7 @@ namespace matching
 				auto best_a = best_ask();
 				if (order::order_type::MARKET == o.type)
 				{
-					if (order::MARKET_PRICE != o.buy_stop_limited_price)
+					if (order::MARKET_PRICE != o.buy_stop_limit_price)
 					{
 						auto base_price = o.buy_stop_trigger_price;
 						if (order::MARKET_PRICE != best_a)
@@ -1137,19 +1137,19 @@ namespace matching
 							if (best_a > base_price)
 								base_price = best_a;
 						}
-						o.buy_stop_limited_price = base_price + o.buy_stop_limited_price;
+						o.buy_stop_limit_price = base_price + o.buy_stop_limit_price;
 					}
 				}
-				if (order::MARKET_PRICE == o.buy_stop_limited_price)
+				if (order::MARKET_PRICE == o.buy_stop_limit_price)
 				{
 					o.order_state = order::order_status_type::REJECT_LIMITE_ORDER_WITH_MARKET_PRICE;
 					o.remain_quantity = 0;
 					callback(o);
 					return;
 				}
-				if (o.buy_stop_trigger_price > o.buy_stop_limited_price)
+				if (o.buy_stop_trigger_price > o.buy_stop_limit_price)
 				{
-					o.order_state = order::order_status_type::REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMITED;
+					o.order_state = order::order_status_type::REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMIT;
 					o.remain_quantity = 0;
 					callback(o);
 					return;
@@ -1157,7 +1157,7 @@ namespace matching
 				init_new_order(o);
 				if (order::MARKET_PRICE == best_a || o.buy_stop_trigger_price <= best_a)
 				{
-					o.price = o.buy_stop_limited_price;
+					o.price = o.buy_stop_limit_price;
 					if (order::order_time_condition::FOK == o.time_condition)
 					{
 						_ask_book_matcher.fok_match(_ask_book.key_comp(), o);
@@ -1184,7 +1184,7 @@ namespace matching
 				auto best_b = best_bid();
 				if (order::order_type::MARKET == o.type)
 				{
-					if (order::MARKET_PRICE != o.sell_stop_limited_price)
+					if (order::MARKET_PRICE != o.sell_stop_limit_price)
 					{
 						auto base_price = o.sell_stop_trigger_price;
 						if (order::MARKET_PRICE != best_b)
@@ -1192,19 +1192,19 @@ namespace matching
 							if (best_b < base_price)
 								base_price = best_b;
 						}
-						o.sell_stop_limited_price = base_price + o.sell_stop_limited_price;
+						o.sell_stop_limit_price = base_price + o.sell_stop_limit_price;
 					}
 				}
-				if (order::MARKET_PRICE == o.sell_stop_limited_price)
+				if (order::MARKET_PRICE == o.sell_stop_limit_price)
 				{
 					o.order_state = order::order_status_type::REJECT_LIMITE_ORDER_WITH_MARKET_PRICE;
 					o.remain_quantity = 0;
 					callback(o);
 					return;
 				}
-				if (o.sell_stop_trigger_price < o.sell_stop_limited_price)
+				if (o.sell_stop_trigger_price < o.sell_stop_limit_price)
 				{
-					o.order_state = order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED;
+					o.order_state = order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMIT;
 					o.remain_quantity = 0;
 					callback(o);
 					return;
@@ -1212,7 +1212,7 @@ namespace matching
 				init_new_order(o);
 				if (order::MARKET_PRICE == best_b || o.sell_stop_trigger_price >= best_b)
 				{
-					o.price = o.sell_stop_limited_price;
+					o.price = o.sell_stop_limit_price;
 					if (order::order_time_condition::FOK == o.time_condition)
 					{
 						_bid_book_matcher.fok_match(_bid_book.key_comp(), o);
@@ -1240,7 +1240,7 @@ namespace matching
 				auto best_b = best_bid();
 				if (order::order_type::MARKET == o.type)
 				{
-					if (order::MARKET_PRICE != o.buy_stop_limited_price)
+					if (order::MARKET_PRICE != o.buy_stop_limit_price)
 					{
 						auto base_price = o.buy_stop_trigger_price;
 						if (order::MARKET_PRICE != best_a)
@@ -1248,9 +1248,9 @@ namespace matching
 							if (best_a > base_price)
 								base_price = best_a;
 						}
-						o.buy_stop_limited_price = base_price + o.buy_stop_limited_price;
+						o.buy_stop_limit_price = base_price + o.buy_stop_limit_price;
 					}
-					if (order::MARKET_PRICE != o.sell_stop_limited_price)
+					if (order::MARKET_PRICE != o.sell_stop_limit_price)
 					{
 						auto base_price = o.sell_stop_trigger_price;
 						if (order::MARKET_PRICE != best_b)
@@ -1258,33 +1258,33 @@ namespace matching
 							if (best_b < base_price)
 								base_price = best_b;
 						}
-						o.sell_stop_limited_price = base_price + o.sell_stop_limited_price;
+						o.sell_stop_limit_price = base_price + o.sell_stop_limit_price;
 					}
 				}
-				if (order::MARKET_PRICE == o.buy_stop_limited_price)
+				if (order::MARKET_PRICE == o.buy_stop_limit_price)
 				{
 					o.order_state = order::order_status_type::REJECT_LIMITE_ORDER_WITH_MARKET_PRICE;
 					o.remain_quantity = 0;
 					callback(o);
 					return;
 				}
-				if (o.buy_stop_trigger_price > o.buy_stop_limited_price)
+				if (o.buy_stop_trigger_price > o.buy_stop_limit_price)
 				{
-					o.order_state = order::order_status_type::REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMITED;
+					o.order_state = order::order_status_type::REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMIT;
 					o.remain_quantity = 0;
 					callback(o);
 					return;
 				}
-				if (order::MARKET_PRICE == o.sell_stop_limited_price)
+				if (order::MARKET_PRICE == o.sell_stop_limit_price)
 				{
 					o.order_state = order::order_status_type::REJECT_LIMITE_ORDER_WITH_MARKET_PRICE;
 					o.remain_quantity = 0;
 					callback(o);
 					return;
 				}
-				if (o.sell_stop_trigger_price < o.sell_stop_limited_price)
+				if (o.sell_stop_trigger_price < o.sell_stop_limit_price)
 				{
-					o.order_state = order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED;
+					o.order_state = order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMIT;
 					o.remain_quantity = 0;
 					callback(o);
 					return;
@@ -1292,7 +1292,7 @@ namespace matching
 				init_new_order(o);
 				if (order::MARKET_PRICE == best_a || o.buy_stop_trigger_price <= best_a)
 				{
-					o.price = o.buy_stop_limited_price;
+					o.price = o.buy_stop_limit_price;
 					if (order::order_time_condition::FOK == o.time_condition)
 					{
 						_ask_book_matcher.fok_match(_ask_book.key_comp(), o);
@@ -1308,7 +1308,7 @@ namespace matching
 				}
 				else if (order::MARKET_PRICE == best_b || o.sell_stop_trigger_price >= best_b)
 				{
-					o.price = o.sell_stop_limited_price;
+					o.price = o.sell_stop_limit_price;
 					if (order::order_time_condition::FOK == o.time_condition)
 					{
 						_bid_book_matcher.fok_match(_bid_book.key_comp(), o);
@@ -1446,7 +1446,7 @@ namespace matching
 					erase_buy_stop(ori_odr);
 					erase_sell_stop(ori_odr);
 				}
-				else if (ori_odr.price == ori_odr.buy_stop_limited_price)
+				else if (ori_odr.price == ori_odr.buy_stop_limit_price)
 				{
 					bool trigger = false;
 					auto it = _bid_book.begin();
@@ -1709,7 +1709,7 @@ namespace matching
 						}
 						if (0 != o.remain_quantity)
 						{
-							last_match_price = o.buy_stop_limited_price;
+							last_match_price = o.buy_stop_limit_price;
 						}
 					}
 					else if (order::order_side::SELL == o.side)
@@ -1720,7 +1720,7 @@ namespace matching
 						}
 						if (0 != o.remain_quantity)
 						{
-							last_match_price = o.sell_stop_limited_price;
+							last_match_price = o.sell_stop_limit_price;
 						}
 					}
 					for (std::size_t i = 0; i < _cb_records.size(); ++i)

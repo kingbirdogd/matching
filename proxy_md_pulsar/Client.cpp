@@ -11,9 +11,9 @@ std::ostream & operator << (std::ostream &os, const matching::order &o) {
   std::string time_condition = "";
   std::string action = "";
   std::string matched_type = "";
-  if (matching::order::order_type::LIMITED == o.type)
+  if (matching::order::order_type::LIMIT == o.type)
   {
-    type = "LIMITED";
+    type = "LIMIT";
   }
   else
   {
@@ -91,13 +91,13 @@ std::ostream & operator << (std::ostream &os, const matching::order &o) {
   {
     status = "REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY";
   }
-  else if (o.order_state == matching::order::order_status_type::REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMITED)
+  else if (o.order_state == matching::order::order_status_type::REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMIT)
   {
-    status = "REJECT_BUY_STOP_TRIGGER_LESS_THAN_STOP_LIMITED";
+    status = "REJECT_BUY_STOP_TRIGGER_LESS_THAN_STOP_LIMIT";
   }
-  else if (o.order_state == matching::order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED)
+  else if (o.order_state == matching::order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMIT)
   {
-    status = "REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED";
+    status = "REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMIT";
   }
   else if (o.order_state == matching::order::order_status_type::REJECT_UNKNOW_ORDER_ACTION)
   {
@@ -162,9 +162,9 @@ std::ostream & operator << (std::ostream &os, const matching::order &o) {
       << ",remain_quantity:" << o.remain_quantity
       << ",price:" << o.price
       << ",buy_stop_trigger_price:" << o.buy_stop_trigger_price
-      << ",buy_stop_limited_price:" << o.buy_stop_limited_price
+      << ",buy_stop_limit_price:" << o.buy_stop_limit_price
       << ",sell_stop_trigger_price:" << o.sell_stop_trigger_price
-      << ",sell_stop_limited_price:" << o.sell_stop_limited_price
+      << ",sell_stop_limit_price:" << o.sell_stop_limit_price
       << ",last_match_price:" << o.last_match_price
       << ",last_match_quantity:" << o.last_match_quantity
       << ",last_matched_order_id:" << o.last_matched_order_id
@@ -184,9 +184,9 @@ json::Object handle_order(const matching::order& o)
   std::string time_condition = "";
   std::string action = "";
   std::string matched_type = "";
-  if (matching::order::order_type::LIMITED == o.type)
+  if (matching::order::order_type::LIMIT == o.type)
   {
-    type = "LIMITED";
+    type = "LIMIT";
   }
   else
   {
@@ -264,13 +264,13 @@ json::Object handle_order(const matching::order& o)
   {
     status = "REJECT_DISPLAY_QUANTITY_LARGER_THAN_QUANTITY";
   }
-  else if (o.order_state == matching::order::order_status_type::REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMITED)
+  else if (o.order_state == matching::order::order_status_type::REJECT_BUY_STOP_TRIGGER_LARGE_THAN_STOP_LIMIT)
   {
-    status = "REJECT_BUY_STOP_TRIGGER_LESS_THAN_STOP_LIMITED";
+    status = "REJECT_BUY_STOP_TRIGGER_LESS_THAN_STOP_LIMIT";
   }
-  else if (o.order_state == matching::order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED)
+  else if (o.order_state == matching::order::order_status_type::REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMIT)
   {
-    status = "REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMITED";
+    status = "REJECT_SELL_STOP_TRIGGER_LESS_THAN_STOP_LIMIT";
   }
   else if (o.order_state == matching::order::order_status_type::REJECT_UNKNOW_ORDER_ACTION)
   {
@@ -336,9 +336,9 @@ json::Object handle_order(const matching::order& o)
       << ",remain_quantity:" << o.remain_quantity
       << ",price:" << o.price
       << ",buy_stop_trigger_price:" << o.buy_stop_trigger_price
-      << ",buy_stop_limited_price:" << o.buy_stop_limited_price
+      << ",buy_stop_limit_price:" << o.buy_stop_limit_price
       << ",sell_stop_trigger_price:" << o.sell_stop_trigger_price
-      << ",sell_stop_limited_price:" << o.sell_stop_limited_price
+      << ",sell_stop_limit_price:" << o.sell_stop_limit_price
       << ",last_match_price:" << o.last_match_price
       << ",last_match_quantity:" << o.last_match_quantity
       << ",last_matched_order_id:" << o.last_matched_order_id
@@ -360,9 +360,9 @@ json::Object handle_order(const matching::order& o)
   response.insert("price", json::Integer(o.price));
   response.insert("buy_stop_trigger_price", json::Integer(o.buy_stop_trigger_price));
 
-  response.insert("buy_stop_limited_price", json::Integer(o.buy_stop_limited_price));
+  response.insert("buy_stop_limit_price", json::Integer(o.buy_stop_limit_price));
   response.insert("sell_stop_trigger_price", json::Integer(o.sell_stop_trigger_price));
-  response.insert("sell_stop_limited_price", json::Integer(o.sell_stop_limited_price));
+  response.insert("sell_stop_limit_price", json::Integer(o.sell_stop_limit_price));
   response.insert("last_match_price", json::Integer(o.last_match_price));
   response.insert("last_match_quantity", json::Integer(o.last_match_quantity));
   response.insert("last_matched_order_id", json::Integer(o.last_matched_order_id));
@@ -761,9 +761,9 @@ namespace proxy {
       auto order_id_ptr             = request.find("order_id");
       auto display_qty_ptr          = request.find("display_quantity");
       auto buy_stop_trigger_px_ptr  = request.find("buy_stop_trigger_price");
-      auto buy_stop_limited_px_ptr  = request.find("buy_stop_limited_price");
+      auto buy_stop_limit_px_ptr  = request.find("buy_stop_limit_price");
       auto sell_stop_trigger_px_ptr = request.find("sell_stop_trigger_price");
-      auto sell_stop_limited_px_ptr = request.find("sell_stop_limited_price");
+      auto sell_stop_limit_px_ptr = request.find("sell_stop_limit_price");
 
       auto side_ptr           = request.find("side");
       auto order_action_ptr   = request.find("order_action");
@@ -775,9 +775,9 @@ namespace proxy {
       auto order_id             = order_id_ptr             ? narrow_check<uint64_t>(*order_id_ptr->as_integer()) :0;
       auto display_qty          = display_qty_ptr          ? narrow_check<uint64_t>(*display_qty_ptr->as_integer()):0;
       auto buy_stop_trigger_px  = buy_stop_trigger_px_ptr  ? narrow_check<uint64_t>(*buy_stop_trigger_px_ptr->as_integer()):0;
-      auto buy_stop_limited_px  = buy_stop_limited_px_ptr  ? narrow_check<uint64_t>(*buy_stop_limited_px_ptr->as_integer()):0;
+      auto buy_stop_limit_px  = buy_stop_limit_px_ptr  ? narrow_check<uint64_t>(*buy_stop_limit_px_ptr->as_integer()):0;
       auto sell_stop_trigger_px = sell_stop_trigger_px_ptr ? narrow_check<uint64_t>(*sell_stop_trigger_px_ptr->as_integer()):0;
-      auto sell_stop_limited_px = sell_stop_limited_px_ptr ? narrow_check<uint64_t>(*sell_stop_limited_px_ptr->as_integer()):0;
+      auto sell_stop_limit_px = sell_stop_limit_px_ptr ? narrow_check<uint64_t>(*sell_stop_limit_px_ptr->as_integer()):0;
 
       auto side           = side_ptr           ? *dynamic_cast<const json::String *>(side_ptr          )->as_string() : "";
       auto order_action   = order_action_ptr   ? *dynamic_cast<const json::String *>(order_action_ptr  )->as_string() : "";
@@ -802,9 +802,9 @@ namespace proxy {
       o.order_id                = order_id;
       o.display_quantity        = qty;   // TODO: use display_qty
       o.buy_stop_trigger_price  = buy_stop_trigger_px;
-      o.buy_stop_limited_price  = buy_stop_limited_px;
+      o.buy_stop_limit_price  = buy_stop_limit_px;
       o.sell_stop_trigger_price = sell_stop_trigger_px;
-      o.sell_stop_limited_price = sell_stop_limited_px;
+      o.sell_stop_limit_price = sell_stop_limit_px;
 
       bool transient = false;
       auto callback = [this, tag, transient](const void *buf, size_t n) -> size_t {
