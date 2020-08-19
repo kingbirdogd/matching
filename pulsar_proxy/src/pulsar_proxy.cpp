@@ -363,12 +363,13 @@ int main(int iArgc, char** pszArgv)
     jsongen.erase(std::remove(jsongen.begin(), jsongen.end(), '\n'), jsongen.end());
     auto key = std::string("ACCOUNT-ID-")+std::to_string(o.account_id);
     Message msg = MessageBuilder().setOrderingKey(key).setPartitionKey(key).setContent(jsongen.c_str(), jsongen.size()).build();
-    elog.info() << "Ordering key: " << msg.getOrderingKey() << "Partition key: " << msg.getPartitionKey() << std::endl;
+    elog.info() << "Ordering key: " << msg.getOrderingKey() << " Partition key: " << msg.getPartitionKey() << std::endl;
 
     SendCallback cb;
-    cb = [o, msg, &producer, &cb](Result res, const MessageId& messageId) {
+    cb = [o, key, jsongen, &producer, &cb](Result res, const MessageId& messageId) {
       elog.info() << "Message sent: " << res << " order_id:" << o.order_id << std::endl;
       if (res != ResultOk) {
+        Message msg = MessageBuilder().setOrderingKey(key).setPartitionKey(key).setContent(jsongen.c_str(), jsongen.size()).build();
         elog.info() << "Retry sending: order_id:" << o.order_id << std::endl;
         producer.sendAsync(msg, cb);
       }
