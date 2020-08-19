@@ -365,10 +365,16 @@ int main(int iArgc, char** pszArgv)
     Message msg = MessageBuilder().setOrderingKey(key).setPartitionKey(key).setContent(jsongen.c_str(), jsongen.size()).build();
     elog.info() << "Ordering key: " << msg.getOrderingKey() << "Partition key: " << msg.getPartitionKey() << std::endl;
 
-    producer.sendAsync(msg,
-      [&o](Result res, const MessageId& messageId) {
-        elog.info() << "Message sent: " << res << " order_id:" << o.order_id << std::endl;
-      });
+    SendCallback cb;
+    cb = [o, msg, &producer, &cb](Result res, const MessageId& messageId) {
+      elog.info() << "Message sent: " << res << " order_id:" << o.order_id << std::endl;
+      if (res != ResultOk) {
+        elog.info() << "Retry sending: order_id:" << o.order_id << std::endl;
+        producer.sendAsync(msg, cb);
+      }
+    };
+    producer.sendAsync(msg, cb);
+
     //Result res = producer.send(msg);
     //elog.info() << "Message sent: " << res << std::endl;
     //order_status_pub_sock.send(zmq::const_buffer(fbs_buf.first, fbs_buf.second), zmq::send_flags::none);
