@@ -278,7 +278,7 @@ int main(int iArgc, char** pszArgv)
   // TODO: Switch Frequency?
   config.setBatchingMaxPublishDelayMs(1);
   //config.setCompressionType(CompressionLZ4);  // buggy in 2.6.0
-  config.setSendTimeout(1000);
+  config.setSendTimeout(6000);
   config.setBlockIfQueueFull(true);
 
   Result result = ResultUnknownError;
