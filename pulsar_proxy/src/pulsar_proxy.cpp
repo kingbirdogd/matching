@@ -366,12 +366,13 @@ int main(int iArgc, char** pszArgv)
     elog.info() << "Ordering key: " << msg.getOrderingKey() << " Partition key: " << msg.getPartitionKey() << std::endl;
 
     SendCallback cb;
-    cb = [o, key, jsongen, &producer, &cb](Result res, const MessageId& messageId) {
+    cb = [o, key, jsongen, &producer, cb](Result res, const MessageId& messageId) {
       elog.info() << "Message sent: " << res << " order_id:" << o.order_id << std::endl;
       if (res != ResultOk) {
         Message msg = MessageBuilder().setOrderingKey(key).setPartitionKey(key).setContent(jsongen.c_str(), jsongen.size()).build();
         elog.info() << "Retry sending: order_id:" << o.order_id << std::endl;
         producer.sendAsync(msg, cb);
+        elog.info() << "Finished Retry sending: order_id:" << o.order_id << std::endl;
       }
     };
     producer.sendAsync(msg, cb);
