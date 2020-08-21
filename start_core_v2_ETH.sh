@@ -77,7 +77,7 @@ export LD_LIBRARY_PATH=${BASEDIR}/usr/local/lib64:${BASEDIR}/usr/local/lib:${BAS
 #source ${BASEDIR}/local/core_v2.properties
 
 mkdir -p ${LOG_LOCATION}
-ln -sf ${LOG_LOCATION} ${APPDIR}/log/clog
+ln -snf ${LOG_LOCATION} ${APPDIR}/log/clog
 
 #${CORE_LOCATION}/xpubxsub 14001 14002 >> ${LOG_LOCATION}/xpubxsub.out.log 2>> ${LOG_LOCATION}/xpubxsub.err.log &
 
