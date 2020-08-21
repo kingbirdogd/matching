@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
+SCRIPT=`realpath $0`
+APPDIR=`dirname $SCRIPT`
+
 if [ -f /etc/crontab ]; then
+  cat $APPDIR/logrotate.cron   >> /etc/crontab
+  cat $APPDIR/run_auction.cron >> /etc/crontab
   crond
   crontab /etc/crontab
 fi
@@ -63,14 +68,16 @@ echo "Pulsar host is : ${PLSR_URL}"
 #   zmq PUSH port for ORDER STATUS UPDATES      : 22052
 
 BASEDIR=/home/docker
-CORE_BASE=${BASEDIR}/targets/coinflex_v2_core
-CORE_LOCATION=${CORE_BASE}
-LOG_LOCATION=${CORE_BASE}/log
+#CORE_BASE=${BASEDIR}/targets/coinflex_v2_core
+CORE_LOCATION=${APPDIR}
+LOG_LOCATION=${APPDIR}/log/$(date +%Y%m%d_%H%M%S)
+echo ${LOG_LOCATION} > ${APPDIR}/LOG_LOCATION
 export LD_LIBRARY_PATH=${BASEDIR}/usr/local/lib64:${BASEDIR}/usr/local/lib:${BASEDIR}/usr/local:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=${CORE_LOCATION}/lib64:${CORE_LOCATION}/lib:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=${CORE_LOCATION}/lib64:${CORE_LOCATION}/lib:$LD_LIBRARY_PATH
 #source ${BASEDIR}/local/core_v2.properties
 
 mkdir -p ${LOG_LOCATION}
+ln -snf ${LOG_LOCATION} ${APPDIR}/log/clog
 
 #${CORE_LOCATION}/xpubxsub 14001 14002 >> ${LOG_LOCATION}/xpubxsub.out.log 2>> ${LOG_LOCATION}/xpubxsub.err.log &
 

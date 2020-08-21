@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 SCRIPT=`realpath $0`
 APPDIR=`dirname $SCRIPT`
-e
 
 if [ -f /etc/crontab ]; then
   cat $APPDIR/logrotate.cron   >> /etc/crontab
