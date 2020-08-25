@@ -1,2 +1,2 @@
 #0  0,8,16  *  *  * /app/run_auction.py ${PLSR_URL} ${AUCTION_MKT_ID}
-0  4,12,20  *  *  * python3 /app/run_auction.py /app/run_auction.json 2>&1 >> `cat /app/LOG_LOCATION`/auction.log
+0 12  *  *  * python3 /app/run_auction.py /app/run_auction.json 2>&1 >> `cat /app/LOG_LOCATION`/auction.log
