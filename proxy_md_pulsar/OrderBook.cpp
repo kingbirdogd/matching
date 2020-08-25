@@ -158,15 +158,19 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
   auto it_bid = last_valid_bids.rbegin();
   auto it_ask = last_valid_asks.begin();
   while ((it_bid != last_valid_bids.rend()) || (it_ask != last_valid_asks.end())) {
-    if ((it_bid != last_valid_bids.rend()) && (bid_cnt < check_sum_cnt)) {
-      if (it_bid->second.quantity != 0)
+    if (it_bid != last_valid_bids.rend()) {
+      if ((it_bid->second.quantity != 0) && (bid_cnt < check_sum_cnt)) {
         ss << it_bid->second.price/(float)factor << ":" << it_bid->second.quantity/(float)factor << ":";
-      it_bid++; bid_cnt++;
+        bid_cnt++;
+      }
+      it_bid++;
     }
-    if ((it_ask != last_valid_asks.end()) && (ask_cnt < check_sum_cnt)) {
-      if (it_ask->second.quantity != 0)
-        ss << it_ask->second.price/(float)factor << ":" << it_ask->second.quantity/(float)factor << ":";
-      it_ask++; ask_cnt++;
+    if (it_ask != last_valid_asks.end()) {
+      if ((it_ask->second.quantity != 0) && (ask_cnt < check_sum_cnt)) {
+        ss << it_ask->second.price / (float) factor << ":" << it_ask->second.quantity / (float) factor << ":";
+        ask_cnt++;
+      }
+      it_ask++;
     }
   }
   auto checksum_str = ss.str().substr(0, ss.str().size()-1);
@@ -323,13 +327,19 @@ std::pair<bool, json::Object> OrderBook::get_orderbook_diff(//book_map_t &bids,
   auto it_bid = bids_pxLevels->rbegin();
   auto it_ask = asks_pxLevels->begin();
   while ((it_bid != bids_pxLevels->rend()) || (it_ask != asks_pxLevels->end())) {
-    if ((it_bid != bids_pxLevels->rend()) && (bid_cnt < checksum_cnt)) {
-      ss << it_bid[0]->as_array()->at(0)->as_integer()/(float)factor << ":" << it_bid[0]->as_array()->at(1)->as_integer()/(float)factor << ":";
-      it_bid++; bid_cnt++;
+    if (it_bid != bids_pxLevels->rend()) {
+      if (bid_cnt < checksum_cnt) {
+        ss << it_bid[0]->as_array()->at(0)->as_integer() / (float) factor << ":" << it_bid[0]->as_array()->at(1)->as_integer() / (float) factor << ":";
+        bid_cnt++;
+      }
+      it_bid++;
     }
-    if ((it_ask != asks_pxLevels->end()) && (ask_cnt < checksum_cnt)) {
-      ss << it_ask[0]->as_array()->at(0)->as_integer()/(float)factor << ":" << it_ask[0]->as_array()->at(1)->as_integer()/(float)factor << ":";
-      it_ask++; ask_cnt++;
+    if (it_ask != asks_pxLevels->end()) {
+      if (ask_cnt < checksum_cnt) {
+        ss << it_ask[0]->as_array()->at(0)->as_integer() / (float) factor << ":" << it_ask[0]->as_array()->at(1)->as_integer() / (float) factor << ":";
+        ask_cnt++;
+      }
+      it_ask++;
     }
   }
   auto checksum_str = ss.str().substr(0, ss.str().size()-1);
