@@ -101,19 +101,19 @@ sleep 1
 # MD Orderbook Server
 PUB_TIME_MS=50
 ETH_USD_QP=4001021200925
-${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${ETH_USD_QP}   -F persistent://CF-V2/ME-WS/MD-DIFF-${ETH_USD_QP}   -G 7081 -X 35671 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar1.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar1.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${ETH_USD_QP}   -F persistent://CF-V2/ME-WS/MD-DIFF-${ETH_USD_QP}   -G 7081 -X 35671 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar1.out.log 2>> ${LOG_LOCATION}/proxy_md_pulsar1.err.log &
 sleep 1
 ETH_USD_SWAP=4001011000000
-${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${ETH_USD_SWAP} -F persistent://CF-V2/ME-WS/MD-DIFF-${ETH_USD_SWAP} -G 7082 -X 35672 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar2.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar2.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${ETH_USD_SWAP} -F persistent://CF-V2/ME-WS/MD-DIFF-${ETH_USD_SWAP} -G 7082 -X 35672 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar2.out.log 2>> ${LOG_LOCATION}/proxy_md_pulsar2.err.log &
 sleep 1
 ETH_USD_SPR=4001051000000
-${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${ETH_USD_SPR}  -F persistent://CF-V2/ME-WS/MD-DIFF-${ETH_USD_SPR}  -G 7083 -X 35673 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar3.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar3.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${ETH_USD_SPR}  -F persistent://CF-V2/ME-WS/MD-DIFF-${ETH_USD_SPR}  -G 7083 -X 35673 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar3.out.log 2>> ${LOG_LOCATION}/proxy_md_pulsar3.err.log &
 sleep 1
 ETH_USD=4001000000000
-${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${ETH_USD}      -F persistent://CF-V2/ME-WS/MD-DIFF-${ETH_USD}      -G 7084 -X 35674 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar4.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar4.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${ETH_USD}      -F persistent://CF-V2/ME-WS/MD-DIFF-${ETH_USD}      -G 7084 -X 35674 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar4.out.log 2>> ${LOG_LOCATION}/proxy_md_pulsar4.err.log &
 sleep 1
 ETH_USD_REPO=4001031000000
-${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${ETH_USD_REPO} -F persistent://CF-V2/ME-WS/MD-DIFF-${ETH_USD_REPO} -G 7085 -X 35675 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar5.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar5.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${ETH_USD_REPO} -F persistent://CF-V2/ME-WS/MD-DIFF-${ETH_USD_REPO} -G 7085 -X 35675 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar5.out.log 2>> ${LOG_LOCATION}/proxy_md_pulsar5.err.log &
 sleep 1
 #${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-3001000000000 -F persistent://CF-V2/ME-WS/MD-DIFF-3001000000000 -G 7086 -X 35676 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar6.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar5.err.log &
 #sleep 1
