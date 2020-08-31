@@ -33,6 +33,12 @@ _outright_port(outright_port)
 	url << "tcp://localhost:" << xsub_port;
 }
 
+md_tcp_service::~md_tcp_service()
+{
+	for (auto& isrv : _services)
+		delete isrv;
+}
+
 std::string time_in_HH_MM_SS_MMM()
 {
   using namespace std::chrono;
@@ -76,7 +82,7 @@ void md_tcp_service::add_implied_service
 	implier* ask_implier
 )
 {
-	_services.push_back(implied_md_tcp_service(_book,
+	_services.push_back(new implied_md_tcp_service(_book,
 			a_ip, a_port,
 			b_ip, b_port,
 			bid_implie_type, ask_implie_type,
@@ -87,7 +93,7 @@ void md_tcp_service::run()
 {
 	_outright.run();
 	for (auto& isrv : _services)
-		isrv.run();
+		isrv->run();
 	_s.run();
 }
 
