@@ -130,6 +130,9 @@ public:
     nl::json j;
     i >> j;
     std::clog << "Setting up underlying: " << j["underlying"] << '\n';
+    std::clog << "           node_id   : " << j["node_id"]    << '\n';
+    unsigned long long node_id = strtoull(j["node_id"].get<std::string>().c_str(), NULL, 10);
+    matching::engine::set_node_id(node_id);
 
     std::vector<decltype(std::function{my_read_inst_config})::result_type> books_to_be_set_impliers;
     for (auto &inst : j["instruments"]) {
