@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
+SCRIPT=`realpath $0`
+APPDIR=`dirname $SCRIPT`
+
 if [ -f /etc/crontab ]; then
+  cat $APPDIR/logrotate.cron   >> /etc/crontab
+  cat $APPDIR/run_auction.cron >> /etc/crontab
   crond
   crontab /etc/crontab
 fi
@@ -8,7 +13,7 @@ fi
 # aliyun-dev : 172.21.11.79:6650
 #PLSR_URL="172.21.11.79:6650"
 
-NODE_ID=2
+NODE_ID=4
 
 if [ $# -eq 1 ]; then
   if [ $1 = "aliyun-test" ] ; then
@@ -62,18 +67,36 @@ echo "Pulsar host is : ${PLSR_URL}"
 #   zmq PUSH port for ORDER STATUS UPDATES      : 22052
 
 BASEDIR=/home/docker
-CORE_BASE=${BASEDIR}/targets/coinflex_v2_core
-CORE_LOCATION=${CORE_BASE}
-LOG_LOCATION=${CORE_BASE}/log
+#CORE_BASE=${BASEDIR}/targets/coinflex_v2_core
+CORE_LOCATION=${APPDIR}
+LOG_LOCATION=${APPDIR}/log/$(date +%Y%m%d_%H%M%S)
+echo ${LOG_LOCATION} > ${APPDIR}/LOG_LOCATION
 export LD_LIBRARY_PATH=${BASEDIR}/usr/local/lib64:${BASEDIR}/usr/local/lib:${BASEDIR}/usr/local:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=${CORE_LOCATION}/lib64:${CORE_LOCATION}/lib:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=${CORE_LOCATION}/lib64:${CORE_LOCATION}/lib:$LD_LIBRARY_PATH
 #source ${BASEDIR}/local/core_v2.properties
 
 mkdir -p ${LOG_LOCATION}
+ln -snf ${LOG_LOCATION} ${APPDIR}/log/clog
 
 #${CORE_LOCATION}/xpubxsub 14001 14002 >> ${LOG_LOCATION}/xpubxsub.out.log 2>> ${LOG_LOCATION}/xpubxsub.err.log &
 
 # Matching server
+${CORE_LOCATION}/test_tcp_matching_server ${NODE_ID} 100000000 34671 34672 34673 34674 34675 34676 0.5 0.05 0.1 0.05 0.00005 0.5 2 >> ${LOG_LOCATION}/matching_server.out.log 2>> ${LOG_LOCATION}/matching_server.err.log &
+sleep 2
+
+# MD Implied Server
+${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34671 127.0.0.1 34673 127.0.0.1 34672 a_bid_b_bid   a_ask_b_ask   add_bid_implier      add_ask_implier      35671 127.0.0.1 0.5  0 >> ${LOG_LOCATION}/md_tcp1.out.log 2>> ${LOG_LOCATION}/md_tcp1.err.log &
+sleep 1
+${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34672 127.0.0.1 34671 127.0.0.1 34673 a_bid_b_ask   a_ask_b_bid   minus_bid_implier    minus_ask_implier    35672 127.0.0.1 0.05 0 >> ${LOG_LOCATION}/md_tcp2.out.log 2>> ${LOG_LOCATION}/md_tcp2.err.log &
+sleep 1
+#${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34673 127.0.0.1 34671 127.0.0.1 34672 a_bid_b_ask   a_ask_b_bid   minus_bid_implier    minus_ask_implier    35673 127.0.0.1 0.1  2 >> ${LOG_LOCATION}/md_tcp3.out.log 2>> ${LOG_LOCATION}/md_tcp3.err.log &
+#sleep 1
+${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34674 127.0.0.1 34672 127.0.0.1 34675 a_bid_b_bid   a_ask_b_ask   repo_out_bid_implier repo_out_ask_implier 35674 127.0.0.1 0.05 0 >> ${LOG_LOCATION}/md_tcp4.out.log 2>> ${LOG_LOCATION}/md_tcp4.err.log &
+sleep 1
+${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34675        ""     0        ""     0 a_none_b_none a_none_b_none none                 none                 35675 127.0.0.1 0.00005 0 >> ${LOG_LOCATION}/md_tcp5.out.log 2>> ${LOG_LOCATION}/md_tcp5.err.log &
+sleep 1
+${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34676        ""     0        ""     0 a_none_b_none a_none_b_none none                 none                 35676 127.0.0.1 0.5   0 >> ${LOG_LOCATION}/md_tcp6.out.log 2>> ${LOG_LOCATION}/md_tcp6.err.log &
+sleep 1
 ${CORE_LOCATION}/test_tcp_matching_server ${NODE_ID} 100000000 34671 34672 34673 34674 34675 34676 0.01 0.05 0.1 0.05 0.00005 1 2 >> ${LOG_LOCATION}/matching_server.out.log 2>> ${LOG_LOCATION}/matching_server.err.log &
 sleep 2
 
@@ -94,36 +117,37 @@ sleep 1
 # MD Orderbook Server
 PUB_TIME_MS=50
 BCH_USD_QP=5001021200925
-${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${BCH_USD_QP}   -F persistent://CF-V2/ME-WS/MD-DIFF-${BCH_USD_QP}   -G 7081 -X 35671 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar1.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar1.err.log &
-#sleep 1
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${BCH_USD_QP}   -F persistent://CF-V2/ME-WS/MD-DIFF-${BCH_USD_QP}   -G 7081 -X 35671 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar1.out.log 2>> ${LOG_LOCATION}/proxy_md_pulsar1.err.log &
+sleep 1
 BCH_USD_SWAP=5001011000000
-${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${BCH_USD_SWAP} -F persistent://CF-V2/ME-WS/MD-DIFF-${BCH_USD_SWAP} -G 7082 -X 35672 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar2.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar2.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${BCH_USD_SWAP} -F persistent://CF-V2/ME-WS/MD-DIFF-${BCH_USD_SWAP} -G 7082 -X 35672 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar2.out.log 2>> ${LOG_LOCATION}/proxy_md_pulsar2.err.log &
 sleep 1
 #BCH_USD_SPR=
 #${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${BCH_USD_SPR}  -F persistent://CF-V2/ME-WS/MD-DIFF-${BCH_USD_SPR}  -G 7083 -X 35673 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar3.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar3.err.log &
 #sleep 1
 BCH_USD=5001000000000
-${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${BCH_USD}      -F persistent://CF-V2/ME-WS/MD-DIFF-${BCH_USD}      -G 7084 -X 35674 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar4.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar4.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${BCH_USD}      -F persistent://CF-V2/ME-WS/MD-DIFF-${BCH_USD}      -G 7084 -X 35674 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar4.out.log 2>> ${LOG_LOCATION}/proxy_md_pulsar4.err.log &
 sleep 1
 BCH_USD_REPO=5001031000000
-${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${BCH_USD_REPO} -F persistent://CF-V2/ME-WS/MD-DIFF-${BCH_USD_REPO} -G 7085 -X 35675 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar5.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar5.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${BCH_USD_REPO} -F persistent://CF-V2/ME-WS/MD-DIFF-${BCH_USD_REPO} -G 7085 -X 35675 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar5.out.log 2>> ${LOG_LOCATION}/proxy_md_pulsar5.err.log &
 sleep 1
-#${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-3001000000000 -F persistent://CF-V2/ME-WS/MD-DIFF-3001000000000 -G 7086 -X 35676 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar6.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar5.err.log &
-#sleep 1
+BCHABC_USD_QP=11001021200925
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${BCHABC_USD_QP} -F persistent://CF-V2/ME-WS/MD-DIFF-${BCHABC_USD_QP} -G 7086 -X 35676 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar6.out.log 2>> ${LOG_LOCATION}/proxy_md_pulsar6.err.log &
+sleep 1
 
 # Pulsar Proxy
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34671 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-${BCH_USD_QP}   persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-${BCH_USD_QP}   ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy1.out.log 2>> ${LOG_LOCATION}/pulsar_proxy1.err.log &
-#sleep 1
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34672 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-${BCH_USD_SWAP} persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-${BCH_USD_SWAP} ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy2.out.log 2>> ${LOG_LOCATION}/pulsar_proxy2.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34671 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-${BCH_USD_QP}    persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-${BCH_USD_QP}    ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy1.out.log 2>> ${LOG_LOCATION}/pulsar_proxy1.err.log &
+sleep 1
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34672 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-${BCH_USD_SWAP}  persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-${BCH_USD_SWAP}  ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy2.out.log 2>> ${LOG_LOCATION}/pulsar_proxy2.err.log &
 sleep 1
 #${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34673 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-${BCH_USD_SPR}  persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-${BCH_USD_SPR}  ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy3.out.log 2>> ${LOG_LOCATION}/pulsar_proxy3.err.log &
 #sleep 1
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34674 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-${BCH_USD}      persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-${BCH_USD}      ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy4.out.log 2>> ${LOG_LOCATION}/pulsar_proxy4.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34674 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-${BCH_USD}       persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-${BCH_USD}       ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy4.out.log 2>> ${LOG_LOCATION}/pulsar_proxy4.err.log &
 sleep 1
-${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34675 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-${BCH_USD_REPO} persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-${BCH_USD_REPO} ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy5.out.log 2>> ${LOG_LOCATION}/pulsar_proxy5.err.log &
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34675 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-${BCH_USD_REPO}  persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-${BCH_USD_REPO}  ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy5.out.log 2>> ${LOG_LOCATION}/pulsar_proxy5.err.log &
 sleep 1
-#${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34676 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-3001000000000 persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-3001000000000 >> ${LOG_LOCATION}/pulsar_proxy6.out.log 2>> ${LOG_LOCATION}/pulsar_proxy6.err.log &
-#sleep 1
+${CORE_LOCATION}/pulsar_proxy 127.0.0.1 34676 pulsar://${PLSR_URL} persistent://CF-V2/PRETRADE-ME/ORDER-IN-${BCHABC_USD_QP} persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-${BCHABC_USD_QP} ${CORE_LOCATION}/msg.fbs >> ${LOG_LOCATION}/pulsar_proxy6.out.log 2>> ${LOG_LOCATION}/pulsar_proxy6.err.log &
+sleep 1
 
 ## MD Orderbook Server
 #${CORE_LOCATION}/proxy_md_lws -s ${CORE_LOCATION}/md.fbs -B 500 -E 18011 -F 18012 -G 9081 -X 35671 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md1.out.log & #2>> ${LOG_LOCATION}/proxy_md1.err.log &

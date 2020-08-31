@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
+SCRIPT=`realpath $0`
+APPDIR=`dirname $SCRIPT`
+
 if [ -f /etc/crontab ]; then
+  cat $APPDIR/logrotate.cron   >> /etc/crontab
+  cat $APPDIR/run_auction.cron >> /etc/crontab
   crond
   crontab /etc/crontab
 fi
@@ -62,14 +67,16 @@ echo "Pulsar host is : ${PLSR_URL}"
 #   zmq PUSH port for ORDER STATUS UPDATES      : 22052
 
 BASEDIR=/home/docker
-CORE_BASE=${BASEDIR}/targets/coinflex_v2_core
-CORE_LOCATION=${CORE_BASE}
-LOG_LOCATION=${CORE_BASE}/log
+#CORE_BASE=${BASEDIR}/targets/coinflex_v2_core
+CORE_LOCATION=${APPDIR}
+LOG_LOCATION=${APPDIR}/log/$(date +%Y%m%d_%H%M%S)
+echo ${LOG_LOCATION} > ${APPDIR}/LOG_LOCATION
 export LD_LIBRARY_PATH=${BASEDIR}/usr/local/lib64:${BASEDIR}/usr/local/lib:${BASEDIR}/usr/local:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=${CORE_LOCATION}/lib64:${CORE_LOCATION}/lib:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=${CORE_LOCATION}/lib64:${CORE_LOCATION}/lib:$LD_LIBRARY_PATH
 #source ${BASEDIR}/local/core_v2.properties
 
 mkdir -p ${LOG_LOCATION}
+ln -snf ${LOG_LOCATION} ${APPDIR}/log/clog
 
 #${CORE_LOCATION}/xpubxsub 14001 14002 >> ${LOG_LOCATION}/xpubxsub.out.log 2>> ${LOG_LOCATION}/xpubxsub.err.log &
 
@@ -97,16 +104,16 @@ PUB_TIME_MS=50
 #${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${USDT_USD_QP}   -F persistent://CF-V2/ME-WS/MD-DIFF-${USDT_USD_QP}   -G 7081 -X 35671 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar1.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar1.err.log &
 #sleep 1
 USDT_USD_SWAP=9001011000000
-${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${USDT_USD_SWAP} -F persistent://CF-V2/ME-WS/MD-DIFF-${USDT_USD_SWAP} -G 7082 -X 35672 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar2.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar2.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${USDT_USD_SWAP} -F persistent://CF-V2/ME-WS/MD-DIFF-${USDT_USD_SWAP} -G 7082 -X 35672 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar2.out.log 2>> ${LOG_LOCATION}/proxy_md_pulsar2.err.log &
 sleep 1
 #USDT_USD_SPR=4001051000000
 #${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${USDT_USD_SPR}  -F persistent://CF-V2/ME-WS/MD-DIFF-${USDT_USD_SPR}  -G 7083 -X 35673 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar3.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar3.err.log &
 #sleep 1
 USDT_USD=9001000000000
-${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${USDT_USD}      -F persistent://CF-V2/ME-WS/MD-DIFF-${USDT_USD}      -G 7084 -X 35674 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar4.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar4.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${USDT_USD}      -F persistent://CF-V2/ME-WS/MD-DIFF-${USDT_USD}      -G 7084 -X 35674 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar4.out.log 2>> ${LOG_LOCATION}/proxy_md_pulsar4.err.log &
 sleep 1
 USDT_USD_REPO=9001031000000
-${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${USDT_USD_REPO} -F persistent://CF-V2/ME-WS/MD-DIFF-${USDT_USD_REPO} -G 7085 -X 35675 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar5.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar5.err.log &
+${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-${USDT_USD_REPO} -F persistent://CF-V2/ME-WS/MD-DIFF-${USDT_USD_REPO} -G 7085 -X 35675 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar5.out.log 2>> ${LOG_LOCATION}/proxy_md_pulsar5.err.log &
 sleep 1
 #${CORE_LOCATION}/proxy_md_pulsar -s ${CORE_LOCATION}/md.fbs -B $PUB_TIME_MS -R pulsar://${PLSR_URL} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-3001000000000 -F persistent://CF-V2/ME-WS/MD-DIFF-3001000000000 -G 7086 -X 35676 -v --oneQueue --skipAuth localhost >> ${LOG_LOCATION}/proxy_md_pulsar6.out.log & #2>> ${LOG_LOCATION}/proxy_md_pulsar5.err.log &
 #sleep 1

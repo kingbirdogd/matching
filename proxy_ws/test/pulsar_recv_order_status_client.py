@@ -29,7 +29,7 @@ aliyun_live_url = '172.41.11.101:6650'
 
 # ==== Change the following as you need ====
 topic_prefix = posttrade_prefix
-host_url     = aliyun_test_url
+host_url     = aliyun_lemon_url
 
 # BTC
 #market_id = '2001021200925' # Futures

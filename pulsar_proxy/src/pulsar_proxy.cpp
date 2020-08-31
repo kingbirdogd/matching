@@ -207,7 +207,7 @@ void handle_order(const matching::order& o)
 	{
 		matched_type = "MAKER";
 	}
-	client_to_engine_id_map[o.client_order_id] = o.order_id;
+	//client_to_engine_id_map[o.client_order_id] = o.order_id;
   {
     std::lock_guard<std::mutex> lockGuard(iomutex);
     elog.info()
@@ -278,7 +278,7 @@ int main(int iArgc, char** pszArgv)
   // TODO: Switch Frequency?
   config.setBatchingMaxPublishDelayMs(1);
   //config.setCompressionType(CompressionLZ4);  // buggy in 2.6.0
-  config.setSendTimeout(1000);
+  config.setSendTimeout(6000);
   config.setBlockIfQueueFull(true);
 
   Result result = ResultUnknownError;
@@ -363,10 +363,22 @@ int main(int iArgc, char** pszArgv)
     jsongen.erase(std::remove(jsongen.begin(), jsongen.end(), '\n'), jsongen.end());
     auto key = std::string("ACCOUNT-ID-")+std::to_string(o.account_id);
     Message msg = MessageBuilder().setOrderingKey(key).setPartitionKey(key).setContent(jsongen.c_str(), jsongen.size()).build();
-    //elog.info() << "Ordering key: " << msg.getOrderingKey() << "Partition key: " << msg.getPartitionKey() << std::endl;
+    elog.info() << "Ordering key: " << msg.getOrderingKey() << " Partition key: " << msg.getPartitionKey() << std::endl;
 
-    Result res = producer.send(msg);
-    //LOG_INFO("Message sent: " << res);
+    SendCallback cb;
+    cb = [o, key, jsongen, &producer, cb](Result res, const MessageId& messageId) {
+      elog.info() << "Message sent: " << res << " order_id:" << o.order_id << std::endl;
+      if (res != ResultOk) {
+        Message msg = MessageBuilder().setOrderingKey(key).setPartitionKey(key).setContent(jsongen.c_str(), jsongen.size()).build();
+        elog.info() << "Retry sending: order_id:" << o.order_id << std::endl;
+        producer.sendAsync(msg, cb);
+        elog.info() << "Finished Retry sending: order_id:" << o.order_id << std::endl;
+      }
+    };
+    producer.sendAsync(msg, cb);
+
+    //Result res = producer.send(msg);
+    //elog.info() << "Message sent: " << res << std::endl;
     //order_status_pub_sock.send(zmq::const_buffer(fbs_buf.first, fbs_buf.second), zmq::send_flags::none);
   });
 	std::thread th([&]()

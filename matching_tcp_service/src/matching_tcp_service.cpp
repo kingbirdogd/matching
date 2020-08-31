@@ -43,12 +43,19 @@ void matching_tcp_service::run()
 
 void matching_tcp_service::_handle_rcv_odr(const matching::order& o)
 {
+  fprintf(stderr, "%lu Received ORDER. timestamp:%llu market_id:%llu request_id:%llu client_order_id:%llu action:%d order_id:%llu\n",
+          current(), o.timestamp_epoch_ms, o.market_id, o.request_id, o.client_order_id, (int)o.order_action, o.order_id);
 	e_.handle(const_cast<matching::order&>(o));
+  fprintf(stderr, "%lu Handled  ORDER\n", current());
 }
 
 void matching_tcp_service::_handle_snd_odr(const matching::order& o)
 {
-	s_.send(o);
+  fprintf(stderr, "%lu Sending  REPLY. timestamp:%llu market_id:%llu request_id:%llu client_order_id:%llu action:%d order_id:%llu\n",
+          current(), o.timestamp_epoch_ms, o.market_id, o.request_id, o.client_order_id, (int)o.order_action, o.order_id);
+  s_.send(o);
+  fprintf(stderr, "%lu Sent     REPLY. timestamp:%llu market_id:%llu request_id:%llu client_order_id:%llu action:%d order_id:%llu\n",
+          current(), o.timestamp_epoch_ms, o.market_id, o.request_id, o.client_order_id, (int)o.order_action, o.order_id);
 }
 
 matching::engine& matching_tcp_service::get_engine()

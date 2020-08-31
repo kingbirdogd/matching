@@ -1187,11 +1187,40 @@ void test_reprice1() {
 
 }
 
+void test_no_response() {
+  printf("====== %s ======\n", __FUNCTION__);
+  unsigned long long factor  = 100000000;
+  double tick_sz = 0.0001;
+  matching::order output_order;
+  matching::engine e([&](const matching::order& o) { handle_order(o);output_order = o; }, factor*tick_sz);
+  matching::order o;
+
+  o.account_id = 16191595;
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 1247778151896637415;
+  o.price = 99980000; //  std::round(0.0001 * factor);
+  o.quantity = 100000000000;
+  o.display_quantity = 100000000000;
+  o.time_condition = matching::order::MAKER_ONLY;
+  o.type = matching::order::LIMIT;
+  o.request_id = 4138588;
+  e.handle(o);
+
+//  o.side = matching::order::order_side::SELL;
+//  o.client_order_id = 1002;
+//  o.price = 915500000000; //  std::round(0.0001 * factor);
+//  o.quantity = 2000000000;
+//  o.display_quantity = 2000000000;
+//  o.time_condition = matching::order::MAKER_ONLY_REPRICE;
+//  e.handle(o);
+}
+
 int main()
 {
   matching::engine e(handle_order);
   matching::order o;
-  implied_test_md_tick_size();
+  test_no_response();
+  //implied_test_md_tick_size();
   //test_reprice1();
 
 //  auction_test_auction_buy1();

@@ -153,18 +153,23 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
   snapshot.insert("action", json::String("partial"));
 
   // Generate checksum
-  std::stringstream ss;
+  int check_sum_cnt = 25;
+  std::stringstream ss; int bid_cnt = 0, ask_cnt = 0;
   auto it_bid = last_valid_bids.rbegin();
   auto it_ask = last_valid_asks.begin();
   while ((it_bid != last_valid_bids.rend()) || (it_ask != last_valid_asks.end())) {
     if (it_bid != last_valid_bids.rend()) {
-      if (it_bid->second.quantity != 0)
-        ss << it_bid->second.price << ":" << it_bid->second.quantity << ":";
+      if ((it_bid->second.quantity != 0) && (bid_cnt < check_sum_cnt)) {
+        ss << it_bid->second.price/(float)factor << ":" << it_bid->second.quantity/(float)factor << ":";
+        bid_cnt++;
+      }
       it_bid++;
     }
     if (it_ask != last_valid_asks.end()) {
-      if (it_ask->second.quantity != 0)
-        ss << it_ask->second.price << ":" << it_ask->second.quantity << ":";
+      if ((it_ask->second.quantity != 0) && (ask_cnt < check_sum_cnt)) {
+        ss << it_ask->second.price / (float) factor << ":" << it_ask->second.quantity / (float) factor << ":";
+        ask_cnt++;
+      }
       it_ask++;
     }
   }
@@ -217,9 +222,10 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
 
   data.insert(std::move(data_item));
   snapshot.insert("data", std::move(data));
-  if (elog.debug_enabled()) {
+  if (elog.info_enabled()) {
     //elog.debug() << "seq_num=" << seq_num << std::endl;
-    elog.debug() << "snapshot:" << snapshot << std::endl;
+    elog.info() << "snapshot:" << snapshot << std::endl;
+    elog.info() << "checksum string:" << checksum_str << std::endl;
   }
   return snapshot;
 }
@@ -315,6 +321,31 @@ std::pair<bool, json::Object> OrderBook::get_orderbook_diff(//book_map_t &bids,
     if (++cnt == max_entries) break;
   }
 
+  // Generate checksum
+  int checksum_cnt = 25, bid_cnt = 0, ask_cnt = 0;
+  std::stringstream ss;
+  auto it_bid = bids_pxLevels->rbegin();
+  auto it_ask = asks_pxLevels->begin();
+  while ((it_bid != bids_pxLevels->rend()) || (it_ask != asks_pxLevels->end())) {
+    if (it_bid != bids_pxLevels->rend()) {
+      if (bid_cnt < checksum_cnt) {
+        ss << it_bid[0]->as_array()->at(0)->as_integer() / (float) factor << ":" << it_bid[0]->as_array()->at(1)->as_integer() / (float) factor << ":";
+        bid_cnt++;
+      }
+      it_bid++;
+    }
+    if (it_ask != asks_pxLevels->end()) {
+      if (ask_cnt < checksum_cnt) {
+        ss << it_ask[0]->as_array()->at(0)->as_integer() / (float) factor << ":" << it_ask[0]->as_array()->at(1)->as_integer() / (float) factor << ":";
+        ask_cnt++;
+      }
+      it_ask++;
+    }
+  }
+  auto checksum_str = ss.str().substr(0, ss.str().size()-1);
+  uint32_t res32 = crc32b((unsigned char*)checksum_str.data());
+  int32_t signed_res32 = *(int32_t*)(&res32);
+
   auto now = std::chrono::system_clock::now();
   auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
   bool any_diff = !bids_pxLevels->empty() || !asks_pxLevels->empty();
@@ -324,13 +355,14 @@ std::pair<bool, json::Object> OrderBook::get_orderbook_diff(//book_map_t &bids,
   data_item.insert("asks", std::move(asks_pxLevels));
   data_item.insert("timestamp", json::String(std::to_string(ms)));
   //data_item.insert("timestamp", json::String(currentISO8601TimeUTC()));
-  data_item.insert("checksum", json::Integer(0));
+  data_item.insert("checksum", json::Integer(signed_res32));
   data_item.insert("seq_num", json::Integer(seq_num));
 
   data.insert(std::move(data_item));
   delta.insert("data", std::move(data));
-  if (elog.debug_enabled()) {
-    elog.debug() << "update  :" << delta << std::endl;
+  if (elog.info_enabled()) {
+    elog.info() << "update  :" << delta << std::endl;
+    elog.info() << "checksum string:" << checksum_str << std::endl;
   }
   return std::make_pair(any_diff, delta);
   //return delta;
