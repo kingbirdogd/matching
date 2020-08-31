@@ -11,21 +11,21 @@ if __name__ == '__main__':
   jcfg     = open(sys.argv[1])
   out_file = sys.argv[2]
   outStr   = """#!/usr/bin/env bash
-SCRIPT=`realpath $0`
-APPDIR=`dirname $SCRIPT`
+# SCRIPT=`realpath $0`
+# APPDIR=`dirname $SCRIPT`
 
-BASEDIR=/home/docker
-CORE_LOCATION=${APPDIR}
-LOG_LOCATION=${APPDIR}/log/$(date +%Y%m%d_%H%M%S)
-echo ${LOG_LOCATION} > ${APPDIR}/LOG_LOCATION
-export LD_LIBRARY_PATH=${BASEDIR}/usr/local/lib64:${BASEDIR}/usr/local/lib:${BASEDIR}/usr/local:$LD_LIBRARY_PATH
-
-mkdir -p ${LOG_LOCATION}
-cd ${APPDIR}/log
-ln -snf ${LOG_LOCATION} clog
-cd -
-
-echo "Pulsar host is : ${PLSR_URL}"
+# BASEDIR=/home/docker
+# CORE_LOCATION=${APPDIR}
+# LOG_LOCATION=${APPDIR}/log/$(date +%Y%m%d_%H%M%S)
+# echo ${LOG_LOCATION} > ${APPDIR}/LOG_LOCATION
+# export LD_LIBRARY_PATH=${BASEDIR}/usr/local/lib64:${BASEDIR}/usr/local/lib:${BASEDIR}/usr/local:$LD_LIBRARY_PATH
+# 
+# mkdir -p ${LOG_LOCATION}
+# cd ${APPDIR}/log
+# ln -snf ${LOG_LOCATION} clog
+# cd -
+# 
+# echo "Pulsar host is : ${PLSR_URL}"
 outStr += 'PUB_TIME_MS=50'
 """
 

@@ -17,7 +17,16 @@ if [ -f /etc/crontab ]; then
   crontab /etc/crontab
 fi
 
-#$APPDIR/me_server $APPDIR/$PAIR.json
-#$APPDIR/start_proxy_$PAIR.sh
+BASEDIR=/home/docker
+export CORE_LOCATION=${APPDIR}
+export LOG_LOCATION=${APPDIR}/log/$(date +%Y%m%d_%H%M%S)
+echo ${LOG_LOCATION} > ${APPDIR}/LOG_LOCATION
+export LD_LIBRARY_PATH=${BASEDIR}/usr/local/lib64:${BASEDIR}/usr/local/lib:${BASEDIR}/usr/local:$LD_LIBRARY_PATH
+
+mkdir -p ${LOG_LOCATION}
+ln -snf ${LOG_LOCATION} ${APPDIR}/log/clog
+
+$APPDIR/me_server $APPDIR/$PAIR.json >> ${LOG_LOCATION}/me_server.out.log 2>> ${LOG_LOCATION}/me_server.err.log &
+$APPDIR/start_proxy_$PAIR.sh
 
 tail -f /dev/null
