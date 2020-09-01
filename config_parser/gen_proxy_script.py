@@ -26,8 +26,8 @@ if __name__ == '__main__':
 # cd -
 # 
 # echo "Pulsar host is : ${PLSR_URL}"
-outStr += 'PUB_TIME_MS=50'
 """
+  outStr += 'PUB_TIME_MS=50\n'
 
   j = json.load(jcfg)
 
