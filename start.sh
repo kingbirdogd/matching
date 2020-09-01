@@ -27,6 +27,7 @@ mkdir -p ${LOG_LOCATION}
 ln -snf ${LOG_LOCATION} ${APPDIR}/log/clog
 
 $APPDIR/me_server $APPDIR/$PAIR.json >> ${LOG_LOCATION}/me_server.out.log 2>> ${LOG_LOCATION}/me_server.err.log &
+chmod 775 $APPDIR/start_proxy_$PAIR.sh
 $APPDIR/start_proxy_$PAIR.sh
 
 tail -f /dev/null
