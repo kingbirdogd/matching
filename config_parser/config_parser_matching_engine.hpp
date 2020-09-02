@@ -51,6 +51,9 @@ public:
     auto res = [&book, s, &j](std::unordered_map<std::string, matching::engine*> &book_map){
       std::vector<matching_tcp_service*> engines;
       std::clog << "Setting up impliers for book: " << j["book_name"] << '\n';
+      if (j["impliers"].size() == 0)
+        engines.push_back(s);
+
       for (auto& implier: j["impliers"]) {
         //std::cout << implier << '\n';
         std::clog << "  implier: " << implier << '\n';
