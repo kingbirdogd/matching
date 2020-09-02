@@ -187,7 +187,7 @@ if __name__ == '__main__':
         spot['market_id'] = i['marketId']
         spot['factor'] = i['factor']
         spot['maker_fees'] = i['makerFees']
-        for im in spr['impliers']:
+        for im in spot['impliers']:
           im['ai_factor'] = i['factor']
           im['bi_factor'] = i['factor']
         c['instruments'].append(spot)
