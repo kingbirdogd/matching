@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
   for i in j['instruments']:
     #print(f'{i["book_name"]} {Decimal(str(i["tick_sz"]))}')
-    tsz = Decimal(str(i['tickSize']))
+    tsz = Decimal(str(i['tick_sz']))
     if i["book_name"] == "Perpetual":
       outStr += f"${{CORE_LOCATION}}/test_md_tcp_server {i['factor']} 127.0.0.1 34671 35671 127.0.0.1 {tsz} {i['maker_fees']} 127.0.0.1 34673 127.0.0.1 34672 a_bid_b_bid   a_ask_b_ask   add_bid_implier      add_ask_implier   >> ${{LOG_LOCATION}}/md_tcp1.out.log 2>> ${{LOG_LOCATION}}/md_tcp1.err.log &\nsleep 1\n"
       outStr += f"${{CORE_LOCATION}}/proxy_md_pulsar -s ${{CORE_LOCATION}}/md.fbs -B $PUB_TIME_MS -R pulsar://${{PLSR_URL}} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-{i['market_id']} -F persistent://CF-V2/ME-WS/MD-DIFF-{i['market_id']} -G 7081 -X 35671 -v --oneQueue --skipAuth localhost >> ${{LOG_LOCATION}}/proxy_md_pulsar1.out.log 2>> ${{LOG_LOCATION}}/proxy_md_pulsar1.err.log &\nsleep 1\n"
