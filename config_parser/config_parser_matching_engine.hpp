@@ -37,8 +37,9 @@ public:
   static auto my_read_inst_config(const nl::json &j, std::unordered_map<std::string, matching::engine*> &book_map) {
     //std::clog << j["tick_sz"] << " " <<  j["port"] << '\n';
     std::clog << "Setting up book: " << j["book_name"] << '\n';
-    std::clog << "  Port:" << j["port"] << "  Tick Size:" << j["tick_sz"] << '\n';
-    matching_tcp_service *s = new matching_tcp_service(static_cast<unsigned short int>(j["tick_sz"]), j["port"]);
+    unsigned long long scaled_tick_sz = j["tick_sz"].get<double >()*j["factor"].get<unsigned long long>();
+    std::clog << "  Port:" << j["port"] << "  Tick Size:" << j["tick_sz"] << "  Scaled Tick Size:" << scaled_tick_sz << '\n';
+    matching_tcp_service *s = new matching_tcp_service(scaled_tick_sz, static_cast<unsigned short int>(j["port"]));
     auto &book = s->get_engine();
     const auto [it, success] = book_map.insert({j["book_name"], &book});
     if (!success) {
