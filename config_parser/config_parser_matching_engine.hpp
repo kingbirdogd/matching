@@ -20,7 +20,7 @@ class JsonConfigParser {
 public:
   JsonConfigParser(const std::string &fname) : config_fname_(fname) { }
 
-  static void assert_books_exist(const std::string& book_name,
+  static bool assert_books_exist(const std::string& book_name,
                                  const nl::json &implier,
                                  const std::unordered_map<std::string, matching::engine*> &book_map)
   {
@@ -30,8 +30,10 @@ public:
       std::clog << "bi_leg1/2 (" << implier["bi_leg1"] << "/" << implier["bi_leg2"]
                 << ") ai_leg1/2 (" << implier["ai_leg1"] << "/" << implier["ai_leg2"]
                 << ") are not defined properly for " << book_name << '\n';
-      exit(-1);
+      //exit(-1);
+      return false;
     }
+    return true;
   }
 
   static auto my_read_inst_config(const nl::json &j, std::unordered_map<std::string, matching::engine*> &book_map) {
@@ -56,7 +58,8 @@ public:
 
       for (auto& implier: j["impliers"]) {
         std::clog << "  implier: " << implier << '\n';
-        assert_books_exist(j["book_name"], implier, book_map);
+        if (assert_books_exist(j["book_name"], implier, book_map))
+          continue;
 
         if (implier["bi_type"].get<std::string>().compare("a_bid_implier") == 0 &&
             implier["ai_type"].get<std::string>().compare("a_ask_implier") == 0) {
