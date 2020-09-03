@@ -27,11 +27,13 @@ namespace net
 		msg_cb _on_msg;
 		client_set _clients;
 		int _sock;
-		std::string _bind_addr;
-		unsigned short int _bind_port;
+		//std::string _bind_addr;
+		//unsigned short int _bind_port;
 		status _sta;
 	public:
-		tcp_service(unsigned short int bind_port, const std::string& bind_addr = "");
+    std::string _bind_addr;
+    unsigned short int _bind_port;
+    tcp_service(unsigned short int bind_port, const std::string& bind_addr = "");
 		tcp_service(tcp_service&&);
 		tcp_service& operator=(tcp_service&&);
 		~tcp_service();

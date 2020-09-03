@@ -1,4 +1,5 @@
 #include <matching_tcp_service.hpp>
+#include <unistd.h>
 
 matching_tcp_service::matching_tcp_service(
     unsigned long long tick_sz,
@@ -63,4 +64,8 @@ matching::engine& matching_tcp_service::get_engine()
 	return e_;
 }
 
+net::tcp_service& matching_tcp_service::get_tcp_service()
+{
+  return s_;
+}
 
