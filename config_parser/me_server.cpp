@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
   }
 
   while (true)
-    for (auto &s : engines) {
+    for (auto s : engines) {
       s->run();
     }
   return 0;
