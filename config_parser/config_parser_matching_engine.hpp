@@ -58,8 +58,10 @@ public:
 
       for (auto& implier: j["impliers"]) {
         std::clog << "  implier: " << implier << '\n';
-        if (assert_books_exist(j["book_name"], implier, book_map))
+        if (assert_books_exist(j["book_name"], implier, book_map)) {
+          engines.push_back(s);
           continue;
+        }
 
         if (implier["bi_type"].get<std::string>().compare("a_bid_implier") == 0 &&
             implier["ai_type"].get<std::string>().compare("a_ask_implier") == 0) {
