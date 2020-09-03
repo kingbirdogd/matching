@@ -58,7 +58,7 @@ public:
 
       for (auto& implier: j["impliers"]) {
         std::clog << "  implier: " << implier << '\n';
-        if (assert_books_exist(j["book_name"], implier, book_map)) {
+        if (!assert_books_exist(j["book_name"], implier, book_map)) {
           engines.push_back(s);
           continue;
         }
