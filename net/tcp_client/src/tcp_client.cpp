@@ -221,6 +221,7 @@ bool tcp_client::run()
 		case status::CLOSED:
 		{
 			_connect();
+			sleep(1);
 			break;
 		}
 		case status::CONNECTING:
