@@ -30,4 +30,9 @@ $APPDIR/me_server $APPDIR/$PAIR.json >> ${LOG_LOCATION}/me_server.out.log 2>> ${
 chmod 775 $APPDIR/start_proxy_$PAIR.sh
 $APPDIR/start_proxy_$PAIR.sh
 
+sleep 2
+cmd="curl --verbose -X POST http://${REST_URL}/workingorder/recover/$PAIR"
+echo "Recovering orders: $cmd" 2>&1 >> ${LOG_LOCATION}/me_server.err.log
+$cmd &> ${LOG_LOCATION}/RECOVER_ORDERS.log
+
 tail -f /dev/null
