@@ -30,7 +30,20 @@ $APPDIR/me_server $APPDIR/$PAIR.json >> ${LOG_LOCATION}/me_server.out.log 2>> ${
 chmod 775 $APPDIR/start_proxy_$PAIR.sh
 $APPDIR/start_proxy_$PAIR.sh
 
-sleep 6
+#sleep 6
+N=`grep market_id /app/$PAIR.json | wc -l`
+M=`grep connected /app/log/clog/pulsar_proxy*.err.log | wc -l`
+echo "$(date +%Y%m%d_%H:%M:%S) Waiting for connection to Pulsar... Connected = $M/$N"
+
+while [ $N -ne $M ]; do
+  echo "$(date +%Y%m%d_%H:%M:%S) Waiting for connection to Pulsar... Connected = $M/$N"
+  sleep 1
+  N=`grep /app/$PAIR.json | grep market_id`
+  M=`grep connected /app/log/clog/pulsar_proxy*.err.log | wc -l`
+done
+
+echo "All pulsar_proxy connected to Pulsar"
+
 cmd="curl --verbose -X POST http://${REST_URL}/workingorder/recover/$PAIR"
 echo "Recovering orders: $cmd" 2>&1 >> ${LOG_LOCATION}/me_server.err.log
 $cmd &> ${LOG_LOCATION}/RECOVER_ORDERS.log
