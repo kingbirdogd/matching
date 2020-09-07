@@ -38,7 +38,7 @@ echo "$(date +%Y%m%d_%H:%M:%S) Waiting for connection to Pulsar... Connected = $
 while [ $N -ne $M ]; do
   echo "$(date +%Y%m%d_%H:%M:%S) Waiting for connection to Pulsar... Connected = $M/$N"
   sleep 1
-  N=`grep /app/$PAIR.json | grep market_id`
+  N=`grep market_id /app/$PAIR.json | wc -l`
   M=`grep connected /app/log/clog/pulsar_proxy*.err.log | wc -l`
 done
 
