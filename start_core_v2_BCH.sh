@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 SCRIPT=`realpath $0`
-APPDIR=`dirname $SCRIPT`
+export APPDIR=`dirname $SCRIPT`
+echo "Pulsar host is : ${PLSR_URL}"
+echo "REST URL    is : ${REST_URL}"
 
 if [ -f /etc/crontab ]; then
   cat $APPDIR/logrotate.cron   >> /etc/crontab
@@ -13,7 +15,8 @@ fi
 # aliyun-dev : 172.21.11.79:6650
 #PLSR_URL="172.21.11.79:6650"
 
-NODE_ID=4
+PAIR=BCH-USD
+NODE_ID=5
 
 if [ $# -eq 1 ]; then
   if [ $1 = "aliyun-test" ] ; then
@@ -24,7 +27,6 @@ if [ $# -eq 1 ]; then
     PLSR_URL="127.0.0.1:6650"
   fi
 fi
-echo "Pulsar host is : ${PLSR_URL}"
 
 # Book A (Quaterly Futures)
 #   wss port for internal testing               :  8081
@@ -97,8 +99,6 @@ ${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34675        ""     0   
 sleep 1
 ${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34676        ""     0        ""     0 a_none_b_none a_none_b_none none                 none                 35676 127.0.0.1 0.5   0 >> ${LOG_LOCATION}/md_tcp6.out.log 2>> ${LOG_LOCATION}/md_tcp6.err.log &
 sleep 1
-${CORE_LOCATION}/test_tcp_matching_server ${NODE_ID} 100000000 34671 34672 34673 34674 34675 34676 0.01 0.05 0.1 0.05 0.00005 1 2 >> ${LOG_LOCATION}/matching_server.out.log 2>> ${LOG_LOCATION}/matching_server.err.log &
-sleep 2
 
 # MD Implied Server
 ${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34671 35671 127.0.0.1 0.5 0 127.0.0.1 34673 127.0.0.1 34672 a_bid_b_bid   a_ask_b_ask   add_bid_implier      add_ask_implier   >> ${LOG_LOCATION}/md_tcp1.out.log 2>> ${LOG_LOCATION}/md_tcp1.err.log &
@@ -111,8 +111,8 @@ ${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34674 35674 127.0.0.1 0.
 sleep 1
 ${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34675 35675 127.0.0.1 0.00005 0       ""     0        ""     0 a_none_b_none a_none_b_none none                 none               >> ${LOG_LOCATION}/md_tcp5.out.log 2>> ${LOG_LOCATION}/md_tcp5.err.log &
 sleep 1
-#${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34676 35676 127.0.0.1 0.005   0       ""     0        ""     0 a_none_b_none a_none_b_none none                 none               >> ${LOG_LOCATION}/md_tcp6.out.log 2>> ${LOG_LOCATION}/md_tcp6.err.log &
-#sleep 1
+${CORE_LOCATION}/test_md_tcp_server 100000000 127.0.0.1 34676 35676 127.0.0.1 0.5   0       ""     0        ""     0 a_none_b_none a_none_b_none none                 none               >> ${LOG_LOCATION}/md_tcp6.out.log 2>> ${LOG_LOCATION}/md_tcp6.err.log &
+sleep 1
 
 # MD Orderbook Server
 PUB_TIME_MS=50
@@ -184,6 +184,24 @@ sleep 1
 #sleep 1
 #${CORE_LOCATION}/proxy_lws -M 34675 -P 8085 --skipAuth --oneQueue -v localhost >> ${LOG_LOCATION}/proxy_lws5.out.log 2>> ${LOG_LOCATION}/proxy_lws5.err.log &
 #sleep 1
+
+#N=`grep market_id /app/$PAIR.json | wc -l`
+N=5
+M=`grep connected /app/log/clog/pulsar_proxy*.err.log | wc -l`
+echo "$(date +%Y%m%d_%H:%M:%S) Waiting for connection to Pulsar... Connected = $M/$N"
+
+while [ $N -ne $M ]; do
+  echo "$(date +%Y%m%d_%H:%M:%S) Waiting for connection to Pulsar... Connected = $M/$N"
+  sleep 1
+  #N=`grep market_id /app/$PAIR.json | wc -l`
+  M=`grep connected /app/log/clog/pulsar_proxy*.err.log | wc -l`
+done
+
+echo "All pulsar_proxy connected to Pulsar"
+
+cmd="curl --verbose -X POST http://${REST_URL}/workingorder/recover/$PAIR"
+echo "Recovering orders: $cmd" 2>&1 >> ${LOG_LOCATION}/me_server.err.log
+$cmd &> ${LOG_LOCATION}/RECOVER_ORDERS.log
 
 tail -f /dev/null
 
