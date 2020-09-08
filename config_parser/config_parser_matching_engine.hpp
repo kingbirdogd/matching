@@ -84,7 +84,7 @@ public:
           matching::implied_spread_in_bid *spread_bid_implier =new matching::implied_spread_in_bid(implier["bi_priority"],book_map[implier["bi_leg1"]],book_map[implier["bi_leg2"]],implier["bi_maker_fees"]);
           matching::implied_spread_in_ask *spread_ask_implier =new matching::implied_spread_in_ask(implier["ai_priority"],book_map[implier["ai_leg1"]],book_map[implier["ai_leg2"]],implier["ai_maker_fees"]);
           book.set_bid_implier(spread_bid_implier);
-          book.set_ask_implier(spread_bid_implier);
+          book.set_ask_implier(spread_ask_implier);
           engines.push_back(s);
         }
         else if (implier["bi_type"].get<std::string>().compare("repo_out_bid") == 0 &&
