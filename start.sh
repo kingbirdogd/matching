@@ -6,6 +6,10 @@ echo "REST URL    is : ${REST_URL}"
 
 PAIR=$1
 
+if [ $PAIR = "BCH-USD" ]; then
+  $APPDIR/start_core_v2_BCH.sh
+else
+
 python3 $APPDIR/config_parser/gen_config.py ${REST_URL} $PAIR $APPDIR/$PAIR.json
 python3 $APPDIR/config_parser/gen_proxy_script.py $APPDIR/$PAIR.json $APPDIR/start_proxy_$PAIR.sh
 python3 $APPDIR/config_parser/gen_auction_cfg.py  $APPDIR/$PAIR.json $APPDIR/run_auction.json
@@ -49,3 +53,4 @@ echo "Recovering orders: $cmd" 2>&1 >> ${LOG_LOCATION}/me_server.err.log
 $cmd &> ${LOG_LOCATION}/RECOVER_ORDERS.log
 
 tail -f /dev/null
+fi
