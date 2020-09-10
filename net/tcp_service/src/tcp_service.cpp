@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <string.h>
+#include <netinet/tcp.h>
 
 using namespace net;
 
@@ -170,6 +171,10 @@ void tcp_service::_bind()
 	auto fd = socket(AF_INET, SOCK_STREAM, 0);
 	if (-1 == fd)
 		return;
+  // Disable Nagle Algorithm
+  int yes = 1;
+  if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (char*)&yes, sizeof(yes)) < 0)
+    return;
 	if (-1 == ::bind(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr)))
 	{
 		::close(fd);
