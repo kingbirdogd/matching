@@ -175,7 +175,7 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
   }
   auto checksum_str = ss.str().substr(0, ss.str().size()-1);
   uint32_t res32 = crc32b((unsigned char*)checksum_str.data());
-  int32_t signed_res32 = *(int32_t*)(&res32);
+  signed_res32 = *(int32_t*)(&res32);
 
   int cnt = 0;
   for (auto it = last_valid_bids.rbegin(); it != last_valid_bids.rend(); it++) {
@@ -321,30 +321,30 @@ std::pair<bool, json::Object> OrderBook::get_orderbook_diff(//book_map_t &bids,
     if (++cnt == max_entries) break;
   }
 
-  // Generate checksum
-  int checksum_cnt = 25, bid_cnt = 0, ask_cnt = 0;
-  std::stringstream ss;
-  auto it_bid = bids_pxLevels->rbegin();
-  auto it_ask = asks_pxLevels->begin();
-  while ((it_bid != bids_pxLevels->rend()) || (it_ask != asks_pxLevels->end())) {
-    if (it_bid != bids_pxLevels->rend()) {
-      if (bid_cnt < checksum_cnt) {
-        ss << it_bid[0]->as_array()->at(0)->as_integer() / (float) factor << ":" << it_bid[0]->as_array()->at(1)->as_integer() / (float) factor << ":";
-        bid_cnt++;
-      }
-      it_bid++;
-    }
-    if (it_ask != asks_pxLevels->end()) {
-      if (ask_cnt < checksum_cnt) {
-        ss << it_ask[0]->as_array()->at(0)->as_integer() / (float) factor << ":" << it_ask[0]->as_array()->at(1)->as_integer() / (float) factor << ":";
-        ask_cnt++;
-      }
-      it_ask++;
-    }
-  }
-  auto checksum_str = ss.str().substr(0, ss.str().size()-1);
-  uint32_t res32 = crc32b((unsigned char*)checksum_str.data());
-  int32_t signed_res32 = *(int32_t*)(&res32);
+//  // Generate checksum
+//  int checksum_cnt = 25, bid_cnt = 0, ask_cnt = 0;
+//  std::stringstream ss;
+//  auto it_bid = bids_pxLevels->rbegin();
+//  auto it_ask = asks_pxLevels->begin();
+//  while ((it_bid != bids_pxLevels->rend()) || (it_ask != asks_pxLevels->end())) {
+//    if (it_bid != bids_pxLevels->rend()) {
+//      if (bid_cnt < checksum_cnt) {
+//        ss << it_bid[0]->as_array()->at(0)->as_integer() / (float) factor << ":" << it_bid[0]->as_array()->at(1)->as_integer() / (float) factor << ":";
+//        bid_cnt++;
+//      }
+//      it_bid++;
+//    }
+//    if (it_ask != asks_pxLevels->end()) {
+//      if (ask_cnt < checksum_cnt) {
+//        ss << it_ask[0]->as_array()->at(0)->as_integer() / (float) factor << ":" << it_ask[0]->as_array()->at(1)->as_integer() / (float) factor << ":";
+//        ask_cnt++;
+//      }
+//      it_ask++;
+//    }
+//  }
+//  auto checksum_str = ss.str().substr(0, ss.str().size()-1);
+//  uint32_t res32 = crc32b((unsigned char*)checksum_str.data());
+//  int32_t signed_res32 = *(int32_t*)(&res32);
 
   auto now = std::chrono::system_clock::now();
   auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
@@ -362,7 +362,7 @@ std::pair<bool, json::Object> OrderBook::get_orderbook_diff(//book_map_t &bids,
   delta.insert("data", std::move(data));
   if (elog.info_enabled()) {
     elog.info() << "update  :" << delta << std::endl;
-    elog.info() << "checksum string:" << checksum_str << std::endl;
+    //elog.info() << "checksum string:" << checksum_str << std::endl;
   }
   return std::make_pair(any_diff, delta);
   //return delta;

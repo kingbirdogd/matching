@@ -44,6 +44,7 @@ namespace proxy {
     unsigned long long seq_num;
     unsigned long long market_id;
     unsigned long long factor;
+    int32_t signed_res32;
   };
 
 
