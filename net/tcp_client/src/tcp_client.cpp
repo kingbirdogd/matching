@@ -137,7 +137,7 @@ void tcp_client::_do_send()
 
 void tcp_client::_do_recv()
 {
-  const int N = 16777216; // 1024
+  const int N = 8388608; // 1024
 	char rcv_buffer[N];
 	while (true)
 	{
