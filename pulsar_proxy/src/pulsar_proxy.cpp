@@ -415,7 +415,7 @@ int main(int iArgc, char** pszArgv)
 
     Message msg;
 
-    Result result = consumer.receive(msg, 1000);
+    Result result = consumer.receive(msg, 1);
     if (result != ResultOk) continue;
     elog.info() << "Received: " << msg << "  with payload length=" << msg.getLength() << std::endl;
     auto o = fbs_msg_to_order(msg.getData());
