@@ -137,10 +137,11 @@ void tcp_client::_do_send()
 
 void tcp_client::_do_recv()
 {
-	char rcv_buffer[1024];
+  const int N = 65536; // 1024
+	char rcv_buffer[N];
 	while (true)
 	{
-		ssize_t size_received = ::recv(_sock, rcv_buffer, 1024, 0);
+		ssize_t size_received = ::recv(_sock, rcv_buffer, N, 0);
 		if (size_received > 0)
 		{
 			if (_msg_cb)
