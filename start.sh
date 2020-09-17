@@ -33,8 +33,8 @@ cd ${APPDIR}/log
 ln -snf ${DT} clog
 cd -
 
-sysctl -w net.ipv4.tcp_wmem='8388608 8388608 8388608'
-sysctl -w net.ipv4.tcp_rmem='8388608 8388608 8388608'
+sysctl -w net.ipv4.tcp_wmem='16777216 16777216 16777216'
+sysctl -w net.ipv4.tcp_rmem='16777216 16777216 16777216'
 $APPDIR/me_server $APPDIR/$PAIR.json >> ${LOG_LOCATION}/me_server.out.log 2>> ${LOG_LOCATION}/me_server.err.log &
 chmod 775 $APPDIR/start_proxy_$PAIR.sh
 $APPDIR/start_proxy_$PAIR.sh
