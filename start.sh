@@ -23,12 +23,15 @@ fi
 
 BASEDIR=/home/docker
 export CORE_LOCATION=${APPDIR}
-export LOG_LOCATION=${APPDIR}/log/$(date +%Y%m%d_%H%M%S)
+export DT=$(date +%Y%m%d_%H%M%S)
+export LOG_LOCATION=${APPDIR}/log/$DT
 echo ${LOG_LOCATION} > ${APPDIR}/LOG_LOCATION
 export LD_LIBRARY_PATH=${BASEDIR}/usr/local/lib64:${BASEDIR}/usr/local/lib:${BASEDIR}/usr/local:$LD_LIBRARY_PATH
 
 mkdir -p ${LOG_LOCATION}
-ln -snf ${LOG_LOCATION} ${APPDIR}/log/clog
+cd ${APPDIR}/log
+ln -snf ${DT} clog
+cd -
 
 $APPDIR/me_server $APPDIR/$PAIR.json >> ${LOG_LOCATION}/me_server.out.log 2>> ${LOG_LOCATION}/me_server.err.log &
 chmod 775 $APPDIR/start_proxy_$PAIR.sh

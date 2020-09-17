@@ -24,7 +24,7 @@ using namespace CoinflexV2;
 using namespace pulsar;
 
 std::unordered_map<unsigned long long, unsigned long long> client_to_engine_id_map;
-std::mutex iomutex;
+//std::mutex iomutex;
 static bool bPause = false;
 
 void signal_handler( int signal_num ) {
@@ -209,7 +209,7 @@ void handle_order(const matching::order& o)
 	}
 	//client_to_engine_id_map[o.client_order_id] = o.order_id;
   {
-    std::lock_guard<std::mutex> lockGuard(iomutex);
+    //std::lock_guard<std::mutex> lockGuard(iomutex);
     elog.info()
         << "account_id:" << o.account_id
         << ",market_id:" << o.market_id
@@ -350,7 +350,7 @@ int main(int iArgc, char** pszArgv)
 //    ss << std::put_time(gmtime(&itt), "%FT%T.")
 //       << std::setfill('0') << std::setw(3) << ms << "Z" << ". Pulsar Pushing:";
     {
-      std::lock_guard<std::mutex> lockGuard(iomutex);
+      //std::lock_guard<std::mutex> lockGuard(iomutex);
       elog.info() << "size: " << fbs_buf.second  << std::endl;
       if (fbs_buf.second > 0)
         elog.info() << "Pulsar pushing:" << get_fbs_msg_order_as_string(fbs_buf.first.get()) << std::endl;
