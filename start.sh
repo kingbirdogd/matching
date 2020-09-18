@@ -33,9 +33,20 @@ cd ${APPDIR}/log
 ln -snf ${DT} clog
 cd -
 
-sysctl -w net.ipv4.tcp_wmem='16777216 16777216 16777216'
-sysctl -w net.ipv4.tcp_rmem='16777216 16777216 16777216'
-$APPDIR/me_server $APPDIR/$PAIR.json >> ${LOG_LOCATION}/me_server.out.log 2>> ${LOG_LOCATION}/me_server.err.log &
+sysctl -w net.ipv4.tcp_timestamps=0
+sysctl -w net.ipv4.tcp_sack=1
+sysctl -w net.core.netdev_max_backlog=250000
+sysctl -w net.core.rmem_max=4194304
+sysctl -w net.core.wmem_max=4194304
+sysctl -w net.core.rmem_default=4194304
+sysctl -w net.core.wmem_default=4194304
+sysctl -w net.core.optmem_max=4194304
+sysctl -w net.ipv4.tcp_low_latency=1
+sysctl -w net.ipv4.tcp_adv_win_scale=1
+sysctl -w net.ipv4.tcp_wmem='4194304 4194304 4194304'
+sysctl -w net.ipv4.tcp_rmem='4194304 4194304 4194304'
+
+tastset -c 0 $APPDIR/me_server $APPDIR/$PAIR.json >> ${LOG_LOCATION}/me_server.out.log 2>> ${LOG_LOCATION}/me_server.err.log &
 chmod 775 $APPDIR/start_proxy_$PAIR.sh
 $APPDIR/start_proxy_$PAIR.sh
 
