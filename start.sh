@@ -46,7 +46,7 @@ sysctl -w net.ipv4.tcp_adv_win_scale=1
 sysctl -w net.ipv4.tcp_wmem='4194304 4194304 4194304'
 sysctl -w net.ipv4.tcp_rmem='4194304 4194304 4194304'
 
-tastset -c 0 $APPDIR/me_server $APPDIR/$PAIR.json >> ${LOG_LOCATION}/me_server.out.log 2>> ${LOG_LOCATION}/me_server.err.log &
+taskset -c 0 $APPDIR/me_server $APPDIR/$PAIR.json >> ${LOG_LOCATION}/me_server.out.log 2>> ${LOG_LOCATION}/me_server.err.log &
 chmod 775 $APPDIR/start_proxy_$PAIR.sh
 $APPDIR/start_proxy_$PAIR.sh
 
