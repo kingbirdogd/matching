@@ -355,12 +355,12 @@ int main(int iArgc, char** pszArgv)
       if (fbs_buf.second > 0)
         elog.info() << "Pulsar pushing:" << get_fbs_msg_order_as_string(fbs_buf.first.get()) << std::endl;
     }
-    //Message msg = MessageBuilder().setContent(fbs_buf.first.get(), fbs_buf.second).build();
-    std::string jsongen;
-    if (!GenerateText(parser, fbs_buf.first.get(), &jsongen)) {
-      elog.error() << "Couldn't serialize parsed data to JSON!" << std::endl;
-    }
-    jsongen.erase(std::remove(jsongen.begin(), jsongen.end(), '\n'), jsongen.end());
+    std::string jsongen = get_fbs_msg_order_as_json(fbs_buf.first.get()).dump();
+//    std::string jsongen;
+//    if (!GenerateText(parser, fbs_buf.first.get(), &jsongen)) {
+//      elog.error() << "Couldn't serialize parsed data to JSON!" << std::endl;
+//    }
+//    jsongen.erase(std::remove(jsongen.begin(), jsongen.end(), '\n'), jsongen.end());
     auto key = std::string("ACCOUNT-ID-")+std::to_string(o.account_id);
     Message msg = MessageBuilder().setOrderingKey(key).setPartitionKey(key).setContent(jsongen.c_str(), jsongen.size()).build();
     elog.info() << "Ordering key: " << msg.getOrderingKey() << " Partition key: " << msg.getPartitionKey() << std::endl;
