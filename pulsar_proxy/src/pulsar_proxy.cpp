@@ -375,14 +375,16 @@ int main(int iArgc, char** pszArgv)
 
     //order_status_pub_sock.send(zmq::const_buffer(fbs_buf.first, fbs_buf.second), zmq::send_flags::none);
   });
-	std::thread th([&]()
-	{
-		while (true)
-		{
-			c.run();
-		}
-	});
-/*
+
+//	std::thread th([&]()
+//	{
+//		while (true)
+//		{
+//			c.run();
+//		}
+//	});
+
+	/*
 	matching::order o;
 	o.side = matching::order::order_side::SELL;
 	o.client_order_id = 1;
@@ -421,8 +423,9 @@ int main(int iArgc, char** pszArgv)
     }
     //result = consumer.receive(msg, 1);
     consumer.receiveAsync(cb_recv);
+    c.run();
   }
-	th.join();
+	//th.join();
   client.close();
 	return 0;
 }
