@@ -356,9 +356,9 @@ int main(int iArgc, char** pszArgv)
 //    }
 //    jsongen.erase(std::remove(jsongen.begin(), jsongen.end(), '\n'), jsongen.end());
     std::string jsongen = order_to_json(o).dump();
+    elog.info() << "Pulsar pushing:" << jsongen << std::endl;
     auto key = std::string("ACCOUNT-ID-")+std::to_string(o.account_id);
     Message msg = MessageBuilder().setOrderingKey(key).setPartitionKey(key).setContent(jsongen.c_str(), jsongen.size()).build();
-    elog.info() << "Ordering key: " << msg.getOrderingKey() << " Partition key: " << msg.getPartitionKey() << std::endl;
 
     SendCallback cb;
     cb = [o, key, jsongen, &producer, cb](Result res, const MessageId& messageId) {
@@ -370,6 +370,7 @@ int main(int iArgc, char** pszArgv)
         elog.info() << "Finished Retry sending: order_id:" << o.order_id << std::endl;
       }
     };
+    elog.info() << "Ordering key: " << msg.getOrderingKey() << " Partition key: " << msg.getPartitionKey() << std::endl;
     producer.sendAsync(msg, cb);
 
     //order_status_pub_sock.send(zmq::const_buffer(fbs_buf.first, fbs_buf.second), zmq::send_flags::none);
