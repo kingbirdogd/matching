@@ -400,23 +400,27 @@ int main(int iArgc, char** pszArgv)
 */
 
 
+
   Message msg;
+  ResultCallback cb_res = [](Result res){};
+  ReceiveCallback cb_recv = [&consumer, &c, &cb_res](Result res, const Message& msg) {
+    if (res == ResultOk) {
+      elog.info() << "Received: " << msg << "  with payload length=" << msg.getLength() << std::endl;
+      auto o = fbs_msg_to_order(msg.getData());
+      consumer.acknowledgeAsync(msg, cb_res);
+      elog.info() << get_order_as_string(o) << std::endl;
+      c.send(o);
+    }
+  };
+
   while (true) {
     if (bPause) {
       elog.info() << "Sleeping for 2s..." << std::endl;
       sleep(2);
       continue;
     }
-
-    //Message msg;
-
-    result = consumer.receive(msg, 1);
-    if (result != ResultOk) continue;
-    elog.info() << "Received: " << msg << "  with payload length=" << msg.getLength() << std::endl;
-    auto o = fbs_msg_to_order(msg.getData());
-    consumer.acknowledge(msg);
-    elog.info() << get_order_as_string(o) << std::endl;
-    c.send(o);
+    //result = consumer.receive(msg, 1);
+    consumer.receiveAsync(cb_recv);
   }
 	th.join();
   client.close();
