@@ -338,10 +338,10 @@ int main(int iArgc, char** pszArgv)
 
   c.set_on_order([&](const matching::order& o) {
     handle_order(o);
-    if (o.order_state == matching::order::CANCELED_BY_AMEND) {
-      elog.info() << "Not pushing CANCELED_BY_AMEND" << std::endl;
-      return;
-    }
+//    if (o.order_state == matching::order::CANCELED_BY_AMEND) {
+//      elog.info() << "Not pushing CANCELED_BY_AMEND" << std::endl;
+//      return;
+//    }
     //auto fbs_buf = order_to_fbs_msg(o);  // (*buf, buf_sz)
 
 //    {
