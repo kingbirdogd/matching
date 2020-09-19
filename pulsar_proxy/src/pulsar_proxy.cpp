@@ -241,10 +241,10 @@ void handle_order(const matching::order& o)
 int main(int iArgc, char** pszArgv)
 {
   signal(SIGUSR1, signal_handler);
-  flatbuffers::IDLOptions opts;
-  opts.strict_json = true;
-  opts.output_default_scalars_in_json = true;
-  flatbuffers::Parser parser(opts);
+  //flatbuffers::IDLOptions opts;
+  //opts.strict_json = true;
+  //opts.output_default_scalars_in_json = true;
+  //flatbuffers::Parser parser(opts);
 
   if (7 != iArgc)
 	{
@@ -326,14 +326,14 @@ int main(int iArgc, char** pszArgv)
 	});
 
 
-  // Read schema
-  std::string schema_ok_file;
-  bool ok = flatbuffers::LoadFile(md_schema_file.c_str(), false, &schema_ok_file);
-  if (!ok) {
-    std::cout << "load file failed!" << std::endl;
-    return -1;
-  }
-  parser.Parse(schema_ok_file.c_str());
+//  // Read schema
+//  std::string schema_ok_file;
+//  bool ok = flatbuffers::LoadFile(md_schema_file.c_str(), false, &schema_ok_file);
+//  if (!ok) {
+//    std::cout << "load file failed!" << std::endl;
+//    return -1;
+//  }
+//  parser.Parse(schema_ok_file.c_str());
 
   c.set_on_order([&](const matching::order& o) {
     handle_order(o);
@@ -341,26 +341,21 @@ int main(int iArgc, char** pszArgv)
       elog.info() << "Not pushing CANCELED_BY_AMEND" << std::endl;
       return;
     }
-    auto fbs_buf = order_to_fbs_msg(o);  // (*buf, buf_sz)
+    //auto fbs_buf = order_to_fbs_msg(o);  // (*buf, buf_sz)
 
-//    auto now = std::chrono::system_clock::now();
-//    auto itt = std::chrono::system_clock::to_time_t(now);
-//    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count() % 1000;
-//    std::ostringstream ss;
-//    ss << std::put_time(gmtime(&itt), "%FT%T.")
-//       << std::setfill('0') << std::setw(3) << ms << "Z" << ". Pulsar Pushing:";
-    {
-      //std::lock_guard<std::mutex> lockGuard(iomutex);
-      elog.info() << "size: " << fbs_buf.second  << std::endl;
-      if (fbs_buf.second > 0)
-        elog.info() << "Pulsar pushing:" << get_fbs_msg_order_as_string(fbs_buf.first.get()) << std::endl;
-    }
-    std::string jsongen = get_fbs_msg_order_as_json(fbs_buf.first.get()).dump();
+//    {
+//      //std::lock_guard<std::mutex> lockGuard(iomutex);
+//      elog.info() << "size: " << fbs_buf.second  << std::endl;
+//      if (fbs_buf.second > 0)
+//        elog.info() << "Pulsar pushing:" << get_fbs_msg_order_as_string(fbs_buf.first.get()) << std::endl;
+//    }
+//    std::string jsongen = get_fbs_msg_order_as_json(fbs_buf.first.get()).dump();
 //    std::string jsongen;
 //    if (!GenerateText(parser, fbs_buf.first.get(), &jsongen)) {
 //      elog.error() << "Couldn't serialize parsed data to JSON!" << std::endl;
 //    }
 //    jsongen.erase(std::remove(jsongen.begin(), jsongen.end(), '\n'), jsongen.end());
+    std::string jsongen = order_to_json(o).dump();
     auto key = std::string("ACCOUNT-ID-")+std::to_string(o.account_id);
     Message msg = MessageBuilder().setOrderingKey(key).setPartitionKey(key).setContent(jsongen.c_str(), jsongen.size()).build();
     elog.info() << "Ordering key: " << msg.getOrderingKey() << " Partition key: " << msg.getPartitionKey() << std::endl;
@@ -377,8 +372,6 @@ int main(int iArgc, char** pszArgv)
     };
     producer.sendAsync(msg, cb);
 
-    //Result res = producer.send(msg);
-    //elog.info() << "Message sent: " << res << std::endl;
     //order_status_pub_sock.send(zmq::const_buffer(fbs_buf.first, fbs_buf.second), zmq::send_flags::none);
   });
 	std::thread th([&]()
@@ -406,6 +399,7 @@ int main(int iArgc, char** pszArgv)
 */
 
 
+  Message msg;
   while (true) {
     if (bPause) {
       elog.info() << "Sleeping for 2s..." << std::endl;
@@ -413,9 +407,9 @@ int main(int iArgc, char** pszArgv)
       continue;
     }
 
-    Message msg;
+    //Message msg;
 
-    Result result = consumer.receive(msg, 1);
+    result = consumer.receive(msg, 1);
     if (result != ResultOk) continue;
     elog.info() << "Received: " << msg << "  with payload length=" << msg.getLength() << std::endl;
     auto o = fbs_msg_to_order(msg.getData());

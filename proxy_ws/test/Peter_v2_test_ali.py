@@ -21,11 +21,17 @@ import hashlib
 # api_key    = 'ZeCafws/E911MGSa16+jCObJIIO33ZOx9Kv/ZeovTsk='
 # api_secret = 'LS7wkx3K4pnJGIecuX44Y+R0iXZjmZ/E5Nqmjgjiutw='
 
-# stage env
-wss_url   = 'wss://v2stgapi.coinflex.com/v2/websocket'
-https_url = 'https://v2stgapi.coinflex.com/v2/account/auth/trading/login'
-api_key    = 'OFHrN+Kyi7M6ScAZGTYREBJQhKRme4ARUJN5QcQ+J4U='
-api_secret = 'wxUTiLcIW068IDTYbsUFLOq33SEONuby063Yj4XmDxc='
+# # stage env
+# wss_url   = 'wss://v2stgapi.coinflex.com/v2/websocket'
+# https_url = 'https://v2stgapi.coinflex.com/v2/account/auth/trading/login'
+# api_key    = 'OFHrN+Kyi7M6ScAZGTYREBJQhKRme4ARUJN5QcQ+J4U='
+# api_secret = 'wxUTiLcIW068IDTYbsUFLOq33SEONuby063Yj4XmDxc='
+
+# pre-prod env
+wss_url   = 'wss://v2ppapi.coinflex.com/v2/websocket'
+https_url = 'https://v2ppapi.coinflex.com/v2/account/auth/trading/login'
+api_key    = 'Fb7znMmfL1lU9hWarHu83ITQ2EYgp9Mp1Bvawlnacw0='
+api_secret = 'J4ISW9Qhzh5/rdQOu33lRBb3d1gZb7DnUvC5pUwpkso='
 
 # # lemon env
 # wss_url   = 'wss://api-lemon-v2.coinflex-cn.com/v2/websocket'
@@ -39,8 +45,8 @@ api_secret = 'wxUTiLcIW068IDTYbsUFLOq33SEONuby063Yj4XmDxc='
 #'https://v2api.coinflex.com/v2/markets/public/markets/'
 
 #market = "BTC-USD-200925-LIN"
-#market = "BTC-USD-SWAP-LIN"
-market = "BTC-USD"
+market = "BTC-USD-SWAP-LIN"
+#market = "BTC-USD"
 #market = 'BTC-USD-SPR-QP-LIN'
 #market = 'BTC-USD-REPO-LIN'
 #market = 'FLEX-USD'#
@@ -100,9 +106,9 @@ async def get_reply_notice(sleep_s, bPrint=True):
 
     print(f"Start listening to notice messages...")
     if ws and logined:
-        #sub_msg = f'{{"op":"subscribe", "args":["order:{market}"],"tag":1}}'
-        sub_msg = f'{{"op":"subscribe", "args":["futures/depth:{market}"],"tag":1}}'
-        await ws.send(sub_msg)
+        #sub_msg = f'{{"op":"subscribe", "args":["futures/depth:{market}"],"tag":1}}'
+        #await ws.send(sub_msg)
+        pass
 
     while True:
         if ws and logined:
@@ -118,7 +124,8 @@ async def call_api():
     websocket = ws
     #async with ws as websocket:
     #await websocket.send(json.dumps({"op": "subscribe", "args": ["futures/depth:" + market]}))
-    while True:
+    #while True:
+    for i in range(100):
         if not logined:
             response = await websocket.recv()
             msg=json.loads(response)
@@ -150,10 +157,10 @@ async def call_api():
               rnd_ask_px /= 100
             rnd_bid_qty = random.randint(1, 3);                  rnd_ask_qty = random.randint(1, 3)
 
-            #await websocket.send(json.dumps(placeOrder( "BUY",  rnd_bid_qty, rnd_bid_px)))
-            #await websocket.send(json.dumps(placeOrder( "SELL", rnd_ask_qty, rnd_ask_px)))
+            await websocket.send(json.dumps(placeOrder( "BUY",  rnd_bid_qty, rnd_bid_px)))
+            await websocket.send(json.dumps(placeOrder( "SELL", rnd_ask_qty, rnd_ask_px)))
         #break
-        await asyncio.sleep(2)
+        #await asyncio.sleep(2)
 
 def main():
     loop = asyncio.get_event_loop()
