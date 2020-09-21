@@ -183,9 +183,17 @@ void handle_order(const matching::order& o)
 	{
 		time_condition = "MAKER_ONLY";
 	}
-	else
+  else if (matching::order::order_time_condition::MAKER_ONLY_REPRICE == o.time_condition)
+  {
+    time_condition = "MAKER_ONLY_REPRICE";
+  }
+  else if (matching::order::order_time_condition::AUCTION == o.time_condition)
+  {
+    time_condition = "AUCTION";
+  }
+  else
 	{
-		time_condition = "MAKER_ONLY_REPRICE";
+		time_condition = "EXPIRY";
 	}
 	if (matching::order::order_action_type::NEW == o.order_action)
 	{

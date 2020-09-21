@@ -42,7 +42,8 @@ namespace matching
 			FOK = 0x02,
 			MAKER_ONLY = 0x03,
 			MAKER_ONLY_REPRICE = 0x04,
-			AUCTION = 0x05
+			AUCTION = 0x05,
+      EXPIRY  = 0x06
 		};
 		enum order_status_type : unsigned char
 		{
