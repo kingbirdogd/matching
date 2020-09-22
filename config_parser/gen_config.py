@@ -4,6 +4,7 @@ import simplejson as json
 import os
 import sys
 from decimal import  Decimal
+import time
 
 #json.encoder.FLOAT_REPR = lambda f: ("%.2f" % f)
 #json.encoder.FLOAT_REPR = lambda f: format(f, ".6f")
@@ -119,6 +120,14 @@ def gen_repo() :
   c['impliers']  = []
   return c
 
+def check_expiry(inst):
+  if 'listingDate' in inst and 'endDate' in inst :
+    if inst['listingDate'] < time.time()*1000 <  inst['endDate']:
+      return True
+    else:
+      return False
+  return True
+
 if __name__ == '__main__':
   print("=============================", flush=True)
   os.system('date +%Y-%m-%d_%H:%M:%S')
@@ -145,6 +154,9 @@ if __name__ == '__main__':
       marketCode = i['marketCode']
       print(i)
       itype = i['type']
+      if not check_expiry(i):
+        print(f'Not between listingDate and endDate. Skipping...')
+        continue
 
       if itype == 'FUTURE':
         if marketCode == pair + '-SWAP-LIN':
