@@ -411,10 +411,10 @@ int main(int iArgc, char** pszArgv)
 */
 
 
-
+  bool receiveAsyncCalled = false;
   Message msg;
   ResultCallback cb_res = [](Result res){};
-  ReceiveCallback cb_recv = [&consumer, &c, &cb_res](Result res, const Message& msg) {
+  ReceiveCallback cb_recv = [&consumer, &c, &cb_res, &receiveAsyncCalled](Result res, const Message& msg) {
     if (res == ResultOk) {
       elog.info() << "Received: " << msg << "  with payload length=" << msg.getLength() << std::endl;
       auto o = fbs_msg_to_order(msg.getData());
@@ -422,6 +422,7 @@ int main(int iArgc, char** pszArgv)
       elog.info() << get_order_as_string(o) << std::endl;
       c.send(o);
     }
+    receiveAsyncCalled = false;
   };
 
   while (true) {
@@ -431,7 +432,10 @@ int main(int iArgc, char** pszArgv)
       continue;
     }
     //result = consumer.receive(msg, 1);
-    consumer.receiveAsync(cb_recv);
+    if (!receiveAsyncCalled) {
+      receiveAsyncCalled = true;
+      consumer.receiveAsync(cb_recv);
+    }
     c.run();
   }
 	//th.join();
