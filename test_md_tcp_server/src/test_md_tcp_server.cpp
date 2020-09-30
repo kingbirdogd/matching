@@ -192,15 +192,15 @@ int main(int iArgc, char** pszArgv)
 		{
 			ask_implier = new minus_ask_implier(bps);
 		}
-		else if (str_bid_implier == "repo_out_bid_implier")
+		else if (str_ask_implier == "repo_out_bid_implier")
 		{
 			ask_implier = new repo_out_bid_implier(bps, factor);
 		}
-		else if (str_bid_implier == "repo_out_ask_implier")
+		else if (str_ask_implier == "repo_out_ask_implier")
 		{
 			ask_implier = new repo_out_ask_implier(bps, factor);
 		}
-		else if (str_bid_implier == "none")
+		else if (str_ask_implier == "none")
 		{
 			ask_implier = nullptr;
 		}
