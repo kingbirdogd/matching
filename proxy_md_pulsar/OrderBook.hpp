@@ -37,6 +37,7 @@ namespace proxy {
     void clear_unused_bids_asks();
     void print_bids_asks(book_map_t &bids, book_map_t &asks);
     book_map_t last_valid_bids, last_valid_asks;
+    book_map_t last_sent_bids, last_sent_asks;
     std::mutex ob_mutex;
   private:
     book_map_t bids, asks, last_bids, last_asks;

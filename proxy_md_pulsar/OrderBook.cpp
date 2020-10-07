@@ -188,6 +188,7 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
     details.insert(json::Integer(0));
     details.insert(json::Integer(0));
     bids_pxLevels.insert(std::move(details));
+    last_sent_bids.insert({it->first, it->second});
     if (++cnt == max_entries) break;
   }
 
@@ -207,6 +208,7 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
     details.insert(json::Integer(0));
     details.insert(json::Integer(0));
     asks_pxLevels.insert(std::move(details));
+    last_sent_asks.insert({it->first, it->second});
     if (++cnt == max_entries) break;
   }
 
@@ -395,8 +397,10 @@ void OrderBook::clear_unused_bids_asks() {
     else
       ++it;
   }
-  last_bids = last_valid_bids;
-  last_asks = last_valid_asks;
+  //last_bids = last_valid_bids;
+  //last_asks = last_valid_asks;
+  last_bids = last_sent_bids; last_sent_bids.clear();
+  last_asks = last_sent_asks; last_sent_asks.clear();
 
   // ==== Clear most updated books ====
   for (auto it = bids.begin(); it != bids.end(); ) {
