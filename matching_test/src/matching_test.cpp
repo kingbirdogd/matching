@@ -249,7 +249,7 @@ void stop_test()
 	o.client_order_id = 2;
 	o.quantity = 1000;
 	o.display_quantity = 1000;
-	o.price = 103;
+	o.price = 102;
 	e.handle(o);
 
 	o.side = matching::order::order_side::BUY_STOP;
@@ -263,9 +263,9 @@ void stop_test()
 	std::cout << "Start try trigger" << std::endl;
 	o.side = matching::order::order_side::BUY;
 	o.client_order_id = 4;
-	o.quantity = 1500;
-	o.display_quantity = 1500;
-	o.price = 108;
+	o.quantity = 1000;
+	o.display_quantity = 1000;
+	o.price = 100;
 	e.handle(o);
 }
 
@@ -302,14 +302,14 @@ void stop_test_by_cancel()
 	o.order_id = client_to_engine_id_map[1];
 	e.handle(o);
 
-	std::cout << "Start try trigger by oderbook come out again" << std::endl;
-	o.order_action = matching::order::order_action_type::NEW;
-	o.side = matching::order::order_side::SELL;
-	o.client_order_id = 20;
-	o.quantity = 800;
-	o.display_quantity = 800;
-	o.price = 104;
-	e.handle(o);
+//	std::cout << "Start try trigger by oderbook come out again" << std::endl;
+//	o.order_action = matching::order::order_action_type::NEW;
+//	o.side = matching::order::order_side::SELL;
+//	o.client_order_id = 20;
+//	o.quantity = 800;
+//	o.display_quantity = 800;
+//	o.price = 104;
+//	e.handle(o);
 }
 
 void test_object_pool()
@@ -1219,7 +1219,7 @@ int main()
 {
   matching::engine e(handle_order);
   matching::order o;
-  test_no_response();
+  //test_no_response();
   //implied_test_md_tick_size();
   //test_reprice1();
 
@@ -1227,7 +1227,7 @@ int main()
 //  auction_test_auction_buy2();
 //  auction_test_auction_buy3();
   //auction_test_auction_buy4();
-  /*
+
 //  auction_test_auction_buy5();
 //  auction_test_auction_sell1();
 //  auction_test_auction_sell2();
@@ -1238,13 +1238,14 @@ int main()
   //implied_test_md_tick_size();
   //implied_test_remain_qty_overflow();
 	//implied_test();
+	/*
 	//implied_test_case_5();
   test_case_2();
 	test_case_1();
-	implied_test();
-	stop_test();
+	implied_test(); */
+	//stop_test();
 	stop_test_by_cancel();
-
+/*
 	o.side = matching::order::order_side::BUY;
 	o.client_order_id = 1;
 	o.price = 100;

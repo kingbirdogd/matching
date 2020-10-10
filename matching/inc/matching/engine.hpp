@@ -903,7 +903,7 @@ namespace matching
 		}
 		long long best_ask()
 		{
-			_bid_book_matcher.reset();
+			_ask_book_matcher.reset();
 			return _ask_book_matcher.top_price(_ask_book.key_comp());
 		}
 	private:
