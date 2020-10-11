@@ -1375,7 +1375,7 @@ namespace matching
 				auto it = _bid_book.begin();
 				if ((1 == it->second.size()) && (ori_odr.price == it->first))
 				{
-					trigger = false;
+					trigger = true;
 				}
 				erase_from_normal_book(_bid_book, ori_odr);
 				if (trigger)
@@ -1389,7 +1389,7 @@ namespace matching
 				auto it = _ask_book.begin();
 				if ((1 == it->second.size()) && (ori_odr.price == it->first))
 				{
-					trigger = false;
+					trigger = true;
 				}
 				erase_from_normal_book(_ask_book, ori_odr);
 				if (trigger)
@@ -1409,7 +1409,7 @@ namespace matching
 					auto it = _bid_book.begin();
 					if ((1 == it->second.size()) && (ori_odr.price == it->first))
 					{
-						trigger = false;
+						trigger = true;
 					}
 					erase_from_normal_book(_bid_book, ori_odr);
 					if (trigger)
@@ -1430,7 +1430,7 @@ namespace matching
 					auto it = _ask_book.begin();
 					if ((1 == it->second.size()) && (ori_odr.price == it->first))
 					{
-						trigger = false;
+						trigger = true;
 					}
 					erase_from_normal_book(_ask_book, ori_odr);
 					if (trigger)
@@ -1452,7 +1452,7 @@ namespace matching
 					auto it = _bid_book.begin();
 					if ((1 == it->second.size()) && (ori_odr.price == it->first))
 					{
-						trigger = false;
+						trigger = true;
 					}
 					erase_from_normal_book(_bid_book, ori_odr);
 					if (trigger)
@@ -1466,7 +1466,7 @@ namespace matching
 					auto it = _ask_book.begin();
 					if ((1 == it->second.size()) && (ori_odr.price == it->first))
 					{
-						trigger = false;
+						trigger = true;
 					}
 					erase_from_normal_book(_ask_book, ori_odr);
 					if (trigger)
