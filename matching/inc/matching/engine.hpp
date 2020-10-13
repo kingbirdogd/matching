@@ -960,7 +960,7 @@ namespace matching
 				auto best = best_ask();
 				for (auto it = _bid_stop_book.begin(); it != _bid_stop_book.end();)
 				{
-					if (best >= it->first)
+					if ((best != order::MARKET_PRICE) && (best >= it->first))
 					{
 						for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
 						{
@@ -1000,7 +1000,7 @@ namespace matching
 				auto best = best_bid();
 				for (auto it = _ask_stop_book.begin(); it != _ask_stop_book.end();)
 				{
-					if (best <= it->first)
+					if ((best != order::MARKET_PRICE) && (best <= it->first))
 					{
 						for (auto it2 = it->second.begin(); it2 != it->second.end(); ++it2)
 						{
@@ -1210,7 +1210,7 @@ namespace matching
 					return;
 				}
 				init_new_order(o);
-				if (order::MARKET_PRICE == best_b || o.sell_stop_trigger_price >= best_b)
+				if (order::MARKET_PRICE != best_b && o.sell_stop_trigger_price >= best_b)
 				{
 					o.price = o.sell_stop_limit_price;
 					if (order::order_time_condition::FOK == o.time_condition)
@@ -1290,7 +1290,7 @@ namespace matching
 					return;
 				}
 				init_new_order(o);
-				if (order::MARKET_PRICE == best_a || o.buy_stop_trigger_price <= best_a)
+				if (order::MARKET_PRICE != best_a && o.buy_stop_trigger_price <= best_a)
 				{
 					o.price = o.buy_stop_limit_price;
 					if (order::order_time_condition::FOK == o.time_condition)
@@ -1373,7 +1373,7 @@ namespace matching
 			{
 				bool trigger = false;
 				auto it = _bid_book.begin();
-				if ((1 == it->second.size()) && (ori_odr.price == it->first))
+				if ((it != _bid_book.end()) && (1 == it->second.size()) && (ori_odr.price == it->first))
 				{
 					trigger = true;
 				}
@@ -1387,7 +1387,7 @@ namespace matching
 			{
 				bool trigger = false;
 				auto it = _ask_book.begin();
-				if ((1 == it->second.size()) && (ori_odr.price == it->first))
+				if ((it != _ask_book.end()) && (1 == it->second.size()) && (ori_odr.price == it->first))
 				{
 					trigger = true;
 				}
