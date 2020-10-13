@@ -161,7 +161,7 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
     while (it_bid != last_valid_bids.rend()) {
       if ((it_bid->second.quantity != 0) && (bid_cnt < check_sum_cnt)) {
         ss << it_bid->second.price/(float)factor << ":" << it_bid->second.quantity/(float)factor << ":";
-        bid_cnt++;
+        bid_cnt++; it_bid++;
         break;
       }
       it_bid++;
@@ -169,7 +169,7 @@ json::Object OrderBook::get_orderbook_snapshot(//OrderBook::book_map_t &bids,
     while (it_ask != last_valid_asks.end()) {
       if ((it_ask->second.quantity != 0) && (ask_cnt < check_sum_cnt)) {
         ss << it_ask->second.price / (float) factor << ":" << it_ask->second.quantity / (float) factor << ":";
-        ask_cnt++;
+        ask_cnt++; it_ask++;
         break;
       }
       it_ask++;
