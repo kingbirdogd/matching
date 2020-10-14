@@ -1407,7 +1407,7 @@ namespace matching
 				{
 					bool trigger = false;
 					auto it = _bid_book.begin();
-					if ((1 == it->second.size()) && (ori_odr.price == it->first))
+					if ((it != _bid_book.end()) && (1 == it->second.size()) && (ori_odr.price == it->first))
 					{
 						trigger = true;
 					}
@@ -1428,7 +1428,7 @@ namespace matching
 				{
 					bool trigger = false;
 					auto it = _ask_book.begin();
-					if ((1 == it->second.size()) && (ori_odr.price == it->first))
+					if ((it != _ask_book.end()) && (1 == it->second.size()) && (ori_odr.price == it->first))
 					{
 						trigger = true;
 					}
@@ -1450,7 +1450,7 @@ namespace matching
 				{
 					bool trigger = false;
 					auto it = _bid_book.begin();
-					if ((1 == it->second.size()) && (ori_odr.price == it->first))
+					if ((it != _bid_book.end()) && (1 == it->second.size()) && (ori_odr.price == it->first))
 					{
 						trigger = true;
 					}
@@ -1464,7 +1464,7 @@ namespace matching
 				{
 					bool trigger = false;
 					auto it = _ask_book.begin();
-					if ((1 == it->second.size()) && (ori_odr.price == it->first))
+					if ((it != _ask_book.end()) && (1 == it->second.size()) && (ori_odr.price == it->first))
 					{
 						trigger = true;
 					}
