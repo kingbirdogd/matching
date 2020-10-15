@@ -286,7 +286,7 @@ void stop_test_by_cancel()
 	o.client_order_id = 2;
 	o.quantity = 950;
 	o.display_quantity = 950;
-	o.price = 103;
+	o.price = 107;
 	e.handle(o);
 
 	o.side = matching::order::order_side::BUY_STOP;
@@ -1244,8 +1244,8 @@ int main()
   test_case_2();
 	test_case_1();
 	implied_test(); */
-	stop_test();
-	//stop_test_by_cancel();
+	//stop_test();
+	stop_test_by_cancel();
 /*
 	o.side = matching::order::order_side::BUY;
 	o.client_order_id = 1;

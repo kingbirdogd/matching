@@ -1155,7 +1155,7 @@ namespace matching
 					return;
 				}
 				init_new_order(o);
-				if (order::MARKET_PRICE == best_a || o.buy_stop_trigger_price <= best_a)
+				if (order::MARKET_PRICE != best_a && o.buy_stop_trigger_price <= best_a)
 				{
 					o.price = o.buy_stop_limit_price;
 					if (order::order_time_condition::FOK == o.time_condition)
