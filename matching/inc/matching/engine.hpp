@@ -1086,10 +1086,12 @@ namespace matching
 				{
 					_ask_book_matcher.normal_match(_ask_book.key_comp(), o, _bid_book, mini_tick * -1);
 				}
-				if (o.remain_quantity != o.quantity)
+				//if (o.remain_quantity != o.quantity)
+        if (o.remain_quantity > 0)
 				{
-					trigger_buy_stop();
-				}
+          trigger_sell_stop();
+          trigger_buy_stop();
+        }
 				return;
 			}
 			else if (order::order_side::SELL == o.side)
@@ -1117,9 +1119,11 @@ namespace matching
 				{
 					_bid_book_matcher.normal_match(_bid_book.key_comp(), o, _ask_book, mini_tick);
 				}
-				if (o.remain_quantity != o.quantity)
+				//if (o.remain_quantity != o.quantity)
+        if (o.remain_quantity > 0)
 				{
 					trigger_sell_stop();
+          trigger_buy_stop();
 				}
 				return;
 			}
@@ -1166,10 +1170,12 @@ namespace matching
 					{
 						_ask_book_matcher.normal_match(_ask_book.key_comp(), o, _bid_book, mini_tick * -1);
 					}
-					if (o.remain_quantity != o.quantity)
+					//if (o.remain_quantity != o.quantity)
+          if (o.remain_quantity > 0)
 					{
-						trigger_buy_stop();
-					}
+            trigger_sell_stop();
+            trigger_buy_stop();
+          }
 				}
 				else
 				{
@@ -1221,10 +1227,12 @@ namespace matching
 					{
 						_bid_book_matcher.normal_match(_bid_book.key_comp(), o, _ask_book, mini_tick);
 					}
-					if (o.remain_quantity != o.quantity)
+					//if (o.remain_quantity != o.quantity)
+          if (o.remain_quantity > 0)
 					{
-						trigger_sell_stop();
-					}
+            trigger_sell_stop();
+            trigger_buy_stop();
+          }
 				}
 				else
 				{
@@ -1301,10 +1309,12 @@ namespace matching
 					{
 						_ask_book_matcher.normal_match(_ask_book.key_comp(), o, _bid_book, mini_tick * -1);
 					}
-					if (o.remain_quantity != o.quantity)
+					//if (o.remain_quantity != o.quantity)
+          if (o.remain_quantity > 0)
 					{
-						trigger_buy_stop();
-					}
+            trigger_sell_stop();
+            trigger_buy_stop();
+          }
 				}
 				else if (order::MARKET_PRICE == best_b || o.sell_stop_trigger_price >= best_b)
 				{
@@ -1317,10 +1327,12 @@ namespace matching
 					{
 						_bid_book_matcher.normal_match(_bid_book.key_comp(), o, _ask_book, mini_tick);
 					}
-					if (o.remain_quantity != o.quantity)
+					//if (o.remain_quantity != o.quantity)
+          if (o.remain_quantity > 0)
 					{
-						trigger_sell_stop();
-					}
+            trigger_sell_stop();
+            trigger_buy_stop();
+          }
 				}
 				else
 				{

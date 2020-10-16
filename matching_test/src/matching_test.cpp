@@ -238,19 +238,19 @@ void stop_test()
 	matching::engine e(handle_order);
 	matching::order o;
 
-	o.side = matching::order::order_side::SELL;
-	o.client_order_id = 1;
-	o.quantity = 1000;
-	o.display_quantity = 1000;
-	o.price = 100;
-	e.handle(o);
-
-	o.side = matching::order::order_side::SELL;
-	o.client_order_id = 2;
-	o.quantity = 1000;
-	o.display_quantity = 1000;
-	o.price = 102;
-	e.handle(o);
+//	o.side = matching::order::order_side::SELL;
+//	o.client_order_id = 1;
+//	o.quantity = 1000;
+//	o.display_quantity = 1000;
+//	o.price = 100;
+//	e.handle(o);
+//
+//	o.side = matching::order::order_side::SELL;
+//	o.client_order_id = 2;
+//	o.quantity = 1000;
+//	o.display_quantity = 1000;
+//	o.price = 102;
+//	e.handle(o);
 
 	o.side = matching::order::order_side::BUY_STOP;
 	o.price = 102;
@@ -262,11 +262,11 @@ void stop_test()
 	e.handle(o);
 
 	std::cout << "Start try trigger" << std::endl;
-	o.side = matching::order::order_side::BUY;
+	o.side = matching::order::order_side::SELL;
 	o.client_order_id = 4;
 	o.quantity = 1000;
 	o.display_quantity = 1000;
-	o.price = 100;
+	o.price = 103;
 	e.handle(o);
 }
 
@@ -1244,8 +1244,8 @@ int main()
   test_case_2();
 	test_case_1();
 	implied_test(); */
-	//stop_test();
-	stop_test_by_cancel();
+	stop_test();
+	//stop_test_by_cancel();
 /*
 	o.side = matching::order::order_side::BUY;
 	o.client_order_id = 1;
