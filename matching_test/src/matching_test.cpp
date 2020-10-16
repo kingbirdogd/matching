@@ -313,6 +313,48 @@ void stop_test_by_cancel()
 //	e.handle(o);
 }
 
+void insert_stop_cancel()
+{
+  matching::engine e(handle_order);
+  matching::order o;
+
+  o.order_action = matching::order::INSERT_NEW;
+  o.side = matching::order::order_side::BUY_STOP;
+  o.client_order_id = 1;
+  o.quantity = 223;
+  o.display_quantity = 223;
+  o.price = 0;
+  o.buy_stop_trigger_price = 115;
+  o.buy_stop_limit_price = 116;
+  o.order_id = 6666666666666;
+  e.handle(o);
+
+  //std::cout << "Start try trigger by cancel" << std::endl;
+  o.order_action = matching::order::order_action_type::CANCEL;
+  o.client_order_id = 1;
+  o.order_id = 6666666666666;
+  e.handle(o);
+
+  o.order_action = matching::order::NEW;
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 2;
+  o.quantity = 950;
+  o.display_quantity = 950;
+  o.price = 107;
+  e.handle(o);
+
+
+//	std::cout << "Start try trigger by oderbook come out again" << std::endl;
+//	o.order_action = matching::order::order_action_type::NEW;
+//	o.side = matching::order::order_side::SELL;
+//	o.client_order_id = 20;
+//	o.quantity = 800;
+//	o.display_quantity = 800;
+//	o.price = 104;
+//	e.handle(o);
+}
+
+
 void test_object_pool()
 {
 	memory::object_pool<matching::order, 1024> pool;
@@ -1244,8 +1286,9 @@ int main()
   test_case_2();
 	test_case_1();
 	implied_test(); */
-	stop_test();
+	//stop_test();
 	//stop_test_by_cancel();
+  insert_stop_cancel();
 /*
 	o.side = matching::order::order_side::BUY;
 	o.client_order_id = 1;

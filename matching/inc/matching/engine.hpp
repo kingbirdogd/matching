@@ -1681,11 +1681,21 @@ namespace matching
 				}
 				else if (order::order_side::BUY_STOP == o.side)
 				{
-					_bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+				  if (o.price == o.buy_stop_limit_price)
+            _bid_book[o.price][o.order_id] = &((_odr_map.emplace(o.order_id, o).first)->second);
+          else {
+            o.price = order::STOP_PRICE;
+            _bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+          }
 				}
 				else if (order::order_side::SELL_STOP == o.side)
 				{
-					_bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+          if (o.price == o.sell_stop_limit_price)
+            _ask_book[o.price][o.order_id] = &((_odr_map.emplace(o.order_id, o).first)->second);
+          else {
+            o.price = order::STOP_PRICE;
+            _bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+          }
 				}
 				else if (order::order_side::BUY_SELL_STOP == o.side)
 				{
