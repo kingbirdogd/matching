@@ -945,7 +945,7 @@ namespace matching
 			ori_it_price->second.erase(&o);
 			if (ori_it_price->second.empty())
 			{
-				_bid_stop_book.erase(ori_it_price);
+				_ask_stop_book.erase(ori_it_price);
 			}
 		}
 	private:

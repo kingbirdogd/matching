@@ -354,6 +354,62 @@ void insert_stop_cancel()
 //	e.handle(o);
 }
 
+void cancel_stop_new_stop_trigger()
+{
+  matching::engine e(handle_order);
+  matching::order o;
+
+  o.order_action = matching::order::NEW;
+  o.side = matching::order::order_side::SELL_STOP;
+  o.client_order_id = 1;
+  o.quantity = 223;
+  o.display_quantity = 223;
+  o.price = 0;
+  o.sell_stop_trigger_price = 114;
+  o.sell_stop_limit_price = 110;
+  e.handle(o);
+
+  //std::cout << "Start try trigger by cancel" << std::endl;
+  o.order_action = matching::order::order_action_type::CANCEL;
+  o.client_order_id = 1;
+  o.order_id = client_to_engine_id_map[1];
+  e.handle(o);
+
+  o.order_action = matching::order::NEW;
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 2;
+  o.quantity = 950;
+  o.display_quantity = 950;
+  o.price = 100;
+  e.handle(o);
+
+  o.order_action = matching::order::NEW;
+  o.side = matching::order::order_side::SELL_STOP;
+  o.client_order_id = 3;
+  o.quantity = 223;
+  o.display_quantity = 223;
+  o.price = 0;
+  o.sell_stop_trigger_price = 114;
+  o.sell_stop_limit_price = 110;
+  e.handle(o);
+
+  o.order_action = matching::order::NEW;
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 4;
+  o.quantity = 950;
+  o.display_quantity = 950;
+  o.price = 119;
+  e.handle(o);
+
+//	std::cout << "Start try trigger by oderbook come out again" << std::endl;
+//	o.order_action = matching::order::order_action_type::NEW;
+//	o.side = matching::order::order_side::SELL;
+//	o.client_order_id = 20;
+//	o.quantity = 800;
+//	o.display_quantity = 800;
+//	o.price = 104;
+//	e.handle(o);
+}
 
 void test_object_pool()
 {
@@ -1288,7 +1344,8 @@ int main()
 	implied_test(); */
 	//stop_test();
 	//stop_test_by_cancel();
-  insert_stop_cancel();
+  //insert_stop_cancel();
+  cancel_stop_new_stop_trigger();
 /*
 	o.side = matching::order::order_side::BUY;
 	o.client_order_id = 1;
