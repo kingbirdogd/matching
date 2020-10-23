@@ -27,12 +27,15 @@ inline static unsigned long long current()
 
 namespace matching
 {
+  auto order_set_cmp = [](order* a, order*b){ return a->order_id < b->order_id; };
 	class engine
 	{
 	private:
 		using search_order_map = std::unordered_map<unsigned long long, order>;
 		using id_order_map = std::map<unsigned long long, order*>;
-		using order_set = std::unordered_set<order*>;
+		//using order_set = std::unordered_set<order*>;
+    //static auto order_set_cmp = [](order* a, order*b){ return a->order_id < b->order_id; };
+    using order_set = std::set<order*, decltype(order_set_cmp)>;
 		using bid_book_type = std::map<long long, id_order_map, std::greater<long long>>;
 		using ask_book_type = std::map<long long, id_order_map, std::less<long long>>;
 		using bid_stop_book_type = std::map<long long, order_set, std::less<long long>>;
@@ -1179,7 +1182,9 @@ namespace matching
 				}
 				else
 				{
-					_bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+				  auto [it, inserted] = _bid_stop_book.insert({o.buy_stop_trigger_price, order_set{order_set_cmp}});
+				  it->second.insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+					//_bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
 					callback(o);
 				}
 				return;
@@ -1236,7 +1241,9 @@ namespace matching
 				}
 				else
 				{
-					_ask_stop_book[o.sell_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+				  auto [it, inserted] = _ask_stop_book.insert({o.sell_stop_trigger_price, order_set{order_set_cmp}});
+				  it->second.insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+					//_ask_stop_book[o.sell_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
 					callback(o);
 				}
 				return;
@@ -1337,8 +1344,12 @@ namespace matching
 				else
 				{
 					auto ptr = &((_odr_map.emplace(o.order_id, o).first)->second);
-					_bid_stop_book[o.buy_stop_trigger_price].insert(ptr);
-					_ask_stop_book[o.sell_stop_trigger_price].insert(ptr);
+          auto [it_ask, inserted_ask] = _ask_stop_book.insert({o.sell_stop_trigger_price, order_set{order_set_cmp}});
+          auto [it_buy, inserted_buy] = _bid_stop_book.insert({o.buy_stop_trigger_price,  order_set{order_set_cmp}});
+          it_buy->second.insert(ptr);
+          it_ask->second.insert(ptr);
+					//_bid_stop_book[o.buy_stop_trigger_price].insert(ptr);
+					//_ask_stop_book[o.sell_stop_trigger_price].insert(ptr);
 					callback(o);
 				}
 				return;
@@ -1685,7 +1696,9 @@ namespace matching
             _bid_book[o.price][o.order_id] = &((_odr_map.emplace(o.order_id, o).first)->second);
           else {
             o.price = order::STOP_PRICE;
-            _bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+            auto [it_buy, inserted_buy] = _bid_stop_book.insert({o.buy_stop_trigger_price,  order_set{order_set_cmp}});
+            it_buy->second.insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+            //_bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
           }
 				}
 				else if (order::order_side::SELL_STOP == o.side)
@@ -1694,14 +1707,20 @@ namespace matching
             _ask_book[o.price][o.order_id] = &((_odr_map.emplace(o.order_id, o).first)->second);
           else {
             o.price = order::STOP_PRICE;
-            _bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+            auto [it_buy, inserted_buy] = _bid_stop_book.insert({o.buy_stop_trigger_price,  order_set{order_set_cmp}});
+            it_buy->second.insert(&((_odr_map.emplace(o.order_id, o).first)->second));
+            //_bid_stop_book[o.buy_stop_trigger_price].insert(&((_odr_map.emplace(o.order_id, o).first)->second));
           }
 				}
 				else if (order::order_side::BUY_SELL_STOP == o.side)
 				{
 					auto ptr = &((_odr_map.emplace(o.order_id, o).first)->second);
-					_bid_stop_book[o.buy_stop_trigger_price].insert(ptr);
-					_ask_stop_book[o.sell_stop_trigger_price].insert(ptr);
+          auto [it_ask, inserted_ask] = _ask_stop_book.insert({o.sell_stop_trigger_price, order_set{order_set_cmp}});
+          auto [it_buy, inserted_buy] = _bid_stop_book.insert({o.buy_stop_trigger_price,  order_set{order_set_cmp}});
+          it_buy->second.insert(ptr);
+          it_ask->second.insert(ptr);
+					//_bid_stop_book[o.buy_stop_trigger_price].insert(ptr);
+					//_ask_stop_book[o.sell_stop_trigger_price].insert(ptr);
 				}
 				_callback(o);
 			}
