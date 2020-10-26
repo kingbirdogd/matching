@@ -19,8 +19,8 @@ if [ $PAIR = "BCH-USD" ]; then
   $APPDIR/start_core_v2_BCH.sh
 else
 
-python3 $APPDIR/config_parser/{GEN_CONFIG}.py ${REST_URL} $PAIR $APPDIR/$PAIR.json
-python3 $APPDIR/config_parser/{GEN_PROXY}.py $APPDIR/$PAIR.json $APPDIR/start_proxy_$PAIR.sh
+python3 $APPDIR/config_parser/${GEN_CONFIG}.py ${REST_URL} $PAIR $APPDIR/$PAIR.json
+python3 $APPDIR/config_parser/${GEN_PROXY}.py $APPDIR/$PAIR.json $APPDIR/start_proxy_$PAIR.sh
 python3 $APPDIR/config_parser/gen_auction_cfg.py  $APPDIR/$PAIR.json $APPDIR/run_auction.json
 
 if [ -f /etc/crontab ]; then
@@ -55,7 +55,7 @@ sysctl -w net.ipv4.tcp_adv_win_scale=1
 sysctl -w net.ipv4.tcp_wmem='4194304 4194304 4194304'
 sysctl -w net.ipv4.tcp_rmem='4194304 4194304 4194304'
 
-taskset -c 0 $APPDIR/{ME_BIN} $APPDIR/$PAIR.json >> ${LOG_LOCATION}/me_server.out.log 2>> ${LOG_LOCATION}/me_server.err.log &
+taskset -c 0 $APPDIR/${ME_BIN} $APPDIR/$PAIR.json >> ${LOG_LOCATION}/me_server.out.log 2>> ${LOG_LOCATION}/me_server.err.log &
 chmod 775 $APPDIR/start_proxy_$PAIR.sh
 $APPDIR/start_proxy_$PAIR.sh
 
