@@ -5,13 +5,22 @@ echo "Pulsar host is : ${PLSR_URL}"
 echo "REST URL    is : ${REST_URL}"
 
 PAIR=$1
+GEN_CONFIG=gen_config
+GEN_PROXY=gen_proxy_script
+ME_BIN=me_server
+
+if [ $PAIR = "BTC-USD" ] || [ $PAIR = "ETH-USD" ] ; then
+  GEN_CONFIG=gen_config2
+  GEN_PROXY=gen_proxy_script2
+  ME_BIN=me_server2
+fi
 
 if [ $PAIR = "BCH-USD" ]; then
   $APPDIR/start_core_v2_BCH.sh
 else
 
-python3 $APPDIR/config_parser/gen_config.py ${REST_URL} $PAIR $APPDIR/$PAIR.json
-python3 $APPDIR/config_parser/gen_proxy_script.py $APPDIR/$PAIR.json $APPDIR/start_proxy_$PAIR.sh
+python3 $APPDIR/config_parser/{GEN_CONFIG}.py ${REST_URL} $PAIR $APPDIR/$PAIR.json
+python3 $APPDIR/config_parser/{GEN_PROXY}.py $APPDIR/$PAIR.json $APPDIR/start_proxy_$PAIR.sh
 python3 $APPDIR/config_parser/gen_auction_cfg.py  $APPDIR/$PAIR.json $APPDIR/run_auction.json
 
 if [ -f /etc/crontab ]; then
@@ -46,7 +55,7 @@ sysctl -w net.ipv4.tcp_adv_win_scale=1
 sysctl -w net.ipv4.tcp_wmem='4194304 4194304 4194304'
 sysctl -w net.ipv4.tcp_rmem='4194304 4194304 4194304'
 
-taskset -c 0 $APPDIR/me_server $APPDIR/$PAIR.json >> ${LOG_LOCATION}/me_server.out.log 2>> ${LOG_LOCATION}/me_server.err.log &
+taskset -c 0 $APPDIR/{ME_BIN} $APPDIR/$PAIR.json >> ${LOG_LOCATION}/me_server.out.log 2>> ${LOG_LOCATION}/me_server.err.log &
 chmod 775 $APPDIR/start_proxy_$PAIR.sh
 $APPDIR/start_proxy_$PAIR.sh
 
