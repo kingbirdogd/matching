@@ -20,6 +20,7 @@ if __name__ == '__main__':
       c['PERP_ID'] = i['market_id']
     elif i["book_name"] == "Repo":
       c['REPO_ID'] = i['market_id']
+      c['REPO_PORT'] = i['port']
 
   print(json.dumps(c, indent=2, use_decimal=True))
   with open(out_file, 'w') as outf:
