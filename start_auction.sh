@@ -9,7 +9,8 @@ if [ "$#" -ne 11 ]; then
     exit 2
 fi
 
-MARKETPORT=$2
+MARKETPORT=`grep "REPO_PORT" ./run_auction.json | cut -d' ' -f4`
+#MARKETPORT=$2
 QTYFACTOR=$3
 PXFACTOR=$4
 ACCOUNTID=$5

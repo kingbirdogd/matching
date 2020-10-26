@@ -128,7 +128,7 @@ int main(int argc, const char **argv)
 {
   // Uplink to matching engine
   cli::Option<in_port_t> matching_port_option("matching_port", 'X');
-  cli::Option<in_port_t> wss_port_option("wss_port", 'G');
+  //cli::Option<in_port_t> wss_port_option("wss_port", 'G');
 
   //cli::Option<in_port_t> zmq_ob_snapshot_port_option("zmq_ob_snapshot_port", 'E');
   //cli::Option<in_port_t> zmq_ob_diff_port_option("zmq_ob_diff_port", 'F');
@@ -148,7 +148,7 @@ int main(int argc, const char **argv)
   cli::Option<uint16_t> max_connections_option("maxConnections");
   cli::Option<std::string> ip_address_header_option("ipAddressHeader");
 
-  argc = cli::parse(argc, (char **)argv, { &pulsar_host_url_option, &md_schema_option, &broadcast_ms_option, &md_pub_diff_url_option, &md_pub_snapshot_url_option, &matching_port_option, &wss_port_option, &verbose_option, &version_option, &fee_control, &inst_config_option, &skip_auth_option,
+  argc = cli::parse(argc, (char **)argv, { &pulsar_host_url_option, &md_schema_option, &broadcast_ms_option, &md_pub_diff_url_option, &md_pub_snapshot_url_option, &matching_port_option, &verbose_option, &version_option, &fee_control, &inst_config_option, &skip_auth_option,
                                   &num_queue_option, &trace_option, &max_connections_option, &ip_address_header_option });
   if (version_option) {
     std::clog << "proxy" << ' ' << VERSION << std::endl;

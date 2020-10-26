@@ -17,6 +17,7 @@ if __name__ == '__main__' :
   url       = cfg['REST_URL']
   perp_id   = cfg['PERP_ID']
   market_id = cfg['REPO_ID']
+  market_port = cfg['REPO_PORT']
 
   # ROOTDIR   = sys.argv[1]
   # url       = sys.argv[2]
@@ -36,7 +37,7 @@ if __name__ == '__main__' :
       if abs(netDelivery) > 0:
         print(f'netDelivery: {netDelivery}', flush=True)
 
-        MARKETPORT = 34675
+        MARKETPORT = market_port
         QTYFACTOR  = 100000000
         PXFACTOR   = 100000000
         ACCOUNTID  = 9999999992
