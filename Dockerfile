@@ -27,7 +27,7 @@ COPY run_auction.* /app/
 COPY logrotate /app
 COPY config_parser /app/config_parser
 COPY start.sh /app
-COPY me_server  /app
+COPY me_server /app
 COPY me_server2 /app
 #RUN cat /app/logrotate.cron >> /etc/crontab
 WORKDIR /app
@@ -35,4 +35,4 @@ WORKDIR /app
 ENV PLSR_URL="PULSAR"
 ENV REST_URL="RESTAPI"
 ENV MARKET=""
-ENTRYPOINT [ "sh", "-c", "/app/start.sh \$MARKET" ]
+ENTRYPOINT [ "sh", "-c", "/app/start.sh $MARKET" ]
