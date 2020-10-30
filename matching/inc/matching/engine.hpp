@@ -1536,6 +1536,7 @@ namespace matching
 				ori_odr.quantity = o.quantity;
 				ori_odr.display_quantity = o.display_quantity;
 				ori_odr.remain_quantity = ori_odr.quantity;
+				ori_odr.request_id = o.request_id;
 				callback(ori_odr);
 				return;
 			}
