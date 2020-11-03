@@ -16,6 +16,8 @@ if [ $PAIR = "BTC-USD" ] || [ $PAIR = "ETH-USD" ] ; then
 fi
 
 if [ $PAIR = "BCH-USD" ]; then
+  python3 $APPDIR/config_parser/${GEN_CONFIG}.py ${REST_URL} $PAIR $APPDIR/$PAIR.json
+  python3 $APPDIR/config_parser/gen_auction_cfg.py  $APPDIR/$PAIR.json $APPDIR/run_auction.json
   $APPDIR/start_core_v2_BCH.sh
 else
 
