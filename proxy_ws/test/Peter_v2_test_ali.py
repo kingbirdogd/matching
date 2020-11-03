@@ -169,6 +169,5 @@ def main():
         loop.create_task(call_api())
         loop.run_forever()
         #loop.run_until_complete(call_api())
-    except KeyboardInterrupt:
-        pass
+n
 main()

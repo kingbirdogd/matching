@@ -1,0 +1,301 @@
+{
+  "underlying": "BTC-USD",
+  "node_id": "2",
+  "instruments": [
+    {
+      "book_name": "Perpetual",
+      "port": 36671,
+      "tick_sz": 0.5,
+      "impliers": [],
+      "market_id": 2001011000000,
+      "factor": 100000000,
+      "maker_fees": 2,
+      "market_code": "BTC-USD-SWAP-LIN"
+    },
+    {
+      "book_name": "Spread-Fut-Perp",
+      "port": 36672,
+      "tick_sz": 1,
+      "impliers": [
+        {
+          "bi_type": "in_bid_implier",
+          "bi_priority": 1,
+          "bi_leg1": "BTC-USD-210924-LIN",
+          "bi_leg2": "BTC-USD-SWAP-LIN",
+          "bi_maker_fees": 2,
+          "bi_factor": 0,
+          "ai_type": "in_ask_implier",
+          "ai_priority": 1,
+          "ai_leg1": "BTC-USD-210924-LIN",
+          "ai_leg2": "BTC-USD-SWAP-LIN",
+          "ai_maker_fees": 2,
+          "ai_factor": 0
+        }
+      ],
+      "market_id": 2001041210924,
+      "factor": 100000000,
+      "maker_fees": 2,
+      "market_code": "BTC-USD-SPR-210924P-LIN"
+    },
+    {
+      "book_name": "Repo",
+      "port": 36673,
+      "tick_sz": 0.00005,
+      "impliers": [],
+      "market_id": 2001031000000,
+      "factor": 100000000,
+      "maker_fees": 2,
+      "market_code": "BTC-USD-REPO-LIN"
+    },
+    {
+      "book_name": "Futures",
+      "port": 36674,
+      "tick_sz": 0.5,
+      "impliers": [
+        {
+          "bi_type": "a_bid_implier",
+          "bi_priority": 1,
+          "bi_leg1": "BTC-USD-SPR-201225P-LIN",
+          "bi_leg2": "BTC-USD-SWAP-LIN",
+          "bi_maker_fees": 0,
+          "bi_factor": 0,
+          "ai_type": "a_ask_implier",
+          "ai_priority": 1,
+          "ai_leg1": "BTC-USD-SPR-201225P-LIN",
+          "ai_leg2": "BTC-USD-SWAP-LIN",
+          "ai_maker_fees": 0,
+          "ai_factor": 0
+        }
+      ],
+      "market_id": 2001021201225,
+      "factor": 100000000,
+      "maker_fees": 2,
+      "market_code": "BTC-USD-201225-LIN"
+    },
+    {
+      "book_name": "Futures",
+      "port": 36675,
+      "tick_sz": 0.5,
+      "impliers": [
+        {
+          "bi_type": "a_bid_implier",
+          "bi_priority": 1,
+          "bi_leg1": "BTC-USD-SPR-210924P-LIN",
+          "bi_leg2": "BTC-USD-SWAP-LIN",
+          "bi_maker_fees": 0,
+          "bi_factor": 0,
+          "ai_type": "a_ask_implier",
+          "ai_priority": 1,
+          "ai_leg1": "BTC-USD-SPR-210924P-LIN",
+          "ai_leg2": "BTC-USD-SWAP-LIN",
+          "ai_maker_fees": 0,
+          "ai_factor": 0
+        }
+      ],
+      "market_id": 2001021210924,
+      "factor": 100000000,
+      "maker_fees": 2,
+      "market_code": "BTC-USD-210924-LIN"
+    },
+    {
+      "book_name": "Futures",
+      "port": 36676,
+      "tick_sz": 0.001,
+      "impliers": [
+        {
+          "bi_type": "a_bid_implier",
+          "bi_priority": 1,
+          "bi_leg1": "BTC-USD-SPR-210326P-LIN",
+          "bi_leg2": "BTC-USD-SWAP-LIN",
+          "bi_maker_fees": 0,
+          "bi_factor": 0,
+          "ai_type": "a_ask_implier",
+          "ai_priority": 1,
+          "ai_leg1": "BTC-USD-SPR-210326P-LIN",
+          "ai_leg2": "BTC-USD-SWAP-LIN",
+          "ai_maker_fees": 0,
+          "ai_factor": 0
+        }
+      ],
+      "market_id": 2001021210326,
+      "factor": 100000000,
+      "maker_fees": 2,
+      "market_code": "BTC-USD-210326-LIN"
+    },
+    {
+      "book_name": "Spot",
+      "port": 36677,
+      "tick_sz": 0.1,
+      "impliers": [
+        {
+          "bi_type": "repo_out_bid",
+          "bi_priority": 1,
+          "bi_leg1": "BTC-USD-SWAP-LIN",
+          "bi_leg2": "BTC-USD-REPO-LIN",
+          "bi_maker_fees": 0,
+          "bi_factor": 100000000,
+          "ai_type": "repo_out_ask",
+          "ai_priority": 1,
+          "ai_leg1": "BTC-USD-SWAP-LIN",
+          "ai_leg2": "BTC-USD-REPO-LIN",
+          "ai_maker_fees": 0,
+          "ai_factor": 100000000
+        }
+      ],
+      "market_id": 2001000000000,
+      "factor": 100000000,
+      "maker_fees": 2,
+      "market_code": "BTC-USD"
+    },
+    {
+      "book_name": "Spread-Fut-Perp",
+      "port": 36678,
+      "tick_sz": 1,
+      "impliers": [
+        {
+          "bi_type": "in_bid_implier",
+          "bi_priority": 1,
+          "bi_leg1": "BTC-USD-210326-LIN",
+          "bi_leg2": "BTC-USD-SWAP-LIN",
+          "bi_maker_fees": 2,
+          "bi_factor": 0,
+          "ai_type": "in_ask_implier",
+          "ai_priority": 1,
+          "ai_leg1": "BTC-USD-210326-LIN",
+          "ai_leg2": "BTC-USD-SWAP-LIN",
+          "ai_maker_fees": 2,
+          "ai_factor": 0
+        }
+      ],
+      "market_id": 2001041210326,
+      "factor": 100000000,
+      "maker_fees": 2,
+      "market_code": "BTC-USD-SPR-210326P-LIN"
+    },
+    {
+      "book_name": "Spread-Fut-Perp",
+      "port": 36679,
+      "tick_sz": 1,
+      "impliers": [
+        {
+          "bi_type": "in_bid_implier",
+          "bi_priority": 1,
+          "bi_leg1": "BTC-USD-210625-LIN",
+          "bi_leg2": "BTC-USD-SWAP-LIN",
+          "bi_maker_fees": 2,
+          "bi_factor": 0,
+          "ai_type": "in_ask_implier",
+          "ai_priority": 1,
+          "ai_leg1": "BTC-USD-210625-LIN",
+          "ai_leg2": "BTC-USD-SWAP-LIN",
+          "ai_maker_fees": 2,
+          "ai_factor": 0
+        }
+      ],
+      "market_id": 2001041210625,
+      "factor": 100000000,
+      "maker_fees": 2,
+      "market_code": "BTC-USD-SPR-210625P-LIN"
+    },
+    {
+      "book_name": "Futures",
+      "port": 36680,
+      "tick_sz": 0.5,
+      "impliers": [
+        {
+          "bi_type": "a_bid_implier",
+          "bi_priority": 1,
+          "bi_leg1": "BTC-USD-SPR-211231P-LIN",
+          "bi_leg2": "BTC-USD-SWAP-LIN",
+          "bi_maker_fees": 0,
+          "bi_factor": 0,
+          "ai_type": "a_ask_implier",
+          "ai_priority": 1,
+          "ai_leg1": "BTC-USD-SPR-211231P-LIN",
+          "ai_leg2": "BTC-USD-SWAP-LIN",
+          "ai_maker_fees": 0,
+          "ai_factor": 0
+        }
+      ],
+      "market_id": 2001021211231,
+      "factor": 100000000,
+      "maker_fees": 2,
+      "market_code": "BTC-USD-211231-LIN"
+    },
+    {
+      "book_name": "Spread-Fut-Perp",
+      "port": 36681,
+      "tick_sz": 1.0,
+      "impliers": [
+        {
+          "bi_type": "in_bid_implier",
+          "bi_priority": 1,
+          "bi_leg1": "BTC-USD-201225-LIN",
+          "bi_leg2": "BTC-USD-SWAP-LIN",
+          "bi_maker_fees": 2,
+          "bi_factor": 0,
+          "ai_type": "in_ask_implier",
+          "ai_priority": 1,
+          "ai_leg1": "BTC-USD-201225-LIN",
+          "ai_leg2": "BTC-USD-SWAP-LIN",
+          "ai_maker_fees": 2,
+          "ai_factor": 0
+        }
+      ],
+      "market_id": 2001051001225,
+      "factor": 100000000,
+      "maker_fees": 2,
+      "market_code": "BTC-USD-SPR-201225P-LIN"
+    },
+    {
+      "book_name": "Spread-Fut-Perp",
+      "port": 36682,
+      "tick_sz": 1,
+      "impliers": [
+        {
+          "bi_type": "in_bid_implier",
+          "bi_priority": 1,
+          "bi_leg1": "BTC-USD-211231-LIN",
+          "bi_leg2": "BTC-USD-SWAP-LIN",
+          "bi_maker_fees": 2,
+          "bi_factor": 0,
+          "ai_type": "in_ask_implier",
+          "ai_priority": 1,
+          "ai_leg1": "BTC-USD-211231-LIN",
+          "ai_leg2": "BTC-USD-SWAP-LIN",
+          "ai_maker_fees": 2,
+          "ai_factor": 0
+        }
+      ],
+      "market_id": 2001041211231,
+      "factor": 100000000,
+      "maker_fees": 2,
+      "market_code": "BTC-USD-SPR-211231P-LIN"
+    },
+    {
+      "book_name": "Futures",
+      "port": 36683,
+      "tick_sz": 0.5,
+      "impliers": [
+        {
+          "bi_type": "a_bid_implier",
+          "bi_priority": 1,
+          "bi_leg1": "BTC-USD-SPR-210625P-LIN",
+          "bi_leg2": "BTC-USD-SWAP-LIN",
+          "bi_maker_fees": 0,
+          "bi_factor": 0,
+          "ai_type": "a_ask_implier",
+          "ai_priority": 1,
+          "ai_leg1": "BTC-USD-SPR-210625P-LIN",
+          "ai_leg2": "BTC-USD-SWAP-LIN",
+          "ai_maker_fees": 0,
+          "ai_factor": 0
+        }
+      ],
+      "market_id": 2001021210625,
+      "factor": 100000000,
+      "maker_fees": 2,
+      "market_code": "BTC-USD-210625-LIN"
+    }
+  ]
+}

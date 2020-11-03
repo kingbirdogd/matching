@@ -1,0 +1,111 @@
+{
+  "underlying": "BTC-USD",
+  "node_id": "2",
+  "instruments": [
+    {
+      "book_name": "Perpetual",
+      "port": 34672,
+      "tick_sz": 0.5,
+      "impliers": [
+        {
+          "bi_type": "b_bid_implier",
+          "bi_priority": 1,
+          "bi_leg1": "Futures",
+          "bi_leg2": "Spread-Fut-Perp",
+          "bi_maker_fees": 0,
+          "bi_factor": 0,
+          "ai_type": "b_ask_implier",
+          "ai_priority": 1,
+          "ai_leg1": "Futures",
+          "ai_leg2": "Spread-Fut-Perp",
+          "ai_maker_fees": 0,
+          "ai_factor": 0
+        }
+      ],
+      "market_id": 2001011000000,
+      "factor": 100000000,
+      "maker_fees": 2
+    },
+    {
+      "book_name": "Repo",
+      "port": 34675,
+      "tick_sz": 0.00005,
+      "impliers": [],
+      "market_id": 2001031000000,
+      "factor": 100000000,
+      "maker_fees": 2
+    },
+    {
+      "book_name": "Spread-Fut-Perp",
+      "port": 34673,
+      "tick_sz": 1.0,
+      "impliers": [
+        {
+          "bi_type": "in_bid_implier",
+          "bi_priority": 1,
+          "bi_leg1": "Futures",
+          "bi_leg2": "Perpetual",
+          "bi_maker_fees": 2,
+          "bi_factor": 0,
+          "ai_type": "in_ask_implier",
+          "ai_priority": 1,
+          "ai_leg1": "Futures",
+          "ai_leg2": "Perpetual",
+          "ai_maker_fees": 2,
+          "ai_factor": 0
+        }
+      ],
+      "market_id": 2001051000000,
+      "factor": 100000000,
+      "maker_fees": 2
+    },
+    {
+      "book_name": "Spot",
+      "port": 34674,
+      "tick_sz": 0.1,
+      "impliers": [
+        {
+          "bi_type": "repo_out_bid",
+          "bi_priority": 1,
+          "bi_leg1": "Perpetual",
+          "bi_leg2": "Repo",
+          "bi_maker_fees": 0,
+          "bi_factor": 100000000,
+          "ai_type": "repo_out_ask",
+          "ai_priority": 1,
+          "ai_leg1": "Perpetual",
+          "ai_leg2": "Repo",
+          "ai_maker_fees": 0,
+          "ai_factor": 100000000
+        }
+      ],
+      "market_id": 2001000000000,
+      "factor": 100000000,
+      "maker_fees": 2
+    },
+    {
+      "book_name": "Futures",
+      "port": 34671,
+      "tick_sz": 0.5,
+      "impliers": [
+        {
+          "bi_type": "a_bid_implier",
+          "bi_priority": 1,
+          "bi_leg1": "Spread-Fut-Perp",
+          "bi_leg2": "Perpetual",
+          "bi_maker_fees": 0,
+          "bi_factor": 0,
+          "ai_type": "a_ask_implier",
+          "ai_priority": 1,
+          "ai_leg1": "Spread-Fut-Perp",
+          "ai_leg2": "Perpetual",
+          "ai_maker_fees": 0,
+          "ai_factor": 0
+        }
+      ],
+      "market_id": 2001021200925,
+      "factor": 100000000,
+      "maker_fees": 2
+    }
+  ]
+}

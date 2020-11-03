@@ -1069,10 +1069,10 @@ namespace matching
 				init_new_order(o);
 				if (order::order_type::MARKET == o.type)
 				{
-					if (order::MARKET_PRICE != o.price)
-					{
-						o.price = best_ask() + o.price;
-					}
+//					if (order::MARKET_PRICE != o.price)
+//					{
+//						o.price = best_ask() + o.price;
+//					}
 				}
 				else if (order::MARKET_PRICE == o.price)
 				{
@@ -1102,10 +1102,10 @@ namespace matching
 				init_new_order(o);
 				if (order::order_type::MARKET == o.type)
 				{
-					if (order::MARKET_PRICE != o.price)
-					{
-						o.price = best_bid() - o.price;
-					}
+//					if (order::MARKET_PRICE != o.price)
+//					{
+//						o.price = best_bid() - o.price;
+//					}
 				}
 				else if (order::MARKET_PRICE == o.price)
 				{
@@ -1136,16 +1136,16 @@ namespace matching
 				auto best_a = best_ask();
 				if (order::order_type::MARKET == o.type)
 				{
-					if (order::MARKET_PRICE != o.buy_stop_limit_price)
-					{
-						auto base_price = o.buy_stop_trigger_price;
-						if (order::MARKET_PRICE != best_a)
-						{
-							if (best_a > base_price)
-								base_price = best_a;
-						}
-						o.buy_stop_limit_price = base_price + o.buy_stop_limit_price;
-					}
+//					if (order::MARKET_PRICE != o.buy_stop_limit_price)
+//					{
+//						auto base_price = o.buy_stop_trigger_price;
+//						if (order::MARKET_PRICE != best_a)
+//						{
+//							if (best_a > base_price)
+//								base_price = best_a;
+//						}
+//						o.buy_stop_limit_price = base_price + o.buy_stop_limit_price;
+//					}
 				}
 				if (order::MARKET_PRICE == o.buy_stop_limit_price)
 				{
@@ -1195,16 +1195,16 @@ namespace matching
 				auto best_b = best_bid();
 				if (order::order_type::MARKET == o.type)
 				{
-					if (order::MARKET_PRICE != o.sell_stop_limit_price)
-					{
-						auto base_price = o.sell_stop_trigger_price;
-						if (order::MARKET_PRICE != best_b)
-						{
-							if (best_b < base_price)
-								base_price = best_b;
-						}
-						o.sell_stop_limit_price = base_price + o.sell_stop_limit_price;
-					}
+//					if (order::MARKET_PRICE != o.sell_stop_limit_price)
+//					{
+//						auto base_price = o.sell_stop_trigger_price;
+//						if (order::MARKET_PRICE != best_b)
+//						{
+//							if (best_b < base_price)
+//								base_price = best_b;
+//						}
+//						o.sell_stop_limit_price = base_price + o.sell_stop_limit_price;
+//					}
 				}
 				if (order::MARKET_PRICE == o.sell_stop_limit_price)
 				{
@@ -1255,26 +1255,26 @@ namespace matching
 				auto best_b = best_bid();
 				if (order::order_type::MARKET == o.type)
 				{
-					if (order::MARKET_PRICE != o.buy_stop_limit_price)
-					{
-						auto base_price = o.buy_stop_trigger_price;
-						if (order::MARKET_PRICE != best_a)
-						{
-							if (best_a > base_price)
-								base_price = best_a;
-						}
-						o.buy_stop_limit_price = base_price + o.buy_stop_limit_price;
-					}
-					if (order::MARKET_PRICE != o.sell_stop_limit_price)
-					{
-						auto base_price = o.sell_stop_trigger_price;
-						if (order::MARKET_PRICE != best_b)
-						{
-							if (best_b < base_price)
-								base_price = best_b;
-						}
-						o.sell_stop_limit_price = base_price + o.sell_stop_limit_price;
-					}
+//					if (order::MARKET_PRICE != o.buy_stop_limit_price)
+//					{
+//						auto base_price = o.buy_stop_trigger_price;
+//						if (order::MARKET_PRICE != best_a)
+//						{
+//							if (best_a > base_price)
+//								base_price = best_a;
+//						}
+//						o.buy_stop_limit_price = base_price + o.buy_stop_limit_price;
+//					}
+//					if (order::MARKET_PRICE != o.sell_stop_limit_price)
+//					{
+//						auto base_price = o.sell_stop_trigger_price;
+//						if (order::MARKET_PRICE != best_b)
+//						{
+//							if (best_b < base_price)
+//								base_price = best_b;
+//						}
+//						o.sell_stop_limit_price = base_price + o.sell_stop_limit_price;
+//					}
 				}
 				if (order::MARKET_PRICE == o.buy_stop_limit_price)
 				{
