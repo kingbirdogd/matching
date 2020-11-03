@@ -558,6 +558,164 @@ void implied_test_md_tick_size()
 
 }
 
+void implied_test_md_reprice()
+{
+  unsigned long long  march_tick_size  =  1;
+  unsigned long long  june_tick_size   =  1;
+  unsigned long long  spread_tick_size =  1;
+  add_bid_implier abi(2);
+  add_ask_implier aai(2);
+  minus_bid_implier mbi(0);
+  minus_ask_implier mai(0);
+
+  //SHORT A(implied OUT, BID_A) <- (BID_PRICE_AB + BID_PRICE_B) @ MIN(BID_QUANTITY_AB, BID_QUANTITY_B)
+  //LONG A(implied OUT, ASK_A) <- (ASK_PRICE_AB + ASK_PRICE_B) @ MIN(ASK_QUANTITY_AB, ASK_QUANTITY_B)
+  md::md_book March_Book
+      (
+          handle_md,
+          march_tick_size
+      );
+//  March_Book.add_implited_book(md::md_implied_book::implier_type::a_bid_b_bid,
+//                               md::md_implied_book::implier_type::a_ask_b_ask,
+//                               &abi,
+//                               &aai);
+
+  //SHORT B(implied OUT, BID_B) <- (BID_PRICE_A - ASK_PRICE_AB) @ MIN(BID_QUANTITY_A, ASK_QUANTITY_AB)
+  //LONG B(implied OUT, ASK_B) <- (ASK_PRICE_A - BID_PRICE_AB) @ MIN(ASK_QUANTITY_A, BID_QUANTITY_AB)
+  md::md_book June_Book
+      (
+          handle_md,
+          june_tick_size
+      );
+//  June_Book.add_implited_book(md::md_implied_book::implier_type::a_bid_b_ask,
+//                              md::md_implied_book::implier_type::a_ask_b_bid,
+//                              &mbi,
+//                              &mai);
+
+  //SHORT AB (implied IN, BID_AB) <- (BID_PRICE_A - ASK_PRICE_B) @ MIN(BID_QUANTITY_A, ASK_QUANTITY_B)
+  //LONG AB (implied IN, ASK_AB) <- (ASK_PRICE_A - BID_PRICE_B) @ MIN(ASK_QUANTITY_A, BID_QUANTITY_B)
+  md::md_book Spread_Book
+      (
+          handle_md,
+          spread_tick_size
+      );
+  Spread_Book.add_implited_book(md::md_implied_book::implier_type::a_bid_b_ask,
+                                md::md_implied_book::implier_type::a_ask_b_bid,
+                                &mbi,
+                                &mai);
+
+  matching::engine March
+      (
+          [&](const matching::order& odr)
+          {
+            handle_order(odr);
+            March_Book.handle_outright(odr);
+            //June_Book.handle_a(odr, 0);
+            Spread_Book.handle_a(odr, 0);
+          },
+          march_tick_size
+      );
+  matching::engine June
+      (
+          [&](const matching::order& odr)
+          {
+            handle_order(odr);
+            June_Book.handle_outright(odr);
+            //March_Book.handle_b(odr, 0);
+            Spread_Book.handle_b(odr, 0);
+          },
+          june_tick_size
+      );
+  matching::engine Spread
+      (
+          [&](const matching::order& odr)
+          {
+            handle_order(odr);
+            Spread_Book.handle_outright(odr);
+            //March_Book.handle_a(odr, 0);
+            //June_Book.handle_b(odr, 0);
+          },
+          spread_tick_size
+      );
+  matching::implied_spread_in_bid spread_bid_implier(1, &March, &June);
+  matching::implied_spread_in_ask spread_ask_implier(1, &March, &June);
+  matching::implied_spread_a_out_bid a_bid_implier(1, &Spread, &June);
+  matching::implied_spread_a_out_ask a_ask_implier(1, &Spread, &June);
+  matching::implied_spread_b_out_bid b_bid_implier(1, &March, &Spread);
+  matching::implied_spread_b_out_ask b_ask_implier(1, &March, &Spread);
+  Spread.set_bid_implier(&spread_bid_implier);
+  Spread.set_ask_implier(&spread_ask_implier);
+//  March.set_bid_implier(&a_bid_implier);
+//  March.set_ask_implier(&a_ask_implier);
+//  June.set_bid_implier(&b_bid_implier);
+//  June.set_ask_implier(&b_ask_implier);
+  matching::order o;
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 2;
+  o.price            =   9500;
+  o.quantity         =   200;
+  o.display_quantity =   200;
+  March.handle(o);
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 4;
+  o.price            =   100;
+  o.quantity         =   400;
+  o.display_quantity =   400;
+  //o.time_condition   = matching::order::MAKER_ONLY_REPRICE;
+  Spread.handle(o);
+
+  std::cout << std::endl;
+
+  // Now:
+  //========================================================================================
+  // March                June            Spread
+  //      Bid  Ask          Bid Ask          Bid Ask
+  // 200 9500  -              - -              - 100 400
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 3;
+  o.price            =   9300;
+  o.quantity         =   300;
+  o.display_quantity =   300;
+  o.time_condition   = matching::order::MAKER_ONLY_REPRICE;
+  June.handle(o);    // This should also generate an implied order 200@198 on the Spread book,
+                         // but it will be repriced to 200@99
+
+  // Now:
+  //========================================================================================
+  // March           |  June             | Spread
+  //      Bid  Ask   |    Bid Ask        |     Bid Ask
+  // 200 9500  -     |      - 9300 300   |  200 99 100 400
+
+  o.order_action = matching::order::order_action_type::CANCEL;
+  o.client_order_id = 11;
+  o.order_id = client_to_engine_id_map[4];
+  Spread.handle(o);
+
+  // Now:
+  //========================================================================================
+  // March           |  June             | Spread
+  //      Bid  Ask   |    Bid Ask        |     Bid Ask
+  // 200 9500  -     |      - 9300 300   |  200 99 -
+
+  // !!! The implied order 99@200 is still on Spread order book
+  // after the ask order (which casued the reprice) has been cancelled !!!
+
+  std::cout << "=======================================================================" << std::endl;
+  o.order_action = matching::order::order_action_type::NEW;
+  o.side = matching::order::order_side::SELL;   // Maker remain qty overflow
+  o.client_order_id = 12;
+  o.price            =   150;
+  o.quantity         =    30;
+  o.display_quantity =    30;
+  o.time_condition   = matching::order::GTC;
+  Spread.handle(o);
+  // The above order is matched at $200 instead of $99 (as shown on the Spread orderbook)
+
+}
+
 void implied_test_remain_qty_overflow()
 {
   add_bid_implier abi(0);
@@ -1318,6 +1476,7 @@ int main()
 {
   matching::engine e(handle_order);
   matching::order o;
+  implied_test_md_reprice();
   //test_no_response();
   //implied_test_md_tick_size();
   //test_reprice1();
@@ -1345,7 +1504,7 @@ int main()
 	//stop_test();
 	//stop_test_by_cancel();
   //insert_stop_cancel();
-  cancel_stop_new_stop_trigger();
+  //cancel_stop_new_stop_trigger();
 /*
 	o.side = matching::order::order_side::BUY;
 	o.client_order_id = 1;
