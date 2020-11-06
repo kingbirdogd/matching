@@ -120,6 +120,14 @@ def gen_repo() :
   c['impliers']  = []
   return c
 
+def gen_index() :
+  c = {}
+  c['book_name'] = 'Index'
+  c['port']      = 34676
+  c['tick_sz']   = 0
+  c['impliers']  = []
+  return c
+
 def check_expiry(inst):
   if 'listingDate' in inst and 'endDate' in inst :
     if inst['listingDate'] < time.time()*1000 <  inst['endDate']:
@@ -195,6 +203,18 @@ if __name__ == '__main__':
 
       elif itype == 'SPOT':
         spot = gen_spot()
+        spot['tick_sz'] = Decimal(str(i['tickSize']))
+        spot['market_id'] = i['marketId']
+        spot['factor'] = i['factor']
+        spot['maker_fees'] = i['makerFees']
+        for im in spot['impliers']:
+          im['ai_factor'] = i['factor']
+          im['bi_factor'] = i['factor']
+        c['instruments'].append(spot)
+        c['node_id'] = str(i['marketId'])[0:-12]
+
+      elif itype == 'INDEX':
+        spot = gen_index()
         spot['tick_sz'] = Decimal(str(i['tickSize']))
         spot['market_id'] = i['marketId']
         spot['factor'] = i['factor']
