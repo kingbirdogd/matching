@@ -46,8 +46,10 @@ if __name__ == '__main__' :
         QTY  = abs(netDelivery)
         PX   = -10    if netDelivery < 0 else 10
         SIDE = 'SELL' if netDelivery < 0 else 'BUY'
-        BUY_UPPER_BAND = 0.01
-        SELL_LOWER_BAND = -0.01
+        BUY_UPPER_BAND  = j[0]['upperPriceBound']
+        SELL_LOWER_BAND = j[0]['lowerPriceBound']
+        #BUY_UPPER_BAND = 0.01
+        #SELL_LOWER_BAND = -0.01
         #${MARKETPORT} ${QTYFACTOR} ${PXFACTOR} ${ACCOUNTID} ${MARKETID} ${QTY} ${PX} ${SIDE} ${BUY_UPPER_BAND} ${SELL_LOWER_BAND}
 
         cmd = f'{ROOTDIR}/start_auction.sh 127.0.0.1 {MARKETPORT} {QTYFACTOR} {PXFACTOR} {ACCOUNTID} {MARKETID} {QTY} {PX} {SIDE} {BUY_UPPER_BAND} {SELL_LOWER_BAND}'
