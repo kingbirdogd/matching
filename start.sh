@@ -15,11 +15,11 @@ if [ $PAIR = "BTC-USD" ] || [ $PAIR = "ETH-USD" ] ; then
   ME_BIN=me_server2
 fi
 
-if [ $PAIR = "BCH-USD" ]; then
-  python3 $APPDIR/config_parser/${GEN_CONFIG}.py ${REST_URL} $PAIR $APPDIR/$PAIR.json
-  python3 $APPDIR/config_parser/gen_auction_cfg.py  $APPDIR/$PAIR.json $APPDIR/run_auction.json
-  $APPDIR/start_core_v2_BCH.sh
-else
+#if [ $PAIR = "BCH-USD" ]; then
+#  python3 $APPDIR/config_parser/${GEN_CONFIG}.py ${REST_URL} $PAIR $APPDIR/$PAIR.json
+#  python3 $APPDIR/config_parser/gen_auction_cfg.py  $APPDIR/$PAIR.json $APPDIR/run_auction.json
+#  $APPDIR/start_core_v2_BCH.sh
+#else
 
 python3 $APPDIR/config_parser/${GEN_CONFIG}.py ${REST_URL} $PAIR $APPDIR/$PAIR.json
 python3 $APPDIR/config_parser/${GEN_PROXY}.py $APPDIR/$PAIR.json $APPDIR/start_proxy_$PAIR.sh
@@ -80,4 +80,4 @@ echo "Recovering orders: $cmd" 2>&1 >> ${LOG_LOCATION}/me_server.err.log
 $cmd &> ${LOG_LOCATION}/RECOVER_ORDERS.log
 
 tail -f /dev/null
-fi
+#fi
