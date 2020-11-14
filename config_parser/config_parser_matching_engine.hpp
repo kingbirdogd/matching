@@ -44,7 +44,7 @@ public:
     matching_tcp_service *s = new matching_tcp_service(scaled_tick_sz, static_cast<unsigned short int>(j["port"]));
     matching::engine &book = s->get_engine();
     const auto [it, success] = book_map.insert({j["book_name"], &book});
-    if (!success) {
+    if (!success && j["book_name"].get<std::string>().compare("Index") != 0) {
       std::clog << j["book_name"] << " is defined more than once!!!" << '\n';
       exit(-1);
     }
