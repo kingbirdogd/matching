@@ -9,7 +9,7 @@ GEN_CONFIG=gen_config
 GEN_PROXY=gen_proxy_script
 ME_BIN=me_server
 
-if [ $PAIR = "BTC-USD" ] || [ $PAIR = "ETH-USD" ] ; then
+if [ $PAIR = "BTC-USD" ] || [ $PAIR = "ETH-USD" ] || [ $PAIR = "FLEXRate-USD" ] ; then
   GEN_CONFIG=gen_config2
   GEN_PROXY=gen_proxy_script2
   ME_BIN=me_server2
