@@ -213,18 +213,6 @@ if __name__ == '__main__':
         c['instruments'].append(spot)
         c['node_id'] = str(i['marketId'])[0:-12]
 
-      elif itype == 'INDEX':
-        spot = gen_index()
-        spot['tick_sz'] = Decimal(str(i['tickSize']))
-        spot['market_id'] = i['marketId']
-        spot['factor'] = i['factor']
-        spot['maker_fees'] = i['makerFees']
-        for im in spot['impliers']:
-          im['ai_factor'] = i['factor']
-          im['bi_factor'] = i['factor']
-        c['instruments'].append(spot)
-        c['node_id'] = str(i['marketId'])[0:-12]
-
   print(json.dumps(c, indent=2, use_decimal=True))
   with open(out_file, 'w') as outf:
     json.dump(c, outf, indent=2, use_decimal=True)
