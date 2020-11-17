@@ -229,7 +229,7 @@ if __name__ == '__main__':
         c['node_id'] = str(i['marketId'])[0:-12]
 
       elif itype == 'INDEX':
-        spot = gen_index(pair, i)
+        spot = gen_index()
         spot['tick_sz'] = Decimal(str(i['tickSize']))
         spot['market_id'] = i['marketId']
         spot['factor'] = i['factor']
