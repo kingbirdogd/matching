@@ -81,6 +81,14 @@ if __name__ == '__main__':
       outStr += f"taskset -c {cpui} ${{CORE_LOCATION}}/pulsar_proxy 127.0.0.1 {i['port']} pulsar://${{PLSR_URL}} persistent://CF-V2/PRETRADE-ME/ORDER-IN-{i['market_id']} persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-{i['market_id']} ${{CORE_LOCATION}}/msg.fbs >> ${{LOG_LOCATION}}/pulsar_proxy_{i['market_code']}.out.log 2>> ${{LOG_LOCATION}}/pulsar_proxy_{i['market_code']}.err.log &\nsleep 1\n"
       cpui += 1; cpui %= 16
       outStr += "\n"
+    elif i["book_name"] == "Index":
+      outStr += f"taskset -c {cpui} ${{CORE_LOCATION}}/test_md_tcp_server {i['factor']} 127.0.0.1 {i['port']} {md_port} 127.0.0.1 {tsz} {i['maker_fees']}       \"\"     0        \"\"     0 a_none_b_none a_none_b_none none                 none               >> ${{LOG_LOCATION}}/md_tcp_{i['market_code']}.out.log 2>> ${{LOG_LOCATION}}/md_tcp_{i['market_code']}.err.log &\nsleep 1\n"
+      cpui += 1; cpui %= 16
+      outStr += f"taskset -c {cpui} ${{CORE_LOCATION}}/proxy_md_pulsar -s ${{CORE_LOCATION}}/md.fbs -B $PUB_TIME_MS -R pulsar://${{PLSR_URL}} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-{i['market_id']} -F persistent://CF-V2/ME-WS/MD-DIFF-{i['market_id']} -X {md_port} -v --oneQueue --skipAuth localhost >> ${{LOG_LOCATION}}/proxy_md_pulsar_{i['market_code']}.out.log 2>> ${{LOG_LOCATION}}/proxy_md_pulsar_{i['market_code']}.err.log &\nsleep 1\n"
+      cpui += 1; cpui %= 16
+      outStr += f"taskset -c {cpui} ${{CORE_LOCATION}}/pulsar_proxy 127.0.0.1 {i['port']} pulsar://${{PLSR_URL}} persistent://CF-V2/PRETRADE-ME/ORDER-IN-{i['market_id']} persistent://CF-V2/ME-POSTTRADE/ORDER-OUT-{i['market_id']} ${{CORE_LOCATION}}/msg.fbs >> ${{LOG_LOCATION}}/pulsar_proxy_{i['market_code']}.out.log 2>> ${{LOG_LOCATION}}/pulsar_proxy_{i['market_code']}.err.log &\nsleep 1\n"
+      cpui += 1; cpui %= 16
+      outStr += "\n"
 
   #outStr += 'tail -f /dev/null'
   print(outStr)
