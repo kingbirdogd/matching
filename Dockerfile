@@ -1,4 +1,4 @@
-FROM docker.coinflex-cn.com/core-awslinux2/coinflex-core-awslinux2:latest
+FROM 172.40.11.195:80/core-awslinux2/coinflex-core-awslinux2:latest
 MAINTAINER Peter
 RUN yum install -y procps-ng less cronie logrotate psmisc telnet
 RUN pip3 install simplejson requests
