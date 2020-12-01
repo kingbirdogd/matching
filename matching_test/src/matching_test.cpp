@@ -160,10 +160,14 @@ void handle_order(const matching::order& o)
   {
     status = "CANCELED_PARTIAL_BY_AUCTION";
   }
-	else
+	else if (o.order_state == matching::order::order_status_type::REJECT_AUCTION_SUPPORT_BUY_SELL_ONLY)
 	{
 		status = "REJECT_AUCTION_SUPPORT_BUY_SELL_ONLY";
 	}
+	else {
+    status = "CANCELED_BY_AMEND";
+	}
+
 	if (matching::order::order_time_condition::GTC == o.time_condition)
 	{
 		time_condition = "GTC";
@@ -955,6 +959,150 @@ void implied_test()
 	Spread.handle(o);
 }
 
+void implied_test_amend()
+{
+  add_bid_implier abi(10);
+  add_ask_implier aai(10);
+  minus_bid_implier mbi(10);
+  minus_ask_implier mai(10);
+
+  //SHORT A(implied OUT, BID_A) <- (BID_PRICE_AB + BID_PRICE_B) @ MIN(BID_QUANTITY_AB, BID_QUANTITY_B)
+  //LONG A(implied OUT, ASK_A) <- (ASK_PRICE_AB + ASK_PRICE_B) @ MIN(ASK_QUANTITY_AB, ASK_QUANTITY_B)
+  md::md_book March_Book
+      (
+          handle_md,
+          1
+      );
+  March_Book.add_implited_book(md::md_implied_book::implier_type::a_bid_b_bid,
+                               md::md_implied_book::implier_type::a_ask_b_ask,
+                               &abi,
+                               &aai);
+
+  //SHORT B(implied OUT, BID_B) <- (BID_PRICE_A - ASK_PRICE_AB) @ MIN(BID_QUANTITY_A, ASK_QUANTITY_AB)
+  //LONG B(implied OUT, ASK_B) <- (ASK_PRICE_A - BID_PRICE_AB) @ MIN(ASK_QUANTITY_A, BID_QUANTITY_AB)
+  md::md_book June_Book
+      (
+          handle_md,
+          1
+      );
+
+//  June_Book.add_implited_book(md::md_implied_book::implier_type::a_bid_b_ask,
+//                              md::md_implied_book::implier_type::a_ask_b_bid,
+//                              &mbi,
+//                              &mai);
+
+  //SHORT AB (implied IN, BID_AB) <- (BID_PRICE_A - ASK_PRICE_B) @ MIN(BID_QUANTITY_A, ASK_QUANTITY_B)
+  //LONG AB (implied IN, ASK_AB) <- (ASK_PRICE_A - BID_PRICE_B) @ MIN(ASK_QUANTITY_A, BID_QUANTITY_B)
+  md::md_book Spread_Book
+      (
+          handle_md,
+          1
+      );
+
+  Spread_Book.add_implited_book(md::md_implied_book::implier_type::a_bid_b_ask,
+                                md::md_implied_book::implier_type::a_ask_b_bid,
+                                &mbi,
+                                &mai);
+
+  matching::engine March
+      (
+          [&](const matching::order& odr)
+          {
+            handle_order(odr);
+            March_Book.handle_outright(odr);
+            //June_Book.handle_a(odr, 0);
+            Spread_Book.handle_a(odr, 0);
+          }
+      );
+  matching::engine June
+      (
+          [&](const matching::order& odr)
+          {
+            handle_order(odr);
+            June_Book.handle_outright(odr);
+            March_Book.handle_b(odr, 0);
+            Spread_Book.handle_b(odr, 0);
+
+          }
+      );
+  matching::engine Spread
+      (
+          [&](const matching::order& odr)
+          {
+            handle_order(odr);
+            Spread_Book.handle_outright(odr);
+            March_Book.handle_a(odr, 0);
+            //June_Book.handle_b(odr, 0);
+          }
+      );
+  matching::implied_spread_in_bid spread_bid_implier(1, &March, &June, 10);
+  matching::implied_spread_in_ask spread_ask_implier(1, &March, &June, 10);
+  matching::implied_spread_a_out_bid a_bid_implier(1, &Spread, &June, 10);
+  matching::implied_spread_a_out_ask a_ask_implier(1, &Spread, &June, 10);
+  matching::implied_spread_b_out_bid b_bid_implier(1, &March, &Spread, 10);
+  matching::implied_spread_b_out_ask b_ask_implier(1, &March, &Spread, 10);
+  Spread.set_bid_implier(&spread_bid_implier);
+  Spread.set_ask_implier(&spread_ask_implier);
+  March.set_bid_implier(&a_bid_implier);
+  March.set_ask_implier(&a_ask_implier);
+  //June.set_bid_implier(&b_bid_implier);
+  //June.set_ask_implier(&b_ask_implier);
+  matching::order o;
+
+//  o.side = matching::order::order_side::BUY;
+//  o.client_order_id = 33;
+//  o.price = 70;
+//  o.quantity = 333;
+//  o.display_quantity = o.quantity;
+//  Spread.handle(o);
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 1;
+  o.price = 9500;
+  o.quantity = 500;
+  o.display_quantity = o.quantity;
+  March.handle(o);
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 3;
+  o.price = 50;
+  o.quantity = 30;
+  o.display_quantity = 30;
+  Spread.handle(o);
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 2;
+  o.price = 9450;
+  o.quantity = 500;
+  o.display_quantity = o.quantity;
+  June.handle(o);
+
+  o.order_action = matching::order::AMEND;
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 2;
+  o.order_id = client_to_engine_id_map[o.client_order_id];
+  o.price = 9400;
+  o.quantity = 500;
+  o.display_quantity = o.quantity;
+  June.handle(o);
+  o.order_action = matching::order::NEW;
+
+  o.side = matching::order::order_side::SELL;
+  o.client_order_id = 34;
+  o.price = 69;
+  o.quantity = 69;
+  o.display_quantity = o.quantity;
+  Spread.handle(o);
+
+//
+//  o.side = matching::order::order_side::BUY;
+//  o.client_order_id = 4;
+//  o.price = 50;
+//  o.quantity = 100;
+//  o.display_quantity = 100;
+//  Spread.handle(o);
+}
+
 void implied_test_case_5()
 {
   matching::engine March(handle_order);
@@ -1476,7 +1624,8 @@ int main()
 {
   matching::engine e(handle_order);
   matching::order o;
-  implied_test_md_reprice();
+  implied_test_amend();
+  //implied_test_md_reprice();
   //test_no_response();
   //implied_test_md_tick_size();
   //test_reprice1();
