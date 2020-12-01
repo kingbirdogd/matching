@@ -446,6 +446,23 @@ namespace matching
 						last_matched_order_id2);
 				_e->callback(o);
 			}
+			long long top_price_own_side() const
+      {
+        long long px = order::MARKET_PRICE;
+        if (_side == order::order_side::BUY)
+        {
+          auto it = _e->_bid_book.begin();
+          if (it != _e->_bid_book.end() && it->second.size() > 0)
+            px = it->second.begin()->second->price;
+        }
+        else if (_side == order::order_side::SELL)
+        {
+          auto it = _e->_ask_book.begin();
+          if (it != _e->_ask_book.end() && it->second.size() > 0)
+            px = it->second.begin()->second->price;
+        }
+        return px;
+      }
 			long long top_price() const
 			{
 				if (!valid())
@@ -620,6 +637,7 @@ namespace matching
 				auto rt = _impliers.end();
 				top_price = _local.top_price();
 				top_quantity = _local.top_matching_quantity();
+				long long top_price_own_side = _local.top_price_own_side();
 				for (auto it = _impliers.begin(); it != _impliers.end(); ++it)
 				{
 					auto matched_price = order::MARKET_PRICE;
@@ -628,9 +646,17 @@ namespace matching
 						matched_price = it->second->matchd_price(it->second->_leg1->price,
 								it->second->_leg2->price,
 								_local._e->_mini_tick);
+						if (cmp(matched_price, top_price_own_side)) {
+						  if (_local._side == matching::order::SELL)
+                matched_price = top_price_own_side - _local._e->_mini_tick;
+              else if (_local._side == matching::order::BUY)
+                matched_price = top_price_own_side + _local._e->_mini_tick;
+            }
+
 						if (order::MARKET_PRICE != matched_price)
 						{
-							if (order::MARKET_PRICE == top_price || cmp(matched_price, top_price))
+							//if ((order::MARKET_PRICE == top_price || cmp(matched_price, top_price)) && (order::MARKET_PRICE == top_price_own_side || cmp(top_price_own_side, matched_price)))
+              if (order::MARKET_PRICE == top_price || cmp(matched_price, top_price))
 							{
 								top_price = matched_price;
 								top_quantity = it->second->_leg1.top_matching_quantity() < it->second->_leg2.top_matching_quantity()
