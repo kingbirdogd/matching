@@ -646,16 +646,15 @@ namespace matching
 						matched_price = it->second->matchd_price(it->second->_leg1->price,
 								it->second->_leg2->price,
 								_local._e->_mini_tick);
-						if (cmp(matched_price, top_price_own_side)) {
-						  if (_local._side == matching::order::SELL)
-                matched_price = top_price_own_side - _local._e->_mini_tick;
-              else if (_local._side == matching::order::BUY)
-                matched_price = top_price_own_side + _local._e->_mini_tick;
-            }
-
 						if (order::MARKET_PRICE != matched_price)
 						{
-							//if ((order::MARKET_PRICE == top_price || cmp(matched_price, top_price)) && (order::MARKET_PRICE == top_price_own_side || cmp(top_price_own_side, matched_price)))
+              if (cmp(matched_price, top_price_own_side)) {
+                if (_local._side == matching::order::SELL)
+                  matched_price = top_price_own_side - _local._e->_mini_tick;
+                else if (_local._side == matching::order::BUY)
+                  matched_price = top_price_own_side + _local._e->_mini_tick;
+              }
+              //if ((order::MARKET_PRICE == top_price || cmp(matched_price, top_price)) && (order::MARKET_PRICE == top_price_own_side || cmp(top_price_own_side, matched_price)))
               if (order::MARKET_PRICE == top_price || cmp(matched_price, top_price))
 							{
 								top_price = matched_price;
