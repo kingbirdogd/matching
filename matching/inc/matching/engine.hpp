@@ -648,11 +648,13 @@ namespace matching
 								_local._e->_mini_tick);
 						if (order::MARKET_PRICE != matched_price)
 						{
-              if (cmp(matched_price, top_price_own_side)) {
-                if (_local._side == matching::order::SELL)
-                  matched_price = top_price_own_side - _local._e->_mini_tick;
-                else if (_local._side == matching::order::BUY)
-                  matched_price = top_price_own_side + _local._e->_mini_tick;
+						  if (top_price_own_side != order::MARKET_PRICE) {
+                if (cmp(matched_price, top_price_own_side)) {
+                  if (_local._side == matching::order::SELL)
+                    matched_price = top_price_own_side - _local._e->_mini_tick;
+                  else if (_local._side == matching::order::BUY)
+                    matched_price = top_price_own_side + _local._e->_mini_tick;
+                }
               }
               //if ((order::MARKET_PRICE == top_price || cmp(matched_price, top_price)) && (order::MARKET_PRICE == top_price_own_side || cmp(top_price_own_side, matched_price)))
               if (order::MARKET_PRICE == top_price || cmp(matched_price, top_price))
