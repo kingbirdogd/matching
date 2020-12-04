@@ -36,7 +36,7 @@ if __name__ == '__main__':
     #print(f'{i["book_name"]} {Decimal(str(i["tick_sz"]))}')
     tsz = Decimal(str(i['tick_sz']))
     if i["book_name"] == "Futures":
-      fees = i['impliers'][0]['ai_maker_fees'] if 'impliers' in i.keys() else 0.0  # assume only 1 implier
+      fees = i['impliers'][0]['ai_maker_fees'] if len(i['impliers']) > 0 else 0.0  # assume only 1 implier
       outStr += f"taskset -c {cpui} ${{CORE_LOCATION}}/test_md_tcp_server {i['factor']} 127.0.0.1 34671 35671 127.0.0.1 {tsz} {fees} 127.0.0.1 34673 127.0.0.1 34672 a_bid_b_bid   a_ask_b_ask   add_bid_implier      add_ask_implier   >> ${{LOG_LOCATION}}/md_tcp1.out.log 2>> ${{LOG_LOCATION}}/md_tcp1.err.log &\nsleep 1\n"
       cpui += 1; cpui %= 16
       outStr += f"taskset -c {cpui} ${{CORE_LOCATION}}/proxy_md_pulsar -s ${{CORE_LOCATION}}/md.fbs -B $PUB_TIME_MS -R pulsar://${{PLSR_URL}} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-{i['market_id']} -F persistent://CF-V2/ME-WS/MD-DIFF-{i['market_id']} -X 35671 -v --oneQueue --skipAuth localhost >> ${{LOG_LOCATION}}/proxy_md_pulsar1.out.log 2>> ${{LOG_LOCATION}}/proxy_md_pulsar1.err.log &\nsleep 1\n"
@@ -45,7 +45,7 @@ if __name__ == '__main__':
       cpui += 1; cpui %= 16
       outStr += "\n"
     elif i["book_name"] == "Perpetual":
-      fees = i['impliers'][0]['ai_maker_fees'] if 'impliers' in i.keys() else 0.0  # assume only 1 implier
+      fees = i['impliers'][0]['ai_maker_fees'] if len(i['impliers']) > 0 else 0.0  # assume only 1 implier
       outStr += f"taskset -c {cpui} ${{CORE_LOCATION}}/test_md_tcp_server {i['factor']} 127.0.0.1 34672 35672 127.0.0.1 {tsz} {fees} 127.0.0.1 34671 127.0.0.1 34673 a_bid_b_ask   a_ask_b_bid   minus_bid_implier    minus_ask_implier >> ${{LOG_LOCATION}}/md_tcp2.out.log 2>> ${{LOG_LOCATION}}/md_tcp2.err.log &\nsleep 1\n"
       cpui += 1; cpui %= 16
       outStr += f"taskset -c {cpui} ${{CORE_LOCATION}}/proxy_md_pulsar -s ${{CORE_LOCATION}}/md.fbs -B $PUB_TIME_MS -R pulsar://${{PLSR_URL}} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-{i['market_id']} -F persistent://CF-V2/ME-WS/MD-DIFF-{i['market_id']} -X 35672 -v --oneQueue --skipAuth localhost >> ${{LOG_LOCATION}}/proxy_md_pulsar2.out.log 2>> ${{LOG_LOCATION}}/proxy_md_pulsar2.err.log &\nsleep 1\n"
@@ -54,7 +54,7 @@ if __name__ == '__main__':
       cpui += 1; cpui %= 16
       outStr += "\n"
     elif i["book_name"] == "Spread-Fut-Perp":
-      fees = i['impliers'][0]['ai_maker_fees'] if 'impliers' in i.keys() else 0.0  # assume only 1 implier
+      fees = i['impliers'][0]['ai_maker_fees'] if len(i['impliers']) > 0 else 0.0  # assume only 1 implier
       outStr += f"taskset -c {cpui} ${{CORE_LOCATION}}/test_md_tcp_server {i['factor']} 127.0.0.1 34673 35673 127.0.0.1 {tsz} {fees} 127.0.0.1 34671 127.0.0.1 34672 a_bid_b_ask   a_ask_b_bid   minus_bid_implier    minus_ask_implier >> ${{LOG_LOCATION}}/md_tcp3.out.log 2>> ${{LOG_LOCATION}}/md_tcp3.err.log &\nsleep 1\n"
       cpui += 1; cpui %= 16
       outStr += f"taskset -c {cpui} ${{CORE_LOCATION}}/proxy_md_pulsar -s ${{CORE_LOCATION}}/md.fbs -B $PUB_TIME_MS -R pulsar://${{PLSR_URL}} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-{i['market_id']} -F persistent://CF-V2/ME-WS/MD-DIFF-{i['market_id']} -X 35673 -v --oneQueue --skipAuth localhost >> ${{LOG_LOCATION}}/proxy_md_pulsar3.out.log 2>> ${{LOG_LOCATION}}/proxy_md_pulsar3.err.log &\nsleep 1\n"
@@ -63,7 +63,7 @@ if __name__ == '__main__':
       cpui += 1; cpui %= 16
       outStr += "\n"
     elif i["book_name"] == "Spot":
-      fees = i['impliers'][0]['ai_maker_fees'] if 'impliers' in i.keys() else 0.0  # assume only 1 implier
+      fees = i['impliers'][0]['ai_maker_fees'] if len(i['impliers']) > 0 else 0.0  # assume only 1 implier
       outStr += f"taskset -c {cpui} ${{CORE_LOCATION}}/test_md_tcp_server {i['factor']} 127.0.0.1 34674 35674 127.0.0.1 {tsz} {fees} 127.0.0.1 34672 127.0.0.1 34675 a_bid_b_bid   a_ask_b_ask   repo_out_bid_implier repo_out_ask_implier  >> ${{LOG_LOCATION}}/md_tcp4.out.log 2>> ${{LOG_LOCATION}}/md_tcp4.err.log &\nsleep 1\n"
       cpui += 1; cpui %= 16
       outStr += f"taskset -c {cpui} ${{CORE_LOCATION}}/proxy_md_pulsar -s ${{CORE_LOCATION}}/md.fbs -B $PUB_TIME_MS -R pulsar://${{PLSR_URL}} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-{i['market_id']} -F persistent://CF-V2/ME-WS/MD-DIFF-{i['market_id']} -X 35674 -v --oneQueue --skipAuth localhost >> ${{LOG_LOCATION}}/proxy_md_pulsar4.out.log 2>> ${{LOG_LOCATION}}/proxy_md_pulsar4.err.log &\nsleep 1\n"
@@ -72,7 +72,7 @@ if __name__ == '__main__':
       cpui += 1; cpui %= 16
       outStr += "\n"
     elif i["book_name"] == "Repo":
-      fees = i['impliers'][0]['ai_maker_fees'] if 'impliers' in i.keys() else 0.0  # assume only 1 implier
+      fees = i['impliers'][0]['ai_maker_fees'] if len(i['impliers']) > 0 else 0.0  # assume only 1 implier
       outStr += f'taskset -c {cpui} ${{CORE_LOCATION}}/test_md_tcp_server {i["factor"]} 127.0.0.1 34675 35675 127.0.0.1 {tsz} {fees}       ""     0        ""     0 a_none_b_none a_none_b_none none                 none               >> ${{LOG_LOCATION}}/md_tcp5.out.log 2>> ${{LOG_LOCATION}}/md_tcp5.err.log &\nsleep 1\n'
       cpui += 1; cpui %= 16
       outStr += f"taskset -c {cpui} ${{CORE_LOCATION}}/proxy_md_pulsar -s ${{CORE_LOCATION}}/md.fbs -B $PUB_TIME_MS -R pulsar://${{PLSR_URL}} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-{i['market_id']} -F persistent://CF-V2/ME-WS/MD-DIFF-{i['market_id']} -X 35675 -v --oneQueue --skipAuth localhost >> ${{LOG_LOCATION}}/proxy_md_pulsar5.out.log 2>> ${{LOG_LOCATION}}/proxy_md_pulsar5.err.log &\nsleep 1\n"
@@ -81,7 +81,7 @@ if __name__ == '__main__':
       cpui += 1; cpui %= 16
       outStr += "\n"
     elif i["book_name"] == "Index":
-      fees = i['impliers'][0]['ai_maker_fees'] if 'impliers' in i.keys() else 0.0  # assume only 1 implier
+      fees = i['impliers'][0]['ai_maker_fees'] if len(i['impliers']) > 0 else 0.0  # assume only 1 implier
       outStr += f'taskset -c {cpui} ${{CORE_LOCATION}}/test_md_tcp_server {i["factor"]} 127.0.0.1 34676 35676 127.0.0.1 {tsz} {fees}       ""     0        ""     0 a_none_b_none a_none_b_none none                 none               >> ${{LOG_LOCATION}}/md_tcp6.out.log 2>> ${{LOG_LOCATION}}/md_tcp6.err.log &\nsleep 1\n'
       cpui += 1; cpui %= 16
       outStr += f"taskset -c {cpui} ${{CORE_LOCATION}}/proxy_md_pulsar -s ${{CORE_LOCATION}}/md.fbs -B $PUB_TIME_MS -R pulsar://${{PLSR_URL}} -E persistent://CF-V2/ME-WS/MD-SNAPSHOT-{i['market_id']} -F persistent://CF-V2/ME-WS/MD-DIFF-{i['market_id']} -X 35676 -v --oneQueue --skipAuth localhost >> ${{LOG_LOCATION}}/proxy_md_pulsar6.out.log 2>> ${{LOG_LOCATION}}/proxy_md_pulsar6.err.log &\nsleep 1\n"
