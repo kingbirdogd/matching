@@ -88,10 +88,6 @@ book_item basic_book::handle_odr(const matching::order& odr)
 					it->second.remain_quantity = calc_remain_quantity;
 					return reduce_bid_quantity(odr.price, diff);
 				}
-				else
-				{
-					return book_item();
-				}
 				if (0 == it->second.remain_quantity)
 				{
 					orders.erase(it);
@@ -129,10 +125,6 @@ book_item basic_book::handle_odr(const matching::order& odr)
 					auto diff = it->second.remain_quantity - calc_remain_quantity;
 					it->second.remain_quantity = calc_remain_quantity;
 					return reduce_ask_quantity(odr.price, diff);
-				}
-				else
-				{
-					return book_item();
 				}
 				if (0 == it->second.remain_quantity)
 				{
