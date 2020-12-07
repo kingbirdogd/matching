@@ -92,6 +92,7 @@ book_item basic_book::handle_odr(const matching::order& odr)
 				{
 					orders.erase(it);
 				}
+				return book_item();
 			}
 		}
 		else if (matching::order::order_side::SELL == odr.side
@@ -130,6 +131,7 @@ book_item basic_book::handle_odr(const matching::order& odr)
 				{
 					orders.erase(it);
 				}
+				return book_item();
 			}
 		}
 		else
