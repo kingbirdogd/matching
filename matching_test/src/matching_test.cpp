@@ -15,6 +15,10 @@
 #include <unordered_map>
 #include <cassert>
 #include <cmath>
+#include <repo_out_bid_implier.hpp>
+#include <repo_out_ask_implier.hpp>
+#include <matching/implied_repo_out_bid.hpp>
+#include <matching/implied_repo_out_ask.hpp>
 
 std::unordered_map<unsigned long long, unsigned long long> client_to_engine_id_map;
 
@@ -658,8 +662,8 @@ void implied_test_md_reprice()
   o.side = matching::order::order_side::BUY;
   o.client_order_id = 2;
   o.price            =   9500;
-  o.quantity         =   200;
-  o.display_quantity =   200;
+  o.quantity         =   100;
+  o.display_quantity =   100;
   March.handle(o);
 
   o.side = matching::order::order_side::SELL;
@@ -684,14 +688,14 @@ void implied_test_md_reprice()
   o.quantity         =   300;
   o.display_quantity =   300;
   o.time_condition   = matching::order::MAKER_ONLY_REPRICE;
-  June.handle(o);    // This should also generate an implied order 200@198 on the Spread book,
-                         // but it will be repriced to 200@99
+  June.handle(o);    // This should also generate an implied order 100@200 on the Spread book,
+                         // but it will be repriced to 100@99
 
   // Now:
   //========================================================================================
   // March           |  June             | Spread
   //      Bid  Ask   |    Bid Ask        |     Bid Ask
-  // 200 9500  -     |      - 9300 300   |  200 99 100 400
+  // 200 9500  -     |      - 9300 300   |  100 99 100 400
 
   o.order_action = matching::order::order_action_type::CANCEL;
   o.client_order_id = 11;
@@ -702,10 +706,11 @@ void implied_test_md_reprice()
   //========================================================================================
   // March           |  June             | Spread
   //      Bid  Ask   |    Bid Ask        |     Bid Ask
-  // 200 9500  -     |      - 9300 300   |  200 99 -
+  // 200 9500  -     |      - 9300 300   |  100 99 -
 
-  // !!! The implied order 99@200 is still on Spread order book
-  // after the ask order (which casued the reprice) has been cancelled !!!
+  // !!! The implied order 100@99 is still on Spread order book
+  // after the ask order (which caused the reprice) has been cancelled !!!
+  // Spread orderbook should display 100@200 instead.
 
   std::cout << "=======================================================================" << std::endl;
   o.order_action = matching::order::order_action_type::NEW;
@@ -838,6 +843,152 @@ void implied_test_remain_qty_overflow()
   o.quantity         =  100000000000;
   o.display_quantity =  100000000000;
   Spread.handle(o);
+}
+
+void implied_test_md_repo()
+{
+  unsigned long long factor = 100000000;
+  repo_out_bid_implier abi(0, factor);
+  repo_out_ask_implier aai(0, factor);
+
+  //SHORT A(implied OUT, BID_A) <- (BID_PRICE_AB + BID_PRICE_B) @ MIN(BID_QUANTITY_AB, BID_QUANTITY_B)
+  //LONG A(implied OUT, ASK_A) <- (ASK_PRICE_AB + ASK_PRICE_B) @ MIN(ASK_QUANTITY_AB, ASK_QUANTITY_B)
+  md::md_book Spot_Book
+      (
+          handle_md,
+          1
+      );
+  Spot_Book.add_implited_book(md::md_implied_book::implier_type::a_bid_b_bid,
+                               md::md_implied_book::implier_type::a_ask_b_ask,
+                               &abi,
+                               &aai);
+
+  md::md_book Perp_Book
+      (
+          //handle_md,
+          [](const md::book_item& item){},
+          1
+      );
+
+  md::md_book Repo_Book
+      (
+         // handle_md,
+          [](const md::book_item& item){},
+          1
+      );
+
+  matching::engine Spot
+      (
+          [&](const matching::order& odr)
+          {
+            handle_order(odr);
+            Spot_Book.handle_outright(odr);
+            //Perp_Book.handle_a(odr, 0);
+            //Repo_Book.handle_a(odr, 0);
+          }
+      );
+  matching::engine Perp
+      (
+          [&](const matching::order& odr)
+          {
+            handle_order(odr);
+            Perp_Book.handle_outright(odr);
+            //Spot_Book.handle_b(odr, 0);
+            //Repo_Book.handle_b(odr, 0);
+            Spot_Book.handle_a(odr, 0);
+
+          }
+      );
+  matching::engine Repo
+      (
+          [&](const matching::order& odr)
+          {
+            handle_order(odr);
+            Repo_Book.handle_outright(odr);
+            //Spot_Book.handle_a(odr, 0);
+            //Perp_Book.handle_b(odr, 0);
+            Spot_Book.handle_b(odr, 0);
+          }
+      );
+  matching::implied_repo_out_bid a_bid_implier(1, &Repo, &Perp);
+  matching::implied_repo_out_ask a_ask_implier(1, &Repo, &Perp);
+  Spot.set_bid_implier(&a_bid_implier);
+  Spot.set_ask_implier(&a_ask_implier);
+  matching::order o;
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 21;
+  o.price = 11.75 * factor;
+  o.quantity = 2000 * factor;
+  o.display_quantity = o.quantity;
+  Perp.handle(o);
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 33;
+  o.price = -0.00004 * factor;
+  o.quantity = 399.9 * factor;
+  o.display_quantity = o.quantity;
+  Repo.handle(o);
+
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 35;
+  o.price = -0.00008 * factor;
+  o.quantity = 501.1 * factor;
+  o.display_quantity = o.quantity;
+  Repo.handle(o);
+
+  o.client_order_id = 33; o.order_action = matching::order::order_action_type::CANCEL;  o.order_id = client_to_engine_id_map[o.client_order_id];  Repo.handle(o);
+
+  o.order_action = matching::order::order_action_type::NEW;
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 33;
+  o.price = -0.00004 * factor;
+  o.quantity = 400.9 * factor;
+  o.display_quantity = o.quantity;
+  Repo.handle(o);
+
+  o.client_order_id = 35; o.order_action = matching::order::order_action_type::CANCEL;  o.order_id = client_to_engine_id_map[o.client_order_id];  Repo.handle(o);
+
+  o.order_action = matching::order::order_action_type::NEW;
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 35;
+  o.price = -0.00008 * factor;
+  o.quantity = 502.1 * factor;
+  o.display_quantity = o.quantity;
+  Repo.handle(o);
+
+
+//===============================================================
+
+//  o.order_action = matching::order::order_action_type::NEW;
+//  o.side = matching::order::order_side::BUY;
+//  o.client_order_id = 22;
+//  o.price = 11.75 * factor;
+//  o.quantity = 2000 * factor;
+//  o.display_quantity = o.quantity;
+//  Perp.handle(o);
+
+  o.client_order_id = 21; o.order_action = matching::order::order_action_type::CANCEL;  o.order_id = client_to_engine_id_map[o.client_order_id];  Perp.handle(o);
+
+  o.order_action = matching::order::order_action_type::NEW;
+  o.side = matching::order::order_side::BUY;
+  o.client_order_id = 23;
+  o.price = 11.75 * factor;
+  o.quantity = 2000 * factor;
+  o.display_quantity = o.quantity;
+  Perp.handle(o);
+
+  //o.client_order_id = 22; o.order_action = matching::order::order_action_type::CANCEL;  o.order_id = client_to_engine_id_map[o.client_order_id];  Perp.handle(o);
+
+
+//  o.order_action = matching::order::order_action_type::NEW;
+//  o.side = matching::order::order_side::BUY;
+//  o.client_order_id = 23;
+//  o.price = 11.75 * factor;
+//  o.quantity = 2000 * factor;
+//  o.display_quantity = o.quantity;
+//  Perp.handle(o);
+
 }
 
 void implied_test()
@@ -1292,7 +1443,7 @@ void test_case_1()
 
 	o.side = matching::order::order_side::BUY;
 	o.client_order_id = 30011;
-	o.price = 99;
+	o.price = 101;
 	o.quantity = 2000;
 	o.display_quantity = 2000;
 	e.handle(o);
@@ -1756,9 +1907,11 @@ int main()
 {
   matching::engine e(handle_order);
   matching::order o;
-  implied_test_amend_sell();
+  //implied_test_md_repo();
+  //test_case_1();
+  //implied_test_amend_sell();
   //implied_test_amend_buy();
-  //implied_test_md_reprice();
+  implied_test_md_reprice();
   //test_no_response();
   //implied_test_md_tick_size();
   //test_reprice1();
