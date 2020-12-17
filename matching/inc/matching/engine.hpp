@@ -1571,6 +1571,7 @@ namespace matching
 			{
 				o.client_order_id = client_order_id;
 				o.order_id = 0;
+				o.order_action = matching::order::order_action_type::NEW;
 				handle_new(o);
 			}
 		}

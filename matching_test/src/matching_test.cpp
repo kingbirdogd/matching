@@ -1428,6 +1428,28 @@ void implied_test_case_5()
   March.handle(o);
 }
 
+void test_case_amend_stop() {
+  matching::engine e(handle_order);
+  matching::order o;
+
+  o.side = matching::order::order_side::SELL_STOP;
+  o.client_order_id = 30013;
+  o.sell_stop_trigger_price = 98;
+  o.sell_stop_limit_price = 96;
+  o.quantity = 300;
+  o.display_quantity = 300;
+  e.handle(o);
+
+  o.order_action = matching::order::order_action_type::AMEND;
+  o.side = matching::order::order_side::SELL;
+  o.order_id = client_to_engine_id_map[o.client_order_id];
+  o.sell_stop_trigger_price = 99;
+  o.sell_stop_limit_price = 97;
+  o.quantity = 2000;
+  o.display_quantity = 2000;
+  e.handle(o);
+}
+
 void test_case_1()
 {
 	matching::engine e(handle_order);
@@ -1907,11 +1929,12 @@ int main()
 {
   matching::engine e(handle_order);
   matching::order o;
+  test_case_amend_stop();
   //implied_test_md_repo();
   //test_case_1();
   //implied_test_amend_sell();
   //implied_test_amend_buy();
-  implied_test_md_reprice();
+  //implied_test_md_reprice();
   //test_no_response();
   //implied_test_md_tick_size();
   //test_reprice1();
