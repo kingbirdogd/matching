@@ -521,5 +521,182 @@ void md_implied_book::handle_b(const matching::order& odr)
 	}
 }
 
+void md_implied_book::handle_implied_bid()
+{
+	if (bid_implie_type == implier_type::a_bid_b_bid)
+	{
+		auto leg1 = a.bid;
+		auto leg2 = b.bid;
+		auto& implied_book = implied_bid;
+		implier* ip = bid_implier;
+		if (ip)
+		{
+			auto rt = handle_implied
+			(
+				leg1,
+				leg2,
+				implied_book,
+				outright,
+				book_item::book_side::bid,
+				ip,
+				mini_tick);
+			for (const auto& item : rt)
+				cb(item);
+		}
+	}
+	else if (bid_implie_type == implier_type::a_ask_b_bid)
+	{
+		auto leg1 = a.ask;
+		auto leg2 = b.bid;
+		auto& implied_book = implied_bid;
+		implier* ip = bid_implier;
+		if (ip)
+		{
+			auto rt = handle_implied
+			(
+				leg1,
+				leg2,
+				implied_book,
+				outright,
+				book_item::book_side::bid,
+				ip,
+				mini_tick);
+			for (const auto& item : rt)
+				cb(item);
+		}
+	}
+	else if (bid_implie_type == implier_type::a_bid_b_ask)
+	{
+		auto leg1 = a.bid;
+		auto leg2 = b.ask;
+		auto& implied_book = implied_bid;
+		implier* ip = bid_implier;
+		if (ip)
+		{
+			auto rt = handle_implied
+			(
+				leg1,
+				leg2,
+				implied_book,
+				outright,
+				book_item::book_side::bid,
+				ip,
+				mini_tick);
+			for (const auto& item : rt)
+				cb(item);
+		}
+	}
+	else if (bid_implie_type == implier_type::a_ask_b_ask)
+	{
+		auto leg1 = a.ask;
+		auto leg2 = b.ask;
+		auto& implied_book = implied_bid;
+		implier* ip = bid_implier;
+		if (ip)
+		{
+			auto rt = handle_implied
+			(
+				leg1,
+				leg2,
+				implied_book,
+				outright,
+				book_item::book_side::bid,
+				ip,
+				mini_tick);
+			for (const auto& item : rt)
+				cb(item);
+		}
+	}
+}
+
+
+void md_implied_book::handle_implied_ask()
+{
+	if (ask_implie_type == implier_type::a_bid_b_ask)
+	{
+		auto leg1 = a.bid;
+		auto leg2 = b.ask;
+		auto& implied_book = implied_ask;
+		implier* ip = ask_implier;
+		if (ip)
+		{
+			auto rt = handle_implied
+			(
+				leg1,
+				leg2,
+				implied_book,
+				outright,
+				book_item::book_side::ask,
+				ip,
+				mini_tick);
+			for (const auto& item : rt)
+				cb(item);
+		}
+	}
+	else if (ask_implie_type == implier_type::a_ask_b_ask)
+	{
+		auto leg1 = a.ask;
+		auto leg2 = b.ask;
+		auto& implied_book = implied_ask;
+		implier* ip = ask_implier;
+		if (ip)
+		{
+			auto rt = handle_implied
+			(
+				leg1,
+				leg2,
+				implied_book,
+				outright,
+				book_item::book_side::ask,
+				ip,
+				mini_tick);
+			for (const auto& item : rt)
+				cb(item);
+		}
+	}
+	else if (ask_implie_type == implier_type::a_bid_b_ask)
+	{
+		auto leg1 = a.bid;
+		auto leg2 = b.ask;
+		auto& implied_book = implied_ask;
+		implier* ip = ask_implier;
+		if (ip)
+		{
+			auto rt = handle_implied
+			(
+				leg1,
+				leg2,
+				implied_book,
+				outright,
+				book_item::book_side::ask,
+				ip,
+				mini_tick);
+			for (const auto& item : rt)
+				cb(item);
+		}
+	}
+	else if (ask_implie_type == implier_type::a_ask_b_ask)
+	{
+		auto leg1 = a.ask;
+		auto leg2 = b.ask;
+		auto& implied_book = implied_ask;
+		implier* ip = ask_implier;
+		if (ip)
+		{
+			auto rt = handle_implied
+			(
+				leg1,
+				leg2,
+				implied_book,
+				outright,
+				book_item::book_side::ask,
+				ip,
+				mini_tick);
+			for (const auto& item : rt)
+				cb(item);
+		}
+	}
+}
+
 
 

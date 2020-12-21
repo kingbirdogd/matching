@@ -1,4 +1,5 @@
 #include <md/basic_book.hpp>
+#include <limits>
 
 using namespace md;
 
@@ -138,6 +139,34 @@ book_item basic_book::handle_odr(const matching::order& odr)
 		{
 			return book_item();
 		}
+	}
+}
+
+long long basic_book::best_bid_price()
+{
+	long long best_price = std::numeric_limits<long long>::min();
+	auto it = bid.begin();
+	if (bid.end() != it)
+	{
+		return it->first;
+	}
+	else
+	{
+		return std::numeric_limits<long long>::min();
+	}
+}
+
+long long basic_book::best_ask_price()
+{
+	long long best_price = std::numeric_limits<long long>::max();
+	auto it = ask.begin();
+	if (ask.end() != it)
+	{
+		return it->first;
+	}
+	else
+	{
+		return std::numeric_limits<long long>::max();
 	}
 }
 

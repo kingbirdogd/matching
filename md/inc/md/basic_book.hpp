@@ -22,6 +22,8 @@ namespace md
 		book_item add_ask_quantity(long long price, unsigned long long quantity);
 		book_item reduce_ask_quantity(long long price, unsigned long long quantity);
 		book_item handle_odr(const matching::order& odr);
+		long long best_bid_price();
+		long long best_ask_price();
 	};
 }
 

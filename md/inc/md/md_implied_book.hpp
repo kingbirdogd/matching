@@ -91,6 +91,8 @@ namespace md
 		~md_implied_book() = default;
 		void handle_a(const matching::order& odr);
 		void handle_b(const matching::order& odr);
+		void handle_implied_bid();
+		void handle_implied_ask();
 	};
 };
 
