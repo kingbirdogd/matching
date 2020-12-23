@@ -866,14 +866,14 @@ void implied_test_md_repo()
   md::md_book Perp_Book
       (
           //handle_md,
-          [](const md::book_item& item){},
+          [](const md::book_item&){},
           1
       );
 
   md::md_book Repo_Book
       (
          // handle_md,
-          [](const md::book_item& item){},
+          [](const md::book_item&){},
           1
       );
 
@@ -1928,13 +1928,13 @@ void test_no_response() {
 int main()
 {
   matching::engine e(handle_order);
-  matching::order o;
-  test_case_amend_stop();
+  //matching::order o;
+  //test_case_amend_stop();
   //implied_test_md_repo();
   //test_case_1();
   //implied_test_amend_sell();
   //implied_test_amend_buy();
-  //implied_test_md_reprice();
+  implied_test_md_reprice();
   //test_no_response();
   //implied_test_md_tick_size();
   //test_reprice1();

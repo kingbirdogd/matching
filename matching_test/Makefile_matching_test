@@ -1,5 +1,0 @@
-CC=clang++
-CFLAGS=--std=c++17 -I../matching/inc -I../matching/order/inc -I../core/inc -I../implier/inc -I../md/inc -I../inc -I../memory/inc
-
-matching_test: src/matching_test.cpp ../matching/src/engine.cpp ../md/src/basic_book.cpp ../md/src/md_book.cpp ../md/src/md_implied_book.cpp
-	$(CC) $(CFLAGS) -o matching_test src/matching_test.cpp ../matching/src/engine.cpp ../md/src/basic_book.cpp ../md/src/md_book.cpp ../md/src/md_implied_book.cpp
