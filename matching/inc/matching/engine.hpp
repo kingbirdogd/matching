@@ -27,15 +27,20 @@ inline static unsigned long long current()
 
 namespace matching
 {
-  auto order_set_cmp = [](order* a, order*b){ return a->order_id < b->order_id; };
-	class engine
+  //auto order_set_cmp = [](order* a, order*b){ return a->order_id < b->order_id; };
+//  struct order_set_cmp {
+//    bool operator() (const order* a, const order* b) const { return a->order_id < b->order_id; }
+//  };
+  static bool order_set_cmp(order* a, order* b) { return a->order_id < b->order_id; }
+  class engine
 	{
 	private:
 		using search_order_map = std::unordered_map<unsigned long long, order>;
 		using id_order_map = std::map<unsigned long long, order*>;
 		//using order_set = std::unordered_set<order*>;
     //static auto order_set_cmp = [](order* a, order*b){ return a->order_id < b->order_id; };
-    using order_set = std::set<order*, decltype(order_set_cmp)>;
+    using order_set = std::set<order*, decltype(&order_set_cmp)>;
+    //using order_set = std::set<order*, order_set_cmp>;
 		using bid_book_type = std::map<long long, id_order_map, std::greater<long long>>;
 		using ask_book_type = std::map<long long, id_order_map, std::less<long long>>;
 		using bid_stop_book_type = std::map<long long, order_set, std::less<long long>>;
