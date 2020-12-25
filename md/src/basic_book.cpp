@@ -47,9 +47,8 @@ book_item basic_book::reduce_ask_quantity(long long price, unsigned long long qu
 
 book_item basic_book::handle_odr(const matching::order& odr)
 {
-	if (matching::order::STOP_PRICE == odr.price)
-		return book_item();
-	else
+	book_item rt_item;
+	if (matching::order::STOP_PRICE != odr.price)
 	{
 		auto calc_remain_quantity = odr.remain_quantity;
 		if (matching::order::order_status_type::OPEN != odr.order_state
@@ -68,11 +67,7 @@ book_item basic_book::handle_odr(const matching::order& odr)
 				if (0 != calc_remain_quantity)
 				{
 					orders[odr.order_id] = odr;
-					return add_bid_quantity(odr.price, calc_remain_quantity);
-				}
-				else
-				{
-					return book_item();
+					rt_item = add_bid_quantity(odr.price, calc_remain_quantity);
 				}
 			}
 			else
@@ -81,19 +76,18 @@ book_item basic_book::handle_odr(const matching::order& odr)
 				{
 					auto diff = calc_remain_quantity - it->second.remain_quantity;
 					it->second.remain_quantity = calc_remain_quantity;
-					return add_bid_quantity(odr.price, diff);
+					rt_item =  add_bid_quantity(odr.price, diff);
 				}
 				else if (it->second.remain_quantity > calc_remain_quantity)
 				{
 					auto diff = it->second.remain_quantity - calc_remain_quantity;
 					it->second.remain_quantity = calc_remain_quantity;
-					return reduce_bid_quantity(odr.price, diff);
+					rt_item = reduce_bid_quantity(odr.price, diff);
 				}
 				if (0 == it->second.remain_quantity)
 				{
 					orders.erase(it);
 				}
-				return book_item();
 			}
 		}
 		else if (matching::order::order_side::SELL == odr.side
@@ -107,11 +101,7 @@ book_item basic_book::handle_odr(const matching::order& odr)
 				if (0 != calc_remain_quantity)
 				{
 					orders[odr.order_id] = odr;
-					return add_ask_quantity(odr.price, calc_remain_quantity);
-				}
-				else
-				{
-					return book_item();
+					rt_item = add_ask_quantity(odr.price, calc_remain_quantity);
 				}
 			}
 			else
@@ -120,26 +110,22 @@ book_item basic_book::handle_odr(const matching::order& odr)
 				{
 					auto diff = calc_remain_quantity - it->second.remain_quantity;
 					it->second.remain_quantity = calc_remain_quantity;
-					return add_ask_quantity(odr.price, diff);
+					rt_item =  add_ask_quantity(odr.price, diff);
 				}
 				else if (it->second.remain_quantity > calc_remain_quantity)
 				{
 					auto diff = it->second.remain_quantity - calc_remain_quantity;
 					it->second.remain_quantity = calc_remain_quantity;
-					return reduce_ask_quantity(odr.price, diff);
+					rt_item = reduce_ask_quantity(odr.price, diff);
 				}
 				if (0 == it->second.remain_quantity)
 				{
 					orders.erase(it);
 				}
-				return book_item();
 			}
 		}
-		else
-		{
-			return book_item();
-		}
 	}
+	return rt_item;
 }
 
 long long basic_book::best_bid_price()
